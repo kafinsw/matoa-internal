@@ -225,7 +225,7 @@ export default function LaporanDashboard() {
 
   async function handleStatusChange(id, newStatus) {
     try {
-      const res = await fetch('/api/laporan/status', {
+      const res = await fetch('/internal/api/laporan/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status: newStatus }),
@@ -254,7 +254,7 @@ export default function LaporanDashboard() {
   // load stats
   useEffect(() => {
     let ac = new AbortController();
-    const loadStats = () => fetch(`/api/laporan/stats?days=${range}`, { signal: ac.signal })
+    const loadStats = () => fetch(`/internal/api/laporan/stats?days=${range}`, { signal: ac.signal })
       .then(r=>r.json()).then(d=>{ if(d.ok) setStats(d); }).catch(()=>{});
     loadStats();
     const t = setInterval(loadStats, 5000);
@@ -267,7 +267,7 @@ export default function LaporanDashboard() {
     const id = detail.laporan.id;
     let ac = new AbortController();
     const t = setInterval(() => {
-      fetch(`/api/laporan/detail?id=${id}`, { signal: ac.signal })
+      fetch(`/internal/api/laporan/detail?id=${id}`, { signal: ac.signal })
         .then(r=>r.json()).then(d=>{ if(d.ok) setDetail(d); }).catch(()=>{});
     }, 5000);
     return () => { clearInterval(t); ac.abort(); };
@@ -279,7 +279,7 @@ export default function LaporanDashboard() {
     let ac = new AbortController();
     const loadFeed = (showLoading) => {
       if(showLoading) setLoading(true);
-      fetch(`/api/laporan/feed?filter=all&page=${page}&limit=${LIMIT}${apiType?`&type=${apiType}`:''}${statusFilter?`&status=${encodeURIComponent(statusFilter)}`:''}${search?`&search=${encodeURIComponent(search)}`:''}`
+      fetch(`/internal/api/laporan/feed?filter=all&page=${page}&limit=${LIMIT}${apiType?`&type=${apiType}`:''}${statusFilter?`&status=${encodeURIComponent(statusFilter)}`:''}${search?`&search=${encodeURIComponent(search)}`:''}`
         , { signal: ac.signal })
         .then(r=>r.json())
         .then(d=>{
@@ -517,7 +517,7 @@ export default function LaporanDashboard() {
                   <div className={s.mCardInner}>
                     <span className={s.mCardOutletRow} onClick={async()=>{
                       setDetail(null); setDetailLoading(true); setDetailVisible(false);
-                      try { const r=await fetch(`/api/laporan/detail?id=${row.id}`); const d=await r.json(); if(d.ok){setDetail(d);requestAnimationFrame(()=>requestAnimationFrame(()=>setDetailVisible(true)));} else{setToast('❌ Detail gagal: '+(d.message||'error'));setTimeout(()=>setToast(null),4000);} } catch(e){setToast('❌ '+e.message);setTimeout(()=>setToast(null),4000);} finally{setDetailLoading(false);}
+                      try { const r=await fetch(`/internal/api/laporan/detail?id=${row.id}`); const d=await r.json(); if(d.ok){setDetail(d);requestAnimationFrame(()=>requestAnimationFrame(()=>setDetailVisible(true)));} else{setToast('❌ Detail gagal: '+(d.message||'error'));setTimeout(()=>setToast(null),4000);} } catch(e){setToast('❌ '+e.message);setTimeout(()=>setToast(null),4000);} finally{setDetailLoading(false);}
                     }}>
                       <span className={s.mCardNo}>{total - ((page-1)*LIMIT) - idx}</span>
                       <span className={s.mCardOutletName}>
@@ -546,7 +546,7 @@ export default function LaporanDashboard() {
                   {/* desktop: outlet klik (badge ada di colTyp) */}
                   <span className={`${s.mCardDesktop} ${s.outletClickSpan}`} onClick={async()=>{
                     setDetail(null); setDetailLoading(true); setDetailVisible(false);
-                    try { const r=await fetch(`/api/laporan/detail?id=${row.id}`); const d=await r.json(); if(d.ok){setDetail(d);requestAnimationFrame(()=>requestAnimationFrame(()=>setDetailVisible(true)));} else{setToast('❌ Detail gagal: '+(d.message||'error'));setTimeout(()=>setToast(null),4000);} } catch(e){setToast('❌ '+e.message);setTimeout(()=>setToast(null),4000);} finally{setDetailLoading(false);}
+                    try { const r=await fetch(`/internal/api/laporan/detail?id=${row.id}`); const d=await r.json(); if(d.ok){setDetail(d);requestAnimationFrame(()=>requestAnimationFrame(()=>setDetailVisible(true)));} else{setToast('❌ Detail gagal: '+(d.message||'error'));setTimeout(()=>setToast(null),4000);} } catch(e){setToast('❌ '+e.message);setTimeout(()=>setToast(null),4000);} finally{setDetailLoading(false);}
                   }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={s.svgOpacity}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     {row.outlet_nama||row.outlet_kode}
@@ -697,7 +697,7 @@ export default function LaporanDashboard() {
                       <button onClick={async()=>{
                         setDetailLoading(true);
                         try {
-                          const r = await fetch(`/api/laporan/detail?id=${detail.laporan.id}`);
+                          const r = await fetch(`/internal/api/laporan/detail?id=${detail.laporan.id}`);
                           const d = await r.json();
                           if(d.ok) setDetail(d);
                         } catch(e) { setToast('❌ Refresh gagal: '+(e.message||'error'));setTimeout(()=>setToast(null),4000); }
@@ -771,7 +771,7 @@ export default function LaporanDashboard() {
                       <button onClick={async()=>{
                         setDetailLoading(true);
                         try {
-                          const r = await fetch(`/api/laporan/detail?id=${detail.laporan.id}`);
+                          const r = await fetch(`/internal/api/laporan/detail?id=${detail.laporan.id}`);
                           const d = await r.json();
                           if(d.ok) setDetail(d);
                         } catch(e) { setToast('❌ Refresh gagal: '+(e.message||'error'));setTimeout(()=>setToast(null),4000); }
@@ -858,7 +858,7 @@ export default function LaporanDashboard() {
                         style={STATUS_BORDER[lp.status]?{borderColor:STATUS_BORDER[lp.status]}:undefined}
                         onChange={async e => {
                           const newStatus = e.target.value;
-                          const res = await fetch('/api/laporan/status', {
+                          const res = await fetch('/internal/api/laporan/status', {
                             method: 'POST',
                             headers: {'Content-Type':'application/json'},
                             body: JSON.stringify({ id: lp.id, status: newStatus }),
