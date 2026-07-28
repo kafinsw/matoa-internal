@@ -982,10 +982,46 @@ input[readonly]:focus { box-shadow: none; border-color: var(--line); }
 }
 
 /* Responsive */
+@media (max-width: 600px) {
+  .wrap { max-width: 100%; }
+  .sec, .note, .gps { margin-left: 12px; margin-right: 12px; }
+  .hero { padding-left: 14px; padding-right: 14px; }
+  .topbar { padding-left: 14px; padding-right: 14px; }
+  .add-wrap { padding-left: 12px; padding-right: 12px; }
+  .cta { margin-left: 12px; margin-right: 12px; }
+  .result { margin-left: 12px; margin-right: 12px; }
+  .step-prog { padding: 12px 10px; }
+  .sp-item { min-width: 40px; }
+  .ki-label { min-width: 90px; }
+}
+
 @media (max-width: 400px) {
   .hero h1 { font-size: 23px; }
   .hero { padding-left: 16px; padding-right: 16px; }
   .sec, .note { margin-left: 12px; margin-right: 12px; }
+}
+
+@media (max-width: 375px) {
+  .hero h1 { font-size: 20px; }
+  .hero { padding: 16px 12px 2px; }
+  .sec, .note, .gps { margin-left: 8px; margin-right: 8px; padding: 14px 12px; }
+  .topbar { padding: 11px 12px; padding-top: calc(11px + env(safe-area-inset-top)); }
+  .dept { font-size: 8.5px; letter-spacing: .12em; }
+  .topbar .tag { font-size: 9px; }
+  .add-wrap { padding-left: 8px; padding-right: 8px; }
+  .cta { margin-left: 8px; margin-right: 8px; }
+  .result { margin-left: 8px; margin-right: 8px; }
+  .step-prog { padding: 10px 6px; gap: 0; }
+  .sp-item { min-width: 34px; }
+  .sp-label { font-size: 8px; letter-spacing: .04em; }
+  .sp-icon { width: 24px; height: 24px; font-size: 10px; }
+  .sec-h .tt { font-size: 15px; }
+  .mark { width: 32px; height: 32px; font-size: 12px; border-radius: 8px; }
+  .ki-label { min-width: 80px; font-size: 9px; }
+  .ki-val { font-size: 12px; }
+  .popup-box { padding: 22px 16px; }
+  .actions { grid-template-columns: 1fr; }
+  .act.primary { grid-column: 1; }
 }
 
 /* ── utility classes (converted from inline styles) ── */
