@@ -96,6 +96,14 @@ PHP_API_BASE_URL=http://localhost:4002/php-api
 
 ## Deploy ke Server
 
+**Auto deploy script:**
+```bash
+./deploy.sh
+```
+
+Script pull + build backend + restart PM2 + build frontend sekaligus.
+
+**Manual:**
 ```bash
 # Di server (siddiq@matoa-group)
 cd /home/siddiq/internal/matoa-internal
