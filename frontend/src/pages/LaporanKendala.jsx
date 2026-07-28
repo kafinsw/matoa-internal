@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '../api/client';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo.svg';
 import './LaporanKendala.css';
 
 /* ===== Photo Viewer with Zoom ===== */
