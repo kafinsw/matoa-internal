@@ -4,7 +4,7 @@ import LaporanKendala from './pages/LaporanKendala';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/internal">
       <Routes>
         <Route path="/laporan-kendala" element={<LaporanKendala />} />
         <Route path="/laporan-perbaikan" element={<LaporanPerbaikan />} />
