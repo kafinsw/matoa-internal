@@ -69,6 +69,8 @@ html { scroll-padding-bottom: 32vh; }
   color: var(--grey);
   padding-left: 11px;
   border-left: 1px solid var(--line);
+  display: flex;
+  align-items: center;
 }
 .topbar .tag {
   font-family: var(--mono);
@@ -207,7 +209,7 @@ html { scroll-padding-bottom: 32vh; }
 }
 .lead {
   font-family: var(--serif);
-  font-size: 14.5px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--grey3);
   margin: 0;
