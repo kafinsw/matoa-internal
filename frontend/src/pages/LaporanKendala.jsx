@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '../api/client';
+import logo from '../assets/logo.webp';
 import './LaporanKendala.css';
 
 /* ===== Photo Viewer with Zoom ===== */
@@ -493,7 +494,7 @@ export default function LaporanKendala() {
       {/* Topbar - matched reference */}
       <div className="topbar">
         <div className="brand">
-          <div className="logo-mark">M</div>
+          <img src={logo} alt="Matoa" className="logo-mark" style={{filter:'invert()'}} />
           <span className="dept">Maintenance</span>
         </div>
         <div className="topbar-right">

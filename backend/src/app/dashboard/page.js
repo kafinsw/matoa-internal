@@ -313,7 +313,7 @@ export default function LaporanDashboard() {
       <div className={s.top}>
         <div className={`${s.wrap} ${s.wrapTopBar}`}>
           <div className={s.brand}>
-            <img src="/internal/logo.svg" alt="Matoa" className={s.brandLogo} />
+            <img src="/internal/logo.webp" alt="Matoa" className={s.brandLogo} style={{filter: 'invert()'}} />
             <div><div className={s.bt}>Papan Kinerja Maintenance</div><div className={s.bs}>Matoa Group · User ME & GA</div></div>
           </div>
           <div className={s.spacer}/>

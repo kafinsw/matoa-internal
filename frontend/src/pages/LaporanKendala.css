@@ -57,6 +57,7 @@ html { scroll-padding-bottom: 32vh; }
 .logo-mark {
   height: 26px;
   width: auto;
+  object-fit: contain;
   display: block;
 }
 .dept {

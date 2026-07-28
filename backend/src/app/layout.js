@@ -1,8 +1,9 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Matoa Internal Backend',
+  title: 'MatoaGroup Dashboard',
   description: 'Backend Next.js untuk Matoa Internal',
+  icons: { icon: '/internal/logo.webp' },
 };
 
 export default function RootLayout({ children }) {

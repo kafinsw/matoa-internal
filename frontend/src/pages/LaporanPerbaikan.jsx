@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import logo from "../assets/logo.svg";
+import logo from "../assets/logo.webp";
 import "./LaporanPerbaikan.css";
 
 /* ── Photo Viewer (zoom + pan + double-tap) ── */
