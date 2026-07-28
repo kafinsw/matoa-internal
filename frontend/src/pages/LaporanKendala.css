@@ -1002,6 +1002,7 @@ input[readonly]:focus { box-shadow: none; border-color: var(--line); }
   .hero h1 { font-size: 23px; }
   .hero { padding-left: 16px; padding-right: 16px; }
   .sec, .note { margin-left: 10px; margin-right: 10px; }
+  .sec { margin: 14px 14px 0; padding: 10px 10px; }
   .wrap input, .wrap select, .wrap .ket { padding: 13px 26px 13px 12px; font-size: 11px; }
 }
 
