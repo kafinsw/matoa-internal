@@ -54,6 +54,7 @@ html { scroll-padding-bottom: 32vh; }
   background: var(--bg);
 }
 .brand { display: flex; align-items: center; gap: 11px; }
+.topbar-right { display: flex; align-items: center; }
 .logo-mark {
   height: 26px;
   width: auto;
@@ -217,8 +218,8 @@ html { scroll-padding-bottom: 32vh; }
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
-  margin: 14px 16px 0;
-  padding: 20px 18px;
+  margin: 14px 0px 0;
+  padding: 20px 10px;
 }
 .sec-h {
   display: flex;
@@ -245,22 +246,22 @@ html { scroll-padding-bottom: 32vh; }
 }
 .sec-h .tt {
   font-family: var(--disp);
-  font-weight: 700;
-  font-size: 18px;
   letter-spacing: -.01em;
-  line-height: 1.15;
   color: var(--white);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.15;
 }
 .sec-h .ds {
   font-family: var(--serif);
-  font-size: 12.5px;
   color: var(--grey);
   margin-top: 2px;
+  font-size: 11px;
 }
 .sec-h .hint {
   margin-left: auto;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 8px;
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--grey2);
@@ -297,12 +298,16 @@ label.fl {
 .wrap input, .wrap select, .wrap .ket {
   width: 100%;
   font-family: var(--body);
-  font-size: 16px;
   color: var(--ink);
   background: var(--field);
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 13px 14px;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 13px 26px 13px 12px;
   transition: border-color .15s, box-shadow .15s;
 }
 .wrap input::placeholder, .wrap .ket::placeholder { color: var(--grey2); }
@@ -501,10 +506,10 @@ input[readonly]:focus { box-shadow: none; border-color: var(--line); }
 }
 .note p {
   font-family: var(--serif);
-  font-size: 13.5px;
-  line-height: 1.5;
   color: var(--grey3);
   margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 /* Popup Modal */
@@ -998,7 +1003,7 @@ input[readonly]:focus { box-shadow: none; border-color: var(--line); }
 @media (max-width: 400px) {
   .hero h1 { font-size: 23px; }
   .hero { padding-left: 16px; padding-right: 16px; }
-  .sec, .note { margin-left: 12px; margin-right: 12px; }
+  .sec, .note { margin-left: 10px; margin-right: 10px; }
 }
 
 @media (max-width: 375px) {
