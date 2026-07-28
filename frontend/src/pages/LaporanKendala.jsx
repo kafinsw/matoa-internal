@@ -403,39 +403,45 @@ export default function LaporanKendala() {
       if (!tidJson.ok) throw new Error('Gagal generate tiket ID');
       const tid = tidJson.tiket_id;
 
-      // Detect device — high-entropy API for exact model (Chrome 110+ Android hides model as "K")
+      // Detect device — format: Browser/Device
       const getDeviceInfo = async () => {
         const ua = navigator.userAgent;
-        const brMatch = ua.match(/(Chrome|Firefox|Edge|OPR)\/(\d+)/);
-        const br = brMatch ? brMatch[1].replace('OPR', 'Opera') + ' ' + brMatch[2] : '';
+        const brMatch = ua.match(/(Chrome|Firefox|Edge|OPR|Safari)\/([\d]+)/);
+        const br = brMatch ? brMatch[1].replace('OPR', 'Opera') : 'Browser';
         try {
           if (navigator.userAgentData?.getHighEntropyValues) {
             const h = await navigator.userAgentData.getHighEntropyValues(['model', 'platform', 'platformVersion']);
             const model = h.model || '';
             const platform = h.platform || '';
             const ver = (h.platformVersion || '').split('.')[0];
-            if (model) return `${platform} ${ver} / ${model} / ${br}`.slice(0, 80);
-            if (platform) return `${platform} ${ver} / ${br}`.slice(0, 80);
+            if (model) return `${br}/${model}`.slice(0, 80);
+            if (platform) return `${br}/${platform} ${ver}`.trim().slice(0, 80);
           }
         } catch (_) { /* fallback below */ }
         const m = ua.match(/\(([^)]+)\)/);
-        if (!m) return `Unknown / ${br}`;
+        if (!m) return `${br}/Unknown`;
         const parts = m[1].split(';').map(s => s.trim());
         if (parts[1]?.startsWith('Android')) {
           const raw = parts.slice(2).join('; ').trim();
           const brandMatch = ua.match(/(Infinix|Samsung|Xiaomi|Redmi|OPPO|Vivo|Realme|OnePlus|Huawei|Nokia|Tecno)\s+[A-Z0-9\-]+/i);
           const device = (!raw || raw === 'K') ? (brandMatch?.[0] || 'Android') : raw.replace(/\s+Build\/.+/, '');
-          return `${parts[1]} / ${device} / ${br}`.slice(0, 80);
+          return `${br}/${device}`.slice(0, 80);
         }
-        if (parts[0] === 'iPhone') return `iPhone iOS ${(parts[1]?.match(/OS ([\d_]+)/)?.[1]||'').replace(/_/g,'.')} / ${br}`;
-        if (parts[0] === 'iPad')   return `iPad iOS ${(parts[1]?.match(/OS ([\d_]+)/)?.[1]||'').replace(/_/g,'.')} / ${br}`;
+        if (parts[0] === 'iPhone') {
+          const ios = (parts[1]?.match(/OS ([\d_]+)/)?.[1] || '').replace(/_/g, '.');
+          return `${br}/iPhone${ios ? ' iOS ' + ios : ''}`;
+        }
+        if (parts[0] === 'iPad') {
+          const ios = (parts[1]?.match(/OS ([\d_]+)/)?.[1] || '').replace(/_/g, '.');
+          return `${br}/iPad${ios ? ' iOS ' + ios : ''}`;
+        }
         const win = parts.find(p => p.startsWith('Windows NT'));
         if (win) {
           const ver = {'10.0':'10','6.3':'8.1','6.2':'8','6.1':'7'}[win.replace('Windows NT ','')] || win.replace('Windows NT ','');
-          return `Windows ${ver} / ${br}`;
+          return `${br}/Windows ${ver}`;
         }
-        if (parts.find(p => p === 'Macintosh')) return `macOS / ${br}`;
-        return `Linux / ${br}`;
+        if (parts.find(p => p === 'Macintosh')) return `${br}/macOS`;
+        return `${br}/Linux`;
       };
       const createdBy = await getDeviceInfo();
 
@@ -444,6 +450,7 @@ export default function LaporanKendala() {
         outlet,
         user_id: kategoriSelected?.user_id ?? null,
         created_by: createdBy,
+        device: createdBy,
         gejala_id: kategoriSelected?.gejala_id ?? null,
         created_at: (() => {
           const t = ticketTime || new Date();
