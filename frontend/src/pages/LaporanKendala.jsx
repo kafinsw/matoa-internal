@@ -511,7 +511,7 @@ export default function LaporanKendala() {
 
       {/* Hero - matched reference */}
       <div className="hero">
-        <div className="eyebrow">Laporan Kendala · Tim ME & GA</div>
+        <div className="eyebrow">Laporan Kendala · Tim Teknisi ME & GA</div>
         <h1>Laporan Kendala Outlet</h1>
         <p className="lead">Foto kerusakan + keterangan singkat, langsung dari HP. Bisa beberapa kendala sekaligus, foto otomatis ber-geotag.</p>
         
