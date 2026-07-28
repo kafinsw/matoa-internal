@@ -7,6 +7,7 @@ const keyPath = './certs/key.pem';
 const hasCert = fs.existsSync(certPath) && fs.existsSync(keyPath);
 
 export default defineConfig({
+  base: '/internal/',
   plugins: [react()],
   server: {
     host: '0.0.0.0',
