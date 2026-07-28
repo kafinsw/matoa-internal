@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const API_BASE = 'http://localhost/matoa_internal/api';
+const API_BASE = 'http://localhost:4002/php-api';
 
 export async function GET(request, { params }) {
   const { tiketId } = params;

@@ -1,5 +1,5 @@
 export async function GET() {
-  const baseUrl = process.env.PHP_API_BASE_URL || 'http://localhost/matoa_internal/api';
+  const baseUrl = process.env.PHP_API_BASE_URL || 'http://localhost:4002/php-api';
 
   try {
     const response = await fetch(`${baseUrl}/health`, { cache: 'no-store' });

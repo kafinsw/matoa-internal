@@ -1,4 +1,4 @@
-const PHP = process.env.PHP_API_BASE_URL || 'http://localhost/matoa_internal/api';
+const PHP = process.env.PHP_API_BASE_URL || 'http://localhost:4002/php-api';
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);

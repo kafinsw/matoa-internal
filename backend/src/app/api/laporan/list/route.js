@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const API = process.env.PHP_API_BASE_URL || 'http://localhost/matoa_internal/api';
+const API = process.env.PHP_API_BASE_URL || 'http://localhost:4002/php-api';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
