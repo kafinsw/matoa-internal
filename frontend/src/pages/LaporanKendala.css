@@ -220,8 +220,8 @@ html { scroll-padding-bottom: 32vh; }
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
-  margin: 14px 0px 0;
-  padding: 20px 10px;
+  margin: 14px 14px 0;
+  padding: 20px 24px;
 }
 .sec-h {
   display: flex;
@@ -263,7 +263,7 @@ html { scroll-padding-bottom: 32vh; }
 .sec-h .hint {
   margin-left: auto;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--grey2);
@@ -998,7 +998,7 @@ input[readonly]:focus { box-shadow: none; border-color: var(--line); }
   .ki-label { min-width: 90px; }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 465px) {
   .hero h1 { font-size: 23px; }
   .hero { padding-left: 16px; padding-right: 16px; }
   .sec, .note { margin-left: 10px; margin-right: 10px; }
@@ -1009,6 +1009,7 @@ input[readonly]:focus { box-shadow: none; border-color: var(--line); }
   .hero h1 { font-size: 20px; }
   .hero { padding: 16px 12px 2px; }
   .sec, .note, .gps { margin-left: 8px; margin-right: 8px; padding: 14px 12px; }
+  .sec-h .hint { font-size: 8px; }
   .topbar { padding: 11px 12px; padding-top: calc(11px + env(safe-area-inset-top)); }
   .dept { font-size: 8.5px; letter-spacing: .12em; }
   .topbar .tag { font-size: 9px; }
