@@ -96,28 +96,19 @@ PHP_API_BASE_URL=http://localhost:4002/php-api
 
 ## Deploy ke Server
 
-**Auto deploy script:**
+**Full deploy (pull + backend + frontend):**
 ```bash
-./deploy.sh
+cd /home/siddiq/internal/matoa-internal && git pull && cd backend && npm run build && pm2 restart backend-internal && cd ../frontend && npm run build
 ```
 
-Script pull + build backend + restart PM2 + build frontend sekaligus.
-
-**Manual:**
+**Frontend only:**
 ```bash
-# Di server (siddiq@matoa-group)
-cd /home/siddiq/internal/matoa-internal
-git pull
+cd /home/siddiq/internal/matoa-internal && git pull && cd frontend && npm run build
+```
 
-# Backend
-cd backend
-npm run build
-pm2 restart backend-internal
-
-# Frontend
-cd ../frontend
-npm run build
-# dist/ otomatis serve via Nginx /internal/
+**Backend only:**
+```bash
+cd /home/siddiq/internal/matoa-internal && git pull && cd backend && npm run build && pm2 restart backend-internal
 ```
 
 **Nginx routing:**
