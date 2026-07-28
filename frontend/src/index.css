@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+:root {
+  color-scheme: dark;
+  --bg:     #0a0a0b;
+  --shell:  #111113;
+  --card:   #141517;
+  --card2:  #0f1012;
+  --field:  #0d0e10;
+  --ink:    #f4f4f5;
+  --white:  #ffffff;
+  --grey:   #8b8d93;
+  --grey2:  #5e6066;
+  --grey3:  #a9abb0;
+  --line:   #26272b;
+  --line2:  #34353a;
+  --signal: #e8b04b;
+  --signal-dim: #4a3c1e;
+  --ok:     #4ea36b;
+  --err:    #e5674f;
+  --err-bg: #2a1411;
+  --mono:   'JetBrains Mono', ui-monospace, monospace;
+  --body:   'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html, body {
+  background: var(--bg);
+  font-family: var(--body);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

@@ -1,0 +1,88 @@
+.shell {
+  min-height: 100vh;
+  background: #0e0e0e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #141414;
+}
+
+.panel {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 22px;
+  background: #f5f4f0;
+  padding: 24px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.header {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  border-radius: 18px;
+  background: #0e0e0e;
+  color: #fff;
+  padding: 18px;
+}
+
+.logo {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: #f5f4f0;
+  color: #0e0e0e;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: #a39e94;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 25px;
+  letter-spacing: -.03em;
+}
+
+.copy {
+  margin: 18px 4px;
+  color: #6b6862;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e4e1da;
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.card span {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.card code {
+  width: fit-content;
+  background: #fbf0e4;
+  color: #9a5a22;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
