@@ -372,7 +372,7 @@ export default function LaporanKendala() {
     const found = outlets.find(o => o.kode === kode);
     setOutlet(kode);
     setOutletNama(found ? found.nama : kode);
-    if (kode && !ticketId) {
+    if (kode) {
       const now = new Date();
       const p2 = n => String(n).padStart(2, '0');
       setTicketId(`${kode} - ${p2(now.getDate())}/${p2(now.getMonth()+1)}/${now.getFullYear()} - ${p2(now.getHours())}:${p2(now.getMinutes())}`);
@@ -689,7 +689,7 @@ export default function LaporanKendala() {
           })()}
         </div>
 
-        {ticketId && <div className="field"><label className="fl">Tiket ID</label><input readOnly value={ticketId} placeholder="pilih outlet dulu" /></div>}
+        {ticketId && <div className="field"><label className="fl">Tiket Info</label><input readOnly value={ticketId} placeholder="pilih outlet dulu" /></div>}
       </div>
 
       {/* Kendala List */}
