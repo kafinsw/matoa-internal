@@ -299,17 +299,13 @@ label.fl {
 .field:last-child { margin-bottom: 0; }
 .wrap input, .wrap select, .wrap .ket {
   width: 100%;
-  font-family: var(--body);
-  color: var(--ink);
-  background: var(--field);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  font-size: 14px;
+  font-family: var(--mono);
   color: var(--ink);
   background: var(--field);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 13px 26px 13px 12px;
+  font-size: 14px;
   transition: border-color .15s, box-shadow .15s;
 }
 .wrap input::placeholder, .wrap .ket::placeholder { color: var(--grey2); }
