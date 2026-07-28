@@ -1,5 +1,5 @@
 // Production: proxy /php-api → Docker php_internal (port 4002)
-const API_BASE_URL = '/php-api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/php-api';
 
 export async function apiRequest(path, options = {}) {
   const endpoint = path.startsWith('/') ? path : `/${path}`;

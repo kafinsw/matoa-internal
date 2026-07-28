@@ -572,7 +572,7 @@ function TiketItem({
     setPgLoading(true);
     setBbOpen(true);
     try {
-      const r = await fetch(`/api/pengadaan/detail?tiket_id=${t.tiket_id}`);
+      const r = await fetch(`/php-api/pengadaan/detail?tiket_id=${t.tiket_id}`);
       const d = await r.json();
       if (d.ok) setPgData(d);
       else setPgData(null);
@@ -658,7 +658,7 @@ function TiketItem({
       );
 
       // pengadaan/store — kirim array barang
-      const rPengadaan = await fetch(`/api/pengadaan/store`, {
+      const rPengadaan = await fetch(`/php-api/pengadaan/store`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -675,7 +675,7 @@ function TiketItem({
       if (!rPengadaan.ok) throw new Error(rPengadaan.message);
 
       // perbaikan/store
-      const rPerbaikan = await fetch(`/api/perbaikan/store`, {
+      const rPerbaikan = await fetch(`/php-api/perbaikan/store`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -690,7 +690,7 @@ function TiketItem({
 
       if (!rPerbaikan.ok) throw new Error(rPerbaikan.message);
 
-      const rStatus = await fetch(`/api/laporan/status`, {
+      const rStatus = await fetch(`/php-api/laporan/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: t.id, status: "tunggu_barang" }),
@@ -734,7 +734,7 @@ function TiketItem({
           { timeout: 5000 },
         ),
       );
-      const r = await fetch(`/api/perbaikan/store`, {
+      const r = await fetch(`/php-api/perbaikan/store`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -842,7 +842,7 @@ function TiketItem({
                 // capture status saat ini sebelum revert (prevStatus bisa null kalau state reset)
                 const revertTo = prevStatus || t.status || "dijadwalkan";
                 try {
-                  const r = await fetch("/api/laporan/status", {
+                  const r = await fetch("/php-api/laporan/status", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -876,7 +876,7 @@ function TiketItem({
               if (isRevisi) {
                 // Batalkan Revisi: kembalikan status selesai_dikerjakan, tutup panel
                 try {
-                  const r = await fetch("/api/laporan/status", {
+                  const r = await fetch("/php-api/laporan/status", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -907,7 +907,7 @@ function TiketItem({
                 // Revisi: load data existing → pre-fill panel
                 let rd;
                 try {
-                  const rr = await fetch(`/api/perbaikan/get?tiket_id=${t.tiket_id}`);
+                  const rr = await fetch(`/php-api/perbaikan/get?tiket_id=${t.tiket_id}`);
                   rd = await rr.json();
                 } catch {
                   alert("Gagal load data revisi: koneksi error");
@@ -936,7 +936,7 @@ function TiketItem({
                 setKeterangan(Array.isArray(ketArr) ? ketArr.join("\n") : "");
                 // update status ke sedang_dikerjakan
                 try {
-                  const rs = await fetch("/api/laporan/status", {
+                  const rs = await fetch("/php-api/laporan/status", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -968,7 +968,7 @@ function TiketItem({
                 setPrevStatus(t.status);
               }
               try {
-                const r = await fetch("/api/laporan/status", {
+                const r = await fetch("/php-api/laporan/status", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
@@ -1722,7 +1722,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
       if (outlet) params.append('outlet_id', OUTLET_IDS[outlet] || '');
       if (tim) params.append('user_id', tim);
       try {
-        const r = await fetch(`/api/laporan/list?${params}`);
+        const r = await fetch(`/php-api/laporan/list?${params}`);
         const d = await r.json();
         const found = (d.data || []).find((x) => x.id === id);
         if (found) {
@@ -1741,7 +1741,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
     setDetailData(null);
     setDetailLoading(true);
     try {
-      const r = await fetch(`/api/laporan/detail?id=${id}`);
+      const r = await fetch(`/php-api/laporan/detail?id=${id}`);
       const d = await r.json();
       if (d.ok) setDetailData(d);
       else alert("Gagal load detail: " + (d.message || "error"));
@@ -1843,7 +1843,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
     if (fOutlet) params.append("outlet_id", OUTLET_IDS[fOutlet] || "");
     if (fUser) params.append("user_id", fUser);
     try {
-      const r = await fetch(`/api/laporan/list?${params}`);
+      const r = await fetch(`/php-api/laporan/list?${params}`);
       const d = await r.json();
       setTiket(d.data || []);
       setTotal(d.pagination?.pages || d.total_pages || 1);
@@ -1865,7 +1865,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
     if (!outlet || !tim || !pic.trim() || gps.status !== "ok") return;
     const id = setInterval(() => {
       fetchTiket(false, page, outlet, tim, true);
-      fetch("/api/sla/tick", { method: "POST" }).catch(() => {});
+      fetch("/php-api/sla/tick", { method: "POST" }).catch(() => {});
     }, 5000);
     return () => clearInterval(id);
   }, [page, outlet, tim, pic, gps.status]);
@@ -1874,7 +1874,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
   useEffect(() => {
     if (!pic.trim()) return;
     const id = setInterval(() => {
-      fetch("/api/petugas", {
+      fetch("/php-api/petugas", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nama: pic }),
@@ -1888,7 +1888,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
     if (!pic.trim()) return;
     const id = setInterval(async () => {
       try {
-        const r = await fetch(`/api/petugas?nama=${encodeURIComponent(pic)}`);
+        const r = await fetch(`/php-api/petugas?nama=${encodeURIComponent(pic)}`);
         const d = await r.json();
         if (!d.is_active) {
           // sesi expired atau di-logout dari tempat lain
@@ -2411,7 +2411,7 @@ export default function LaporanPerbaikan() {
   // Fetch daftar petugas saat popup muncul
   useEffect(() => {
     if (pic) return;
-    fetch("/api/petugas/list").then(r => r.json()).then(d => setPetugasList(Array.isArray(d) ? d : [])).catch(() => {});
+    fetch("/php-api/petugas/list").then(r => r.json()).then(d => setPetugasList(Array.isArray(d) ? d : [])).catch(() => {});
   }, [pic]);
 
   const picSuggestions = picInput.trim().length >= 1 && showDropdown
@@ -2423,7 +2423,7 @@ export default function LaporanPerbaikan() {
     if (v.length < 3) return;
     // cek apakah nama sedang aktif di DB
     try {
-      const r = await fetch(`/api/petugas?nama=${encodeURIComponent(v)}`);
+      const r = await fetch(`/php-api/petugas?nama=${encodeURIComponent(v)}`);
       const d = await r.json();
       if (d.is_active) {
         setPicError("Nama petugas sedang aktif, masukkan nama yang berbeda.");
@@ -2431,7 +2431,7 @@ export default function LaporanPerbaikan() {
       }
     } catch { /* network error — lanjut saja */ }
     // tandai aktif
-    await fetch("/api/petugas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nama: v }) }).catch(() => {});
+    await fetch("/php-api/petugas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nama: v }) }).catch(() => {});
     setPicError("");
     localStorage.setItem("lp_pic", v);
     setPic(v);
@@ -2442,7 +2442,7 @@ export default function LaporanPerbaikan() {
   const [loginToast, setLoginToast] = useState("");
 
   function handleLogout() {
-    fetch("/api/petugas", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nama: pic }) }).catch(() => {});
+    fetch("/php-api/petugas", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nama: pic }) }).catch(() => {});
     localStorage.removeItem("lp_pic");
     setPic("");
     setPicInput("");

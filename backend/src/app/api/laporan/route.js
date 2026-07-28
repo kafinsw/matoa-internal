@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const API_BASE = 'http://localhost:4002/php-api';
+const API_BASE = process.env.PHP_API_BASE_URL || 'http://localhost:4002/php-api';
 
 const SLA_HOURS = { L1: 24, L2: 72, L3: 120 };
 
