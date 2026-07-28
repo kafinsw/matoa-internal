@@ -1,5 +1,5 @@
-// Vite proxy: lewat /api → XAMPP Apache (HTTP). Tidak ada mixed content karena semua lewat origin yang sama.
-const API_BASE_URL = '/api';
+// Production: proxy /php-api → Docker php_internal (port 4002)
+const API_BASE_URL = '/php-api';
 
 export async function apiRequest(path, options = {}) {
   const endpoint = path.startsWith('/') ? path : `/${path}`;
