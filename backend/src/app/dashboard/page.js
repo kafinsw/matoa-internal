@@ -67,7 +67,7 @@ function PhotoViewer({ src, onClose }) {
   );
 }
 
-const STATIC_BASE = process.env.NEXT_PUBLIC_STATIC_BASE || '';
+const STATIC_BASE = process.env.NEXT_PUBLIC_STATIC_BASE || '/php-api';
 
 // ── SLA config ───────────────────────────────────────────────────────
 const SLA_HOURS = { L1: 24, L2: 72, L3: 120 };
