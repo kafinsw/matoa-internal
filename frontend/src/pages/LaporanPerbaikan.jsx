@@ -1359,7 +1359,7 @@ function TiketItem({
                         </div>
                         {item.foto_barang_url && (
                           <img
-                            src={fotoSrc(it.foto_barang_url)}
+                            src={fotoSrc(item.foto_barang_url)}
                             alt={item.detail_barang}
                             className="lp-modal-foto-full lp-foto-clickable"
                             onClick={() =>
@@ -2290,7 +2290,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
                           <div key={i} className="lp-modal-barang-item">
                             {b.foto_barang_url && (
                               <img
-                                src={fotoSrc(it.foto_barang_url)}
+                                src={fotoSrc(b.foto_barang_url)}
                                 alt={b.detail_barang}
                                 className="lp-modal-foto-full lp-foto-clickable"
                                 onClick={() => setLbSrc(b.foto_barang_url)}
