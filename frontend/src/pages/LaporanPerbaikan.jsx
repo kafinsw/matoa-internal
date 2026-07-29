@@ -1869,6 +1869,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
     const id = setInterval(() => {
       fetchTiket(false, page, outlet, tim, true);
       fetch("/php-api/sla/tick", { method: "POST" }).catch(() => {});
+      fetch("/php-api/petugas/list").then(r => r.json()).then(d => setPetugasList(Array.isArray(d) ? d : [])).catch(() => {});
     }, 5000);
     return () => clearInterval(id);
   }, [page, outlet, tim, pic, gps.status]);
@@ -2444,8 +2445,8 @@ export default function LaporanPerbaikan() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loginToast, setLoginToast] = useState("");
 
-  function handleLogout() {
-    fetch("/php-api/petugas", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nama: pic }) }).catch(() => {});
+  async function handleLogout() {
+    try { await fetch("/php-api/petugas", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nama: pic }) }); } catch(e) {}
     localStorage.removeItem("lp_pic");
     setPic("");
     setPicInput("");
