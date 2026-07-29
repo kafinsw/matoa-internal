@@ -2,6 +2,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import logo from "../assets/logo.svg";
 import "./LaporanPerbaikan.css";
 
+const PHP_BASE = "/php-api";
+const fotoSrc = (url) => url ? (url.startsWith("http") || url.startsWith("data:") ? url : `${PHP_BASE}/${url}`) : null;
+
 /* ── Photo Viewer (zoom + pan + double-tap) ── */
 function PhotoViewer({ src, onClose }) {
   const [scale, setScale] = useState(1);
@@ -1356,7 +1359,7 @@ function TiketItem({
                         </div>
                         {item.foto_barang_url && (
                           <img
-                            src={`/${item.foto_barang_url}`}
+                            src={fotoSrc(it.foto_barang_url)}
                             alt={item.detail_barang}
                             className="lp-modal-foto-full lp-foto-clickable"
                             onClick={() =>
@@ -2244,7 +2247,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
                           <div key={i} className="lp-modal-barang-item">
                             {it.foto_url && (
                               <img
-                                src={it.foto_url}
+                                src={fotoSrc(it.foto_url)}
                                 alt={it.keterangan}
                                 className="lp-modal-foto-full lp-foto-clickable"
                                 onClick={() => setLbSrc(it.foto_url)}
@@ -2287,7 +2290,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
                           <div key={i} className="lp-modal-barang-item">
                             {b.foto_barang_url && (
                               <img
-                                src={b.foto_barang_url}
+                                src={fotoSrc(it.foto_barang_url)}
                                 alt={b.detail_barang}
                                 className="lp-modal-foto-full lp-foto-clickable"
                                 onClick={() => setLbSrc(b.foto_barang_url)}
