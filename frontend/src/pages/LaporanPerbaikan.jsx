@@ -2266,18 +2266,18 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
                         <div className="lp-modal-foto-row">
                           {lp.foto_before && (
                             <img
-                              src={lp.foto_before}
+                              src={fotoSrc(lp.foto_before)}
                               alt="Before"
                               className="lp-modal-foto-half lp-foto-clickable"
-                              onClick={() => setLbSrc(lp.foto_before)}
+                              onClick={() => setLbSrc(fotoSrc(lp.foto_before))}
                             />
                           )}
                           {lp.foto_after && (
                             <img
-                              src={lp.foto_after}
+                              src={fotoSrc(lp.foto_after)}
                               alt="After"
                               className="lp-modal-foto-half lp-foto-clickable"
-                              onClick={() => setLbSrc(lp.foto_after)}
+                              onClick={() => setLbSrc(fotoSrc(lp.foto_after))}
                             />
                           )}
                         </div>
