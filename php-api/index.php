@@ -52,7 +52,7 @@ function saveFotoBase64($base64Data, $folder = 'laporan', $prefix = 'foto', $tik
 
     $filename = "{$prefix}_" . time() . '_' . uniqid() . '.' . $ext;
     file_put_contents($dir . '/' . $filename, $raw);
-    return "uploads/{$subdir}/{$filename}";
+    return "matoa-internal/uploads/{$subdir}/{$filename}";
 }
 
 try {
