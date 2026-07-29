@@ -1201,9 +1201,9 @@ function TiketItem({
                     <div className="lp-dk-foto-zone has-preview">
                       <img
                         className="lp-dk-foto-preview"
-                        src={fotoBefore}
+                         src={fotoSrc(fotoBefore)}
                         alt="before"
-                        onClick={() => setPvSrc(fotoBefore)}
+                         onClick={() => setPvSrc(fotoSrc(fotoBefore))}
                       />
                     </div>
                     <button
@@ -1254,9 +1254,9 @@ function TiketItem({
                         <div key={i} className="lp-dk-after-item">
                           <img
                             className="lp-dk-after-thumb"
-                            src={url}
+                             src={fotoSrc(url)}
                             alt={`after${i}`}
-                            onClick={() => setPvSrc(url)}
+                             onClick={() => setPvSrc(fotoSrc(url))}
                           />
                           <button
                             className="lp-dk-retake"
