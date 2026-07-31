@@ -206,6 +206,7 @@ export default function LaporanDashboard() {
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
   const [overSlaPopup, setOverSlaPopup] = useState(false);
+  const [mainTab, setMainTab] = useState('laporan');
   const [statusFilter, setStatusFilter] = useState('');
   const sortedFeed = useMemo(()=>{
     if(!sortCol) return feed;
@@ -424,7 +425,14 @@ export default function LaporanDashboard() {
 
         {/* ── LEDGER ── */}
         <div className={s.eyebrow}><span className={s.n}>04</span> Catatan Laporan</div>
-        <div className={s.ledgerHead}>
+        <div className={s.tabBar}>
+          <button className={`${s.tabBtn}${mainTab==='laporan'?' '+s.tabActive:''}`} onClick={()=>setMainTab('laporan')}>LAPORAN</button>
+          <button className={`${s.tabBtn}${mainTab==='daily'?' '+s.tabActive:''}`} onClick={()=>setMainTab('daily')}>DAILY CHECK</button>
+          <button className={`${s.tabBtn}${mainTab==='rutin'?' '+s.tabActive:''}`} onClick={()=>setMainTab('rutin')}>TUGAS RUTIN</button>
+        </div>
+        {mainTab==='daily'&&<div style={{padding:'32px 0',textAlign:'center',color:'var(--muted)'}}>Daily Check — coming soon</div>}
+        {mainTab==='rutin'&&<div style={{padding:'32px 0',textAlign:'center',color:'var(--muted)'}}>Tugas Rutin — coming soon</div>}
+        {mainTab==='laporan'&&<><div className={s.ledgerHead}>
           <div className={s.filtRow}>
             <div className={s.filtLine1}>
               <div className={s.filt}>
@@ -630,6 +638,7 @@ export default function LaporanDashboard() {
             );
           })}
         </div>
+        </>}
 
         {/* ── PAGINATION ── */}
         {totalPages>1&&(
