@@ -1461,17 +1461,6 @@ const VENDOR = [
   { name: "Cuci Sofa", outlet: "OPIUCI · BRACI", freq: "Bulanan (1×)" },
   { name: "Cuci Sofa", outlet: "TANATAP", freq: "2 bulan sekali" },
 ];
-const CHECK_ITEMS = [
-  { id: 1, cat: "Kebersihan", name: "Brushing Lantai Entrance", st: "ok" },
-  { id: 2, cat: "Kebersihan", name: "Lap Kaca & Cermin", st: "ok" },
-  { id: 3, cat: "Kebersihan", name: "Bersihkan Toilet & Wastafel", st: "none" },
-  { id: 4, cat: "Fasilitas", name: "Cek AC & Remote", st: "ok" },
-  { id: 5, cat: "Fasilitas", name: "Cek Lampu Seluruh Area", st: "issue" },
-  { id: 6, cat: "Fasilitas", name: "Cek Sound System", st: "none" },
-  { id: 7, cat: "Photobooth", name: "Set Up Photobooth & Props", st: "ok" },
-  { id: 8, cat: "Photobooth", name: "Cek Printer & Tinta", st: "none" },
-  { id: 9, cat: "Tanaman", name: "Siram Tanaman Indoor", st: "ok" },
-];
 const getToday = () =>
   new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }))
     .toLocaleDateString("id-ID", {
@@ -1496,112 +1485,187 @@ function DarkBox({ children }) {
 }
 
 /* ── tab daily check ── */
-const ST_CLS = { ok: "st-ok", issue: "st-issue", none: "" };
-const ST_BDG = { ok: "bdg-ok", issue: "bdg-issue", none: "bdg-none" };
-const ST_L = { ok: "Oke", issue: "Masalah", none: "Belum" };
-const cycle = (s) => (s === "none" ? "ok" : s === "ok" ? "issue" : "none");
-
-const USERS = [
+const USERS_DAILY = [
   { id: 3, name: "ME" },
   { id: 4, name: "GA" },
 ];
-const OUTLET_IDS = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
+const OUTLET_IDS_DAILY = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
 
 function TabDaily() {
-  const [items, setItems] = useState(
-    Object.fromEntries(CHECK_ITEMS.map((i) => [i.id, i.st])),
-  );
-  const [outlet, setOutlet] = useState("OPIUCI");
-  const [tim, setTim] = useState("3");
-  const cats = [...new Set(CHECK_ITEMS.map((i) => i.cat))];
-  const done = Object.values(items).filter((s) => s !== "none").length;
-  const total = CHECK_ITEMS.length;
-  const ready = tim && done === total;
+  const [outlet, setOutlet] = useState("");
+  const [tim, setTim] = useState("");
+  const [gps, setGps] = useState({ status: "loading" });
+  const _gpsWatchRef = useRef(null);
+  const _gpsHardStopRef = useRef(null);
+
+  // reverse geocode
+  async function reverseGeocode(lat, lon) {
+    try {
+      const r = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+        { headers: { "Accept-Language": "id" } },
+      );
+      const d = await r.json();
+      return d.display_name || "";
+    } catch {
+      return "";
+    }
+  }
+
+  function fetchGps() {
+    if (!navigator.geolocation) {
+      setGps({ status: "error", message: "GPS tidak tersedia" });
+      return;
+    }
+    setGps({ status: "loading" });
+    let bestAcc = Infinity;
+
+    async function commit(lat, lon, acc) {
+      const addr = await reverseGeocode(lat, lon);
+      setGps({ status: "ok", lat, lon, accuracy: acc, addr });
+    }
+
+    _gpsWatchRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+        if (accuracy < bestAcc) {
+          bestAcc = accuracy;
+          commit(lat, lon, accuracy);
+        }
+        if (accuracy <= 30) {
+          navigator.geolocation.clearWatch(_gpsWatchRef.current);
+          _gpsWatchRef.current = null;
+        }
+      },
+      (err) => {
+        const msg =
+          err.code === 1
+            ? "Izin lokasi ditolak"
+            : err.code === 2
+              ? "Sinyal GPS tidak tersedia"
+              : "Waktu habis";
+        setGps({ status: "error", message: msg });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+    const _stop = setTimeout(() => {
+      if (_gpsWatchRef.current != null) {
+        navigator.geolocation.clearWatch(_gpsWatchRef.current);
+        _gpsWatchRef.current = null;
+      }
+    }, 10000);
+    _gpsHardStopRef.current = _stop;
+  }
+
+  useEffect(() => {
+    fetchGps();
+    return () => {
+      if (_gpsHardStopRef.current != null) clearTimeout(_gpsHardStopRef.current);
+      if (_gpsWatchRef.current != null)
+        navigator.geolocation.clearWatch(_gpsWatchRef.current);
+    };
+  }, []);
+
+  // derive pic name from tim
+  const picName = USERS_DAILY.find((u) => String(u.id) === String(tim))?.name || "";
+
+  const gpsOk = gps.status === "ok";
+  const gpsBoxCls = gpsOk
+    ? "lp-gps-box lp-gps-box--ok"
+    : gps.status === "error"
+      ? "lp-gps-box lp-gps-box--err"
+      : "lp-gps-box lp-gps-box--loading";
+
   return (
     <div className="lp-daily-wrap">
-      <div className="lp-daily-top-grid3">
-        <label className="lp-label">
-          OUTLET
-          <select
-            value={outlet}
-            onChange={(e) => setOutlet(e.target.value)}
-            className="lp-input"
-          >
-            {["OPIUCI", "BRACI", "TANATAP"].map((o) => (
-              <option key={o}>{o}</option>
-            ))}
-          </select>
+      <div className="lp-form-card">
+        <div className="lp-form-grid">
+          <label className="lp-label">
+            OUTLET
+            <select
+              value={outlet}
+              onChange={(e) => setOutlet(e.target.value)}
+              className="lp-input"
+            >
+              <option value="">— Pilih Outlet —</option>
+              {Object.keys(OUTLET_IDS_DAILY).map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </label>
+          <label className="lp-label">
+            TYPE
+            <select
+              value={tim}
+              onChange={(e) => setTim(e.target.value)}
+              className="lp-input"
+            >
+              <option value="">— Pilih Type —</option>
+              {USERS_DAILY.map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+          </label>
+          <div>
+            <span className="lp-label">TANGGAL (OTOMATIS)</span>
+            <div className="lp-input-read">{getToday()}</div>
+          </div>
+        </div>
+        <label className="lp-form-label-mt lp-label">
+          NAMA PETUGAS
+          <div className="lp-input-read">{picName || "—"}</div>
         </label>
-        <label className="lp-label">
-          TIM
-          <select
-            value={tim}
-            onChange={(e) => setTim(e.target.value)}
-            className="lp-input"
-          >
-            {USERS.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div>
-          <span className="lp-label">TANGGAL</span>
-          <div className="lp-input-read">{getToday()}</div>
+        <div className={gpsBoxCls}>
+          <div className="lp-gps-top">
+            <div className="lp-gps-ic">
+              {gpsOk ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              ) : gps.status === "error" ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10" />
+                </svg>
+              )}
+            </div>
+            <div>
+              <div className="lp-gps-ttl">Lokasi GPS</div>
+              <div className="lp-gps-st">
+                {gpsOk
+                  ? `Terdeteksi · akurasi ±${Math.round(gps.accuracy)} m`
+                  : gps.status === "error"
+                    ? gps.message
+                    : "Mendeteksi lokasi..."}
+              </div>
+            </div>
+          </div>
+          {gpsOk && (
+            <div className="lp-coord">
+              <div>
+                <span className="lp-coord-k">LAT</span>{"  "}{gps.lat?.toFixed(6)}{"  "}
+                <span className="lp-coord-k">LON</span>{"  "}{gps.lon?.toFixed(6)}
+              </div>
+              {gps.addr && <div className="lp-coord-addr">{gps.addr}</div>}
+            </div>
+          )}
         </div>
       </div>
+      {/* ponytail: katalog+task list rendered below, add when checklist UI ready */}
       <div className="lp-progress-wrap">
         <div className="lp-progress-row">
           <span className="lp-progress-label">Progress</span>
           <span className="lp-progress-count">
-            {done}/{total}
+            0/0
           </span>
         </div>
         <div className="lp-progress-bar">
-          <div
-            className="lp-progress-fill"
-            style={{ width: `${(done / total) * 100}%` }}
-          />
+          <div className="lp-progress-fill" style={{ width: "0%" }} />
         </div>
       </div>
-      {cats.map((cat) => {
-        const ci = CHECK_ITEMS.filter((i) => i.cat === cat);
-        return (
-          <div key={cat} className="lp-cat-group">
-            <Sec>{cat}</Sec>
-            <div className="lp-card">
-              {ci.map((item) => {
-                const st = items[item.id];
-                return (
-                  <div
-                    key={item.id}
-                    className={`lp-check-row ${ST_CLS[st]}`}
-                    onClick={() =>
-                      setItems((p) => ({ ...p, [item.id]: cycle(p[item.id]) }))
-                    }
-                  >
-                    <span className="lp-check-name">{item.name}</span>
-                    <span className={`lp-check-badge ${ST_BDG[st]}`}>
-                      {ST_L[st]}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-      <button
-        disabled={!ready}
-        onClick={() => alert("Laporan terkirim!")}
-        className={`lp-submit-btn ${ready ? "ready" : "disabled"}`}
-      >
-        Kirim Laporan
-      </button>
-      <p className="lp-submit-hint">
-        {done < total ? `${total - done} item belum` : "Siap dikirim"}
-      </p>
     </div>
   );
 }
