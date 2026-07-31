@@ -1589,19 +1589,25 @@ function TabDaily({ pic = "" }) {
                 <option key={o} value={o}>{o}</option>
               ))}
             </select>
+            {!outlet && (
+              <span className="lp-field-warn">⚠ Pilih outlet</span>
+            )}
           </label>
           <label className="lp-label">
             TYPE
             <select
               value={tim}
               onChange={(e) => setTim(e.target.value)}
-              className="lp-input"
+              className={`lp-input${outlet && !tim ? " lp-input--err" : ""}`}
             >
               <option value="">— Pilih Type —</option>
               {USERS_DAILY.map((u) => (
                 <option key={u.id} value={u.id}>{u.name}</option>
               ))}
             </select>
+            {outlet && !tim && (
+              <span className="lp-field-warn">⚠ Pilih type</span>
+            )}
           </label>
           <div>
             <span className="lp-label">TANGGAL (OTOMATIS)</span>
