@@ -1491,7 +1491,7 @@ const USERS_DAILY = [
 ];
 const OUTLET_IDS_DAILY = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
 
-function TabDaily() {
+function TabDaily({ pic = "" }) {
   const [outlet, setOutlet] = useState("");
   const [tim, setTim] = useState("");
   const [gps, setGps] = useState({ status: "loading" });
@@ -1566,9 +1566,6 @@ function TabDaily() {
     };
   }, []);
 
-  // derive pic name from tim
-  const picName = USERS_DAILY.find((u) => String(u.id) === String(tim))?.name || "";
-
   const gpsOk = gps.status === "ok";
   const gpsBoxCls = gpsOk
     ? "lp-gps-box lp-gps-box--ok"
@@ -1613,7 +1610,7 @@ function TabDaily() {
         </div>
         <label className="lp-form-label-mt lp-label">
           NAMA PETUGAS
-          <div className="lp-input-read">{picName || "—"}</div>
+          <div className="lp-input-read">{pic || "—"}</div>
         </label>
         <div className={gpsBoxCls}>
           <div className="lp-gps-top">
@@ -2640,7 +2637,7 @@ export default function LaporanPerbaikan() {
           </div>
         </div>
 
-        {tab === "daily" && <TabDaily />}
+        {tab === "daily" && <TabDaily pic={pic} />}
         {tab === "rutin" && <TabRutin />}
         {tab === "perbaikan" && (
           <TabPerbaikan
