@@ -1491,12 +1491,204 @@ const USERS_DAILY = [
 ];
 const OUTLET_IDS_DAILY = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
 
+// Static katalog — sync with daily_katalog + daily_task in DB
+const DC_KATALOG = [
+  {
+    kode: "E1", no: "01", nama: "Kelistrikan & Distribusi Daya",
+    items: [
+      {
+        kode_task: "E1-4", nama: "Genset & ATS", min_foto: 2,
+        poin: ["Genset menyala normal","Solar tercukupi","Sekring & fuse normal, tidak putus","Tegangan accu normal","Koneksi ke ATS tersambung normal","Test beban normal"],
+      },
+      {
+        kode_task: "E1-1", nama: "Panel Listrik & MCB (utama + sub panel stage/bar)", min_foto: 3,
+        poin: ["Kabel rapih & rapat pada konektor","Tidak ada kenaikan suhu pada kabel & MCB","MCB tidak gosong / loss","Tegangan 1 phase 220V","Tegangan 3 phase 380V"],
+      },
+    ],
+  },
+  {
+    kode: "E2", no: "02", nama: "Air & Plumbing",
+    items: [
+      {
+        kode_task: "E2-1", nama: "Pompa Air", min_foto: 1,
+        poin: ["Tekanan stabil","Tidak bocor & tidak berisik","Debit air normal","Otomatis pelampung normal"],
+      },
+      {
+        kode_task: "E2-3", nama: "Toilet & Wastafel (guest/staff)", min_foto: 1,
+        poin: ["Air lancar","Flush normal"],
+      },
+      {
+        kode_task: "E2-4", nama: "Instalasi Air Kotor & Saluran Pembuangan", min_foto: 1,
+        poin: ["Air lancar","Tidak mampet"],
+      },
+      {
+        kode_task: "E2-5", nama: "Grease Trap Kitchen", min_foto: 1,
+        poin: ["Tidak penuh / meluber","Aliran air lancar"],
+      },
+      {
+        kode_task: "E2-6", nama: "Grease Trap Bar", min_foto: 1,
+        poin: ["Tidak penuh / meluber","Aliran air lancar"],
+      },
+    ],
+  },
+  {
+    kode: "E3", no: "03", nama: "AC, Ventilasi & Sirkulasi Udara",
+    items: [
+      {
+        kode_task: "E3-1p1", nama: "AC Area Dance Floor (4 unit)", min_foto: 4,
+        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
+      },
+      {
+        kode_task: "E3-1p2", nama: "AC Depan Bar (2 unit)", min_foto: 2,
+        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
+      },
+      {
+        kode_task: "E3-1p3", nama: "AC Area Balkon Lt.2 (2 unit)", min_foto: 2,
+        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
+      },
+      {
+        kode_task: "E3-1p4", nama: "AC Area Office (2 unit)", min_foto: 2,
+        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
+      },
+      {
+        kode_task: "E3-1p5", nama: "AC Area RICI (1 unit)", min_foto: 0,
+        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
+      },
+      {
+        kode_task: "E3-1p6", nama: "AC Area Toilet (2 unit)", min_foto: 2,
+        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
+      },
+      {
+        kode_task: "E3-2d", nama: "HEPA Filter Dance Floor", min_foto: 0,
+        poin: ["Unit nyala & berfungsi normal","Tidak berbunyi abnormal"],
+      },
+      {
+        kode_task: "E3-4o", nama: "Kipas Angin Area Outdoor", min_foto: 0,
+        poin: ["Semua kipas bisa nyala"],
+      },
+    ],
+  },
+  {
+    kode: "E4", no: "04", nama: "Refrigerasi & Kitchen",
+    items: [
+      {
+        kode_task: "E4-1p1", nama: "Chiller & Freezer Area Bar", min_foto: 3,
+        poin: ["Suhu chiller <5°C","Suhu freezer <-15°C"],
+      },
+      {
+        kode_task: "E4-1p2", nama: "Chiller & Freezer Area Kitchen", min_foto: 3,
+        poin: ["Suhu chiller <5°C","Suhu freezer <-15°C"],
+      },
+      {
+        kode_task: "E4-1p3", nama: "Chiller & Freezer Area RICI", min_foto: 3,
+        poin: ["Suhu chiller <5°C","Suhu freezer <-15°C"],
+      },
+      {
+        kode_task: "E4-2o", nama: "Ice Making Machine (2 unit)", min_foto: 2,
+        poin: ["Produksi es stabil","Pasokan air normal","Filter RO bersih"],
+      },
+      {
+        kode_task: "E4-3", nama: "Kompor Gas / Induksi", min_foto: 0,
+        poin: ["Api stabil","Tidak ada bau gas","Valve gas rapat"],
+      },
+      {
+        kode_task: "E4-4", nama: "Hood & Exhaust Kitchen", min_foto: 0,
+        poin: ["Nyala normal","Daya hisap normal","Lampu hood nyala normal"],
+      },
+    ],
+  },
+  {
+    kode: "E5", no: "05", nama: "Audio & Special Effect",
+    items: [
+      {
+        kode_task: "E5-1", nama: "Sound System", min_foto: 3,
+        poin: ["Suara jernih, tidak feedback","Fungsi normal tidak protect"],
+      },
+      {
+        kode_task: "E5-4", nama: "Smoke / CO₂ Jet Machine (stage & bar)", min_foto: 0,
+        poin: ["Tidak ada kebocoran pada valve","Selang & sambungan tidak bocor"],
+      },
+    ],
+  },
+  {
+    kode: "E6", no: "06", nama: "IT, Jaringan & CCTV",
+    items: [
+      {
+        kode_task: "E6-1s", nama: "PC Server Utama POS (Area Office)", min_foto: 0,
+        poin: ["PC server menyala normal","Tidak ada aplikasi selain Quinos","Koneksi Local & Internet baik"],
+      },
+      {
+        kode_task: "E6-3", nama: "Router / Modem Internet", min_foto: 0,
+        poin: ["Internet stabil (cek speedtest)","Indikator normal, tidak loss","Jaringan LAN rapih & tidak longgar"],
+      },
+      {
+        kode_task: "E6-4", nama: "CCTV", min_foto: 2,
+        poin: ["Kamera aktif","Tidak buram & bergoyang","Status record aktif"],
+      },
+    ],
+  },
+  {
+    kode: "E7", no: "07", nama: "Safety & Proteksi",
+    items: [
+      {
+        kode_task: "E7-1", nama: "APAR — Tekanan Tabung", min_foto: 0,
+        poin: ["Jarum indikator di zona hijau","Segel & pin utuh","Selang & nozzle tidak retak"],
+      },
+    ],
+  },
+];
+
+const DC_STATUSES = ["Normal", "Bermasalah", "Dalam Proses"];
+
 function TabDaily({ pic = "" }) {
   const [outlet, setOutlet] = useState("");
   const [tim, setTim] = useState("");
   const [gps, setGps] = useState({ status: "loading" });
   const _gpsWatchRef = useRef(null);
   const _gpsHardStopRef = useRef(null);
+
+  // checks: { [kode_task]: { status: ""|"Normal"|"Bermasalah"|"Dalam Proses", note: "", photos: [] } }
+  const initChecks = () => {
+    const m = {};
+    DC_KATALOG.forEach(cat => cat.items.forEach(it => {
+      m[it.kode_task] = { status: "", note: "", photos: [] };
+    }));
+    return m;
+  };
+  const [checks, setChecks] = useState(initChecks);
+  // openCats: Set of kode kategori that are expanded
+  const [openCats, setOpenCats] = useState(() => new Set(DC_KATALOG.map(c => c.kode)));
+
+  function setCheck(kode_task, field, val) {
+    setChecks(prev => ({ ...prev, [kode_task]: { ...prev[kode_task], [field]: val } }));
+  }
+
+  function toggleCat(kode) {
+    setOpenCats(prev => {
+      const s = new Set(prev);
+      s.has(kode) ? s.delete(kode) : s.add(kode);
+      return s;
+    });
+  }
+
+  function handlePhoto(kode_task, file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      setChecks(prev => ({
+        ...prev,
+        [kode_task]: {
+          ...prev[kode_task],
+          photos: [...prev[kode_task].photos, e.target.result],
+        },
+      }));
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // derived progress
+  const totalItems = DC_KATALOG.reduce((s, c) => s + c.items.length, 0);
+  const doneItems = Object.values(checks).filter(v => v.status !== "").length;
 
   // reverse geocode
   async function reverseGeocode(lat, lon) {
@@ -1657,18 +1849,122 @@ function TabDaily({ pic = "" }) {
           )}
         </div>
       </div>
-      {/* ponytail: katalog+task list rendered below, add when checklist UI ready */}
+      {/* progress bar */}
       <div className="lp-progress-wrap">
         <div className="lp-progress-row">
           <span className="lp-progress-label">Progress</span>
-          <span className="lp-progress-count">
-            0/0
-          </span>
+          <span className="lp-progress-count">{doneItems}/{totalItems}</span>
         </div>
         <div className="lp-progress-bar">
-          <div className="lp-progress-fill" style={{ width: "0%" }} />
+          <div className="lp-progress-fill" style={{ width: totalItems ? `${(doneItems / totalItems) * 100}%` : "0%" }} />
         </div>
       </div>
+
+      {/* checklist accordion */}
+      {DC_KATALOG.map(cat => {
+        const catDone = cat.items.filter(it => checks[it.kode_task]?.status !== "").length;
+        const isOpen = openCats.has(cat.kode);
+        return (
+          <div key={cat.kode} className="dc-cat-group">
+            <button className="dc-acc" onClick={() => toggleCat(cat.kode)}>
+              <span className="dc-acc-no">{cat.no}</span>
+              <span className="dc-acc-ttl">{cat.nama}</span>
+              <span className="dc-acc-cnt">{catDone}/{cat.items.length}</span>
+              <span className={`dc-acc-chev${isOpen ? " dc-acc-chev--open" : ""}`}>▾</span>
+            </button>
+
+            {isOpen && (
+              <div className="dc-items">
+                {cat.items.map(item => {
+                  const ck = checks[item.kode_task] || { status: "", note: "", photos: [] };
+                  const stCls = ck.status === "Normal" ? " dc-item--ok"
+                    : ck.status === "Bermasalah" ? " dc-item--issue"
+                    : ck.status === "Dalam Proses" ? " dc-item--process"
+                    : "";
+                  return (
+                    <div key={item.kode_task} className={`dc-item${stCls}`}>
+                      {/* left accent bar rendered via CSS ::before on modifier classes */}
+                      <div className="dc-item-head">
+                        <span className="dc-item-kode">{item.kode_task}</span>
+                        <div className="dc-item-mid">
+                          <div className="dc-item-nama">{item.nama}</div>
+                          {item.min_foto > 0 && (
+                            <div className="dc-item-tags">
+                              <span className="dc-tag-foto">MIN. {item.min_foto} FOTO</span>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`dc-item-dot${ck.status === "Normal" ? " dc-item-dot--ok" : ck.status ? " dc-item-dot--active" : ""}`} />
+                      </div>
+
+                      <ul className="dc-poin-list">
+                        {item.poin.map((p, i) => (
+                          <li key={i} className="dc-poin-item">{p}</li>
+                        ))}
+                      </ul>
+
+                      <div className="dc-seg">
+                        {DC_STATUSES.map(s => (
+                          <button
+                            key={s}
+                            className={`dc-seg-btn${ck.status === s ? " dc-seg-btn--on" : ""}`}
+                            onClick={() => setCheck(item.kode_task, "status", ck.status === s ? "" : s)}
+                          >
+                            <span className="dc-seg-ic" />
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+
+                      {item.min_foto > 0 && (
+                        <div className="dc-photo-wrap">
+                          <div className="dc-photo-row">
+                            <span className="dc-photo-label">Foto bukti (kamera)</span>
+                            <span className={`dc-photo-count${ck.photos.length < item.min_foto ? " dc-photo-count--warn" : " dc-photo-count--ok"}`}>
+                              {ck.photos.length} foto
+                            </span>
+                          </div>
+                          <div className="dc-photo-btn-wrap">
+                            <div className="dc-photo-btn">
+                              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
+                                <circle cx="12" cy="13" r="3.2" />
+                              </svg>
+                              Ambil Foto (Kamera)
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="dc-photo-input"
+                              onChange={e => handlePhoto(item.kode_task, e.target.files?.[0])}
+                            />
+                          </div>
+                          {ck.photos.length > 0 && (
+                            <div className="dc-photo-thumbs">
+                              {ck.photos.map((src, i) => (
+                                <img key={i} src={src} className="dc-photo-thumb" alt={`foto-${i + 1}`} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <textarea
+                        rows={1}
+                        placeholder="Catatan (opsional)…"
+                        className="dc-note"
+                        value={ck.note}
+                        onChange={e => setCheck(item.kode_task, "note", e.target.value)}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
