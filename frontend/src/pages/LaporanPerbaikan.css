@@ -26,9 +26,9 @@
 
 /* ── form shared ── */
 .lp-label { display:block; font-size:9px; font-weight:600; letter-spacing:.06em; color:#A39E94; }
-.lp-input { display:block; width:100%; margin-top:5px; border:1.5px solid #E4E1DA; border-radius:9px; padding:0 10px; height:44px; background:#FBFAF7; font-weight:700; font-size:14px; color:#141414; outline:none; appearance:none; box-sizing:border-box; }
+.lp-input { display:block; width:100%; margin-top:5px; border:1.5px solid #E4E1DA; border-radius:9px; padding:0 10px; height:44px; background:#FBFAF7; font-weight:700; font-size:14px; color:#141414; outline:none; appearance:none; box-sizing:border-box; font-family:var(--mono); }
 .lp-input:focus { outline:none; border-color:#B8B0A8; box-shadow:0 0 0 3px rgba(20,20,20,.07); background:#FBFAF7; color:#141414; }
-.lp-input-read { display:flex; align-items:center; width:100%; margin-top:5px; border:1.5px solid #E4E1DA; border-radius:9px; padding:0 12px; height:44px; background:#F4F2EC; font-weight:600; font-size:11px; color:#4A463F; box-sizing:border-box; }
+.lp-input-read { display:flex; align-items:center; width:100%; margin-top:5px; border:1.5px solid #E4E1DA; border-radius:9px; padding:0 12px; height:44px; background:#F4F2EC; font-weight:600; font-size:11px; color:#4A463F; box-sizing:border-box; font-family:var(--mono); }
 .lp-input-text { display:block; width:100%; margin-top:5px; border:1.5px solid #E4E1DA; border-radius:9px; padding:10px; background:#FBFAF7; font-weight:600; font-size:14px; color:#141414; outline:none; box-sizing:border-box; font-family:inherit; }
 .lp-input-text:focus { outline:none; border-color:#B8B0A8; box-shadow:0 0 0 3px rgba(20,20,20,.07); background:#FBFAF7; color:#141414; }
 .lp-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }

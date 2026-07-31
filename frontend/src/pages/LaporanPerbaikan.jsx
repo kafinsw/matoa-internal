@@ -1582,7 +1582,7 @@ function TabDaily({ pic = "" }) {
             <select
               value={outlet}
               onChange={(e) => setOutlet(e.target.value)}
-              className="lp-input"
+              className={`lp-input${!outlet ? " lp-input--err" : ""}`}
             >
               <option value="">— Pilih Outlet —</option>
               {Object.keys(OUTLET_IDS_DAILY).map((o) => (
