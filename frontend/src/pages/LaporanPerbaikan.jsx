@@ -1505,20 +1505,12 @@ function getScheduleToday(userId, dateStr, jadwal) {
 // Filter katalog berdasarkan tasks[] dan user_id — pakai data dari DB
 function getFilteredKatalog(dbKatalog, userId, tasks) {
   if (!dbKatalog) return [];
-  const isGA = userId === 4;
-  const isME = userId === 3;
-  // filter kategori milik user ini
   const userKatalog = dbKatalog.filter(c => c.user_id === userId);
-  if (isME && tasks === null) {
-    return userKatalog; // semua E
-  }
-  if (isGA && Array.isArray(tasks)) {
-    const taskSet = new Set(tasks);
-    return userKatalog
-      .map(c => ({ ...c, items: c.items.filter(it => taskSet.has(it.kode_task)) }))
-      .filter(c => c.items.length > 0);
-  }
-  return [];
+  if (!Array.isArray(tasks)) return userKatalog; // tasks null = tampil semua
+  const taskSet = new Set(tasks);
+  return userKatalog
+    .map(c => ({ ...c, items: c.items.filter(it => taskSet.has(it.kode_task)) }))
+    .filter(c => c.items.length > 0);
 }
 
 function TabDaily({ pic = "" }) {
