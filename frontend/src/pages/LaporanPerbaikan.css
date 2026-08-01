@@ -229,9 +229,8 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 .dc-item-dot--active { background:#D97706; }
 
 .dc-poin-list { margin:9px 0 0; padding:0 0 0 4px; list-style:none; display:flex; flex-direction:column; gap:3px; }
-.dc-poin-item { display:flex; gap:6px; font-size:12px; line-height:1.45; color:#5A574F; }
-.dc-poin-item::before { display:none; }
-.dc-poin-no { flex-shrink:0; font-family:'JetBrains Mono',monospace; font-size:10px; color:#8b8d93; padding-top:1px; }
+.dc-poin-item { position:relative; padding-left:14px; font-size:12px; line-height:1.45; color:#5A574F; }
+.dc-poin-item::before { content:''; position:absolute; left:2px; top:6px; width:4px; height:4px; border-radius:50%; background:#C7C2B8; }
 
 .dc-seg { display:flex; gap:6px; margin-top:12px; }
 .dc-seg-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:5px; padding:7px 4px; border-radius:9px; border:1.5px solid #E4E1DA; background:#F5F4F0; font-size:11.5px; font-weight:600; color:#5A574F; cursor:pointer; font-family:inherit; transition:background .15s,border-color .15s,color .15s; }
