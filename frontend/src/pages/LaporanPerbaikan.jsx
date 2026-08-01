@@ -1574,6 +1574,7 @@ const DC_KATALOG = [
     ],
   },
   {
+    kode: "E1", no: "01", nama: "Elektrikal & Power",
     items: [
       {
         kode_task: "E1-4", nama: "Genset & ATS", min_foto: 2,
