@@ -1799,13 +1799,13 @@ function TabDaily({ pic = "" }) {
       {tim && schedule?.libur && (
         <div className="dc-empty">🌴 Hari ini libur. Tidak ada jadwal.</div>
       )}
-      {filteredKatalog.map(cat => {
+      {filteredKatalog.map((cat, idx) => {
         const catDone = cat.items.filter(it => checks[it.kode_task]?.status !== "").length;
         const isOpen = openCats.has(cat.kode);
         return (
           <div key={cat.kode} className="dc-cat-group">
             <button className="dc-acc" onClick={() => toggleCat(cat.kode)}>
-              <span className="dc-acc-no">{cat.no}</span>
+              <span className="dc-acc-no">{String(idx+1).padStart(2,'0')}</span>
               <span className="dc-acc-ttl">{cat.nama}</span>
               <span className="dc-acc-cnt">{catDone}/{cat.items.length}</span>
               <span className={`dc-acc-chev${isOpen ? " dc-acc-chev--open" : ""}`}>▾</span>
@@ -1837,7 +1837,7 @@ function TabDaily({ pic = "" }) {
 
                       <ul className="dc-poin-list">
                         {item.poin.map((p, i) => (
-                          <li key={i} className="dc-poin-item"><span className="dc-poin-no">{String(i+1).padStart(2,'0')}</span>{p}</li>
+                          <li key={i} className="dc-poin-item">{p}</li>
                         ))}
                       </ul>
 
