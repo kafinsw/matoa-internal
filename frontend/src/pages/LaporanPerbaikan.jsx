@@ -1832,7 +1832,7 @@ function TabDaily({ pic = "" }) {
                             </div>
                           )}
                         </div>
-                        <span className={`dc-item-dot${ck.status === "Normal" ? " dc-item-dot--ok" : ck.status ? " dc-item-dot--active" : ""}`} />
+                        <span className={`dc-item-dot${ck.status === "Normal" ? " dc-item-dot--ok" : ck.status === "Bermasalah" ? " dc-item-dot--err" : ck.status === "Dalam Proses" ? " dc-item-dot--warn" : ""}`} />
                       </div>
 
                       <ul className="dc-poin-list">
@@ -1845,10 +1845,9 @@ function TabDaily({ pic = "" }) {
                         {DC_STATUSES.map(s => (
                           <button
                             key={s}
-                            className={`dc-seg-btn${ck.status === s ? " dc-seg-btn--on" : ""}`}
+                            className={`dc-seg-btn${ck.status === s ? ` dc-seg-btn--on dc-seg-btn--${s === "Normal" ? "ok" : s === "Bermasalah" ? "err" : "warn"}` : ""}`}
                             onClick={() => setCheck(item.kode_task, "status", ck.status === s ? "" : s)}
                           >
-                            <span className="dc-seg-ic" />
                             {s}
                           </button>
                         ))}
