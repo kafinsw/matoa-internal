@@ -1492,6 +1492,8 @@ const USERS_DAILY = [
 const OUTLET_IDS_DAILY = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
 
 // Static katalog — sync with daily_katalog + daily_task in DB
+const DC_STATUSES = ["Normal", "Bermasalah", "Dalam Proses"];
+
 const DC_KATALOG = [
   {
     kode: "c1", no: "01", nama: "Kebersihan",
