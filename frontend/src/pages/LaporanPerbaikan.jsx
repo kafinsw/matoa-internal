@@ -1489,261 +1489,15 @@ const USERS_DAILY = [
   { id: 3, name: "ME" },
   { id: 4, name: "GA" },
 ];
-const OUTLET_IDS_DAILY = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
-
-// Static katalog — sync with daily_katalog + daily_task in DB
+// Static UI enum — matches status_check ENUM in daily_laporan
 const DC_STATUSES = ["Normal", "Bermasalah", "Dalam Proses"];
 
-const DC_KATALOG = [
-  {
-    kode: "c1", no: "01", nama: "Kebersihan",
-    items: [
-      {
-        kode_task: "c1-1", nama: "Kebersihan Area & Parkir", min_foto: 0,
-        poin: ["Tidak ada sampah menumpuk di area","Area parkir bersih & rapih"],
-      },
-    ],
-  },
-  {
-    kode: "c2", no: "02", nama: "Kondisi Bangunan",
-    items: [
-      {
-        kode_task: "c2-1", nama: "Lantai Kayu", min_foto: 0,
-        poin: ["Tidak ada lantai kayu yang terlepas","Segera tambal bila ada yang lepas"],
-      },
-      {
-        kode_task: "c2-2", nama: "Dinding", min_foto: 0,
-        poin: ["Tidak ada noda / kotor sedikit pun","Cat mulus & rapi (tidak terkelupas)","Segera cat ulang bila ada noda sekecil apapun"],
-      },
-      {
-        kode_task: "c2-3", nama: "Pintu", min_foto: 0,
-        poin: ["Cat mulus sempurna, tidak terkelupas / lecet sedikit pun","Body pintu mulus dan tidak penyok","Mekanis buka-tutup normal","Segera perbaiki bila ada lecet sekecil apapun"],
-      },
-    ],
-  },
-  {
-    kode: "c3", no: "03", nama: "Fasilitas & Furnitur",
-    items: [
-      {
-        kode_task: "c3-1", nama: "Karpet Upper Room", min_foto: 0,
-        poin: ["Karpet bersih"],
-      },
-      {
-        kode_task: "c3-2", nama: "Kursi Besi (Teras, Kolam, Balkon)", min_foto: 0,
-        poin: ["Cat mulus, tidak terkelupas","Dudukan tidak patah","Segera perbaiki bila cat terlekupas / dudukan rusak"],
-      },
-      {
-        kode_task: "c3-3", nama: "Meja Outdoor (Teras, Kolam & Balkon)", min_foto: 0,
-        poin: ["Kaki meja tidak lecet karena air","Segera repaint bila bagian bawah kaki terkelupas"],
-      },
-      {
-        kode_task: "c3-4", nama: "Kursi & Sofa", min_foto: 1,
-        poin: ["Bersih, tidak noda / bau","Kokoh & tidak rusak"],
-      },
-      {
-        kode_task: "c3-5", nama: "Meja (dining, bar, GRO)", min_foto: 1,
-        poin: ["Bersih","Kokoh, tidak goyang","Permukaan mulus, tidak rusak"],
-      },
-      {
-        kode_task: "c3-6", nama: "Seluruh Sofa & Kursi", min_foto: 3,
-        poin: ["Tidak ada sofa / kursi yang patah","Periksa kaki kursi outdoor (besi sering patah)","Segera perbaiki bila ada yang rusak"],
-      },
-      {
-        kode_task: "c3-7", nama: "Seluruh Meja", min_foto: 3,
-        poin: ["Tidak ada meja yang patah / tidak layak pakai"],
-      },
-      {
-        kode_task: "c3-8", nama: "DJ Booth", min_foto: 1,
-        poin: ["Acrylic meja tidak patah & tidak goyang","Lampu normal","Kabel rapih"],
-      },
-    ],
-  },
-  {
-    kode: "c4", no: "04", nama: "Taman, Kolam & Landscape",
-    items: [
-      {
-        kode_task: "c4-1", nama: "Tanaman (indoor & outdoor)", min_foto: 0,
-        poin: ["Tidak ada tanaman mati / space kosong","Segar tidak layu / kering","Segera request tanaman baru ke vendor bila ada yang mati"],
-      },
-      {
-        kode_task: "c4-2", nama: "Kolam Hias / Air Mancur", min_foto: 0,
-        poin: ["Air jernih & tidak kotor","Tidak berlumut"],
-      },
-      {
-        kode_task: "c4-3", nama: "Dahan Pohon Outdoor", min_foto: 2,
-        poin: ["Dahan tertata rapi, tidak menjuntai / mengganggu","Tidak ada dahan kering / patah","Lakukan trimming bila ada dahan berlebih"],
-      },
-    ],
-  },
-  {
-    kode: "E1", no: "01", nama: "Elektrikal & Power",
-    items: [
-      {
-        kode_task: "E1-4", nama: "Genset & ATS", min_foto: 2,
-        poin: ["Genset menyala normal","Solar tercukupi","Sekring & fuse normal, tidak putus","Tegangan accu normal","Koneksi ke ATS tersambung normal","Test beban normal"],
-      },
-      {
-        kode_task: "E1-1", nama: "Panel Listrik & MCB (utama + sub panel stage/bar)", min_foto: 3,
-        poin: ["Kabel rapih & rapat pada konektor","Tidak ada kenaikan suhu pada kabel & MCB","MCB tidak gosong / loss","Tegangan 1 phase 220V","Tegangan 3 phase 380V"],
-      },
-    ],
-  },
-  {
-    kode: "E2", no: "02", nama: "Air & Plumbing",
-    items: [
-      {
-        kode_task: "E2-1", nama: "Pompa Air", min_foto: 1,
-        poin: ["Tekanan stabil","Tidak bocor & tidak berisik","Debit air normal","Otomatis pelampung normal"],
-      },
-      {
-        kode_task: "E2-3", nama: "Toilet & Wastafel (guest/staff)", min_foto: 1,
-        poin: ["Air lancar","Flush normal"],
-      },
-      {
-        kode_task: "E2-4", nama: "Instalasi Air Kotor & Saluran Pembuangan", min_foto: 1,
-        poin: ["Air lancar","Tidak mampet"],
-      },
-      {
-        kode_task: "E2-5", nama: "Grease Trap Kitchen", min_foto: 1,
-        poin: ["Tidak penuh / meluber","Aliran air lancar"],
-      },
-      {
-        kode_task: "E2-6", nama: "Grease Trap Bar", min_foto: 1,
-        poin: ["Tidak penuh / meluber","Aliran air lancar"],
-      },
-    ],
-  },
-  {
-    kode: "E3", no: "03", nama: "AC, Ventilasi & Sirkulasi Udara",
-    items: [
-      {
-        kode_task: "E3-1p1", nama: "AC Area Dance Floor (4 unit)", min_foto: 4,
-        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
-      },
-      {
-        kode_task: "E3-1p2", nama: "AC Depan Bar (2 unit)", min_foto: 2,
-        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
-      },
-      {
-        kode_task: "E3-1p3", nama: "AC Area Balkon Lt.2 (2 unit)", min_foto: 2,
-        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
-      },
-      {
-        kode_task: "E3-1p4", nama: "AC Area Office (2 unit)", min_foto: 2,
-        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
-      },
-      {
-        kode_task: "E3-1p5", nama: "AC Area RICI (1 unit)", min_foto: 0,
-        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
-      },
-      {
-        kode_task: "E3-1p6", nama: "AC Area Toilet (2 unit)", min_foto: 2,
-        poin: ["Suhu dingin","Tidak kondensasi / menetes"],
-      },
-      {
-        kode_task: "E3-2d", nama: "HEPA Filter Dance Floor", min_foto: 0,
-        poin: ["Unit nyala & berfungsi normal","Tidak berbunyi abnormal"],
-      },
-      {
-        kode_task: "E3-4o", nama: "Kipas Angin Area Outdoor", min_foto: 0,
-        poin: ["Semua kipas bisa nyala"],
-      },
-    ],
-  },
-  {
-    kode: "E4", no: "04", nama: "Refrigerasi & Kitchen",
-    items: [
-      {
-        kode_task: "E4-1p1", nama: "Chiller & Freezer Area Bar", min_foto: 3,
-        poin: ["Suhu chiller <5°C","Suhu freezer <-15°C"],
-      },
-      {
-        kode_task: "E4-1p2", nama: "Chiller & Freezer Area Kitchen", min_foto: 3,
-        poin: ["Suhu chiller <5°C","Suhu freezer <-15°C"],
-      },
-      {
-        kode_task: "E4-1p3", nama: "Chiller & Freezer Area RICI", min_foto: 3,
-        poin: ["Suhu chiller <5°C","Suhu freezer <-15°C"],
-      },
-      {
-        kode_task: "E4-2o", nama: "Ice Making Machine (2 unit)", min_foto: 2,
-        poin: ["Produksi es stabil","Pasokan air normal","Filter RO bersih"],
-      },
-      {
-        kode_task: "E4-3", nama: "Kompor Gas / Induksi", min_foto: 0,
-        poin: ["Api stabil","Tidak ada bau gas","Valve gas rapat"],
-      },
-      {
-        kode_task: "E4-4", nama: "Hood & Exhaust Kitchen", min_foto: 0,
-        poin: ["Nyala normal","Daya hisap normal","Lampu hood nyala normal"],
-      },
-    ],
-  },
-  {
-    kode: "E5", no: "05", nama: "Audio & Special Effect",
-    items: [
-      {
-        kode_task: "E5-1", nama: "Sound System", min_foto: 3,
-        poin: ["Suara jernih, tidak feedback","Fungsi normal tidak protect"],
-      },
-      {
-        kode_task: "E5-4", nama: "Smoke / CO₂ Jet Machine (stage & bar)", min_foto: 0,
-        poin: ["Tidak ada kebocoran pada valve","Selang & sambungan tidak bocor"],
-      },
-    ],
-  },
-  {
-    kode: "E6", no: "06", nama: "IT, Jaringan & CCTV",
-    items: [
-      {
-        kode_task: "E6-1s", nama: "PC Server Utama POS (Area Office)", min_foto: 0,
-        poin: ["PC server menyala normal","Tidak ada aplikasi selain Quinos","Koneksi Local & Internet baik"],
-      },
-      {
-        kode_task: "E6-3", nama: "Router / Modem Internet", min_foto: 0,
-        poin: ["Internet stabil (cek speedtest)","Indikator normal, tidak loss","Jaringan LAN rapih & tidak longgar"],
-      },
-      {
-        kode_task: "E6-4", nama: "CCTV", min_foto: 2,
-        poin: ["Kamera aktif","Tidak buram & bergoyang","Status record aktif"],
-      },
-    ],
-  },
-  {
-    kode: "E7", no: "07", nama: "Safety & Proteksi",
-    items: [
-      {
-        kode_task: "E7-1", nama: "APAR — Tekanan Tabung", min_foto: 0,
-        poin: ["Jarum indikator di zona hijau","Segel & pin utuh","Selang & nozzle tidak retak"],
-      },
-    ],
-  },
-];
-
-// Jadwal harian per user_id: { 1=senin..5=jumat: { outlet, tasks: [kode_task] } }
-// sabtu(6)/minggu(0) = libur
-const DC_JADWAL = {
-  4: { // GA
-    1: { outlet: "BRACI",   tasks: ["c1-1","c2-1","c2-2","c2-3","c3-1","c3-2","c3-3","c4-1","c4-2"] },
-    2: { outlet: "OPIUCI",  tasks: ["c1-1","c3-1","c3-2","c3-3","c4-3"] },
-    3: { outlet: "TANATAP", tasks: ["c2-4","c3-4","c3-5","c4-1"] },
-    4: { outlet: "BRACI",   tasks: ["c1-1","c2-1","c2-2","c2-3","c3-1","c3-2","c3-3","c4-1","c4-2"] },
-    5: { outlet: "OPIUCI",  tasks: ["c1-1","c3-6","c3-7","c3-8","c4-3"] },
-  },
-  3: { // ME — E1-E7 semua hari kerja, semua outlet
-    1: { outlet: "BRACI",   tasks: null }, // null = tampil semua item E
-    2: { outlet: "OPIUCI",  tasks: null },
-    3: { outlet: "TANATAP", tasks: null },
-    4: { outlet: "BRACI",   tasks: null },
-    5: { outlet: "OPIUCI",  tasks: null },
-  },
-};
-
-function getScheduleToday(userId, dateStr) {
+// jadwal dari DB via /daily/config → d.jadwal
+function getScheduleToday(userId, dateStr, jadwal) {
   const d = dateStr ? new Date(dateStr + "T00:00:00") : new Date();
   const day = d.getDay(); // 0=minggu,6=sabtu
   if (day === 0 || day === 6) return { outlet: "LIBUR", tasks: [], libur: true };
-  const sched = DC_JADWAL[userId]?.[day];
+  const sched = jadwal?.[userId]?.[day];
   if (!sched) return { outlet: "LIBUR", tasks: [], libur: true };
   return { outlet: sched.outlet, tasks: sched.tasks, libur: false };
 }
@@ -1776,6 +1530,7 @@ function TabDaily({ pic = "" }) {
   // fetch katalog dari DB
   const [dbKatalog, setDbKatalog] = useState(null); // null = loading
   const [dbOutlets, setDbOutlets] = useState({});
+  const [dbJadwal, setDbJadwal] = useState({});
   useEffect(() => {
     fetch("/php-api/daily/config")
       .then(r => r.json())
@@ -1789,7 +1544,8 @@ function TabDaily({ pic = "" }) {
           })),
         }));
         setDbKatalog(merged);
-        setDbOutlets(d.outlets);
+        setDbOutlets(d.outlets || {});
+        setDbJadwal(d.jadwal || {});
       })
       .catch(() => setDbKatalog([]));
   }, []);
@@ -1819,7 +1575,7 @@ function TabDaily({ pic = "" }) {
 
   // derived from tim selection
   const userId = tim ? Number(tim) : null;
-  const schedule = userId ? getScheduleToday(userId, activeDate) : null;
+  const schedule = userId ? getScheduleToday(userId, activeDate, dbJadwal) : null;
   const outletLabel = schedule ? schedule.outlet : "";
   const filteredKatalog = schedule && !schedule.libur
     ? getFilteredKatalog(dbKatalog, userId, schedule.tasks)
@@ -2081,7 +1837,7 @@ function TabDaily({ pic = "" }) {
 
                       <ul className="dc-poin-list">
                         {item.poin.map((p, i) => (
-                          <li key={i} className="dc-poin-item">{p}</li>
+                          <li key={i} className="dc-poin-item"><span className="dc-poin-no">{String(i+1).padStart(2,'0')}</span>{p}</li>
                         ))}
                       </ul>
 
@@ -2267,6 +2023,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
     scrollToIdRef.current = id;
     for (let p = 1; p <= totalPages; p++) {
       const params = new URLSearchParams({ page: p, limit: LIMIT });
+      const OUTLET_IDS = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
       if (outlet) params.append('outlet_id', OUTLET_IDS[outlet] || '');
       if (tim) params.append('user_id', tim);
       try {
@@ -2388,6 +2145,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
     if (reset) setPage(1);
     if (!silent) setTiketLoading(true);
     const params = new URLSearchParams({ page: p, limit: LIMIT });
+    const OUTLET_IDS = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
     if (fOutlet) params.append("outlet_id", OUTLET_IDS[fOutlet] || "");
     if (fUser) params.append("user_id", fUser);
     try {
