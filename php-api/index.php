@@ -1285,11 +1285,29 @@ try {
             }
 
             $outlets = [];
-            foreach ($pdo->query("SELECT id, nama FROM outlets ORDER BY id")->fetchAll(PDO::FETCH_ASSOC) as $o) {
-                $outlets[(int)$o['id']] = $o['nama'];
+            foreach ($pdo->query("SELECT id, nama, kode FROM outlets ORDER BY id")->fetchAll(PDO::FETCH_ASSOC) as $o) {
+                $outlets[(int)$o['id']] = ['nama' => $o['nama'], 'kode' => $o['kode']];
             }
 
-            json_response(['ok' => true, 'katalog' => array_values($katalog), 'outlets' => $outlets]);
+            // jadwal dari daily_jadwal (CREATE IF NOT EXISTS agar tidak error sebelum migration)
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `daily_jadwal` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `user_id` int(11) NOT NULL,
+                `day_of_week` tinyint(1) NOT NULL,
+                `outlet_kode` varchar(20) NOT NULL,
+                `tasks` json DEFAULT NULL,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `uq_user_day` (`user_id`,`day_of_week`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            $jadwal = [];
+            foreach ($pdo->query("SELECT user_id, day_of_week, outlet_kode, tasks FROM daily_jadwal ORDER BY user_id, day_of_week")->fetchAll(PDO::FETCH_ASSOC) as $j) {
+                $jadwal[(int)$j['user_id']][(int)$j['day_of_week']] = [
+                    'outlet' => $j['outlet_kode'],
+                    'tasks'  => $j['tasks'] !== null ? json_decode($j['tasks']) : null,
+                ];
+            }
+
+            json_response(['ok' => true, 'katalog' => array_values($katalog), 'outlets' => $outlets, 'jadwal' => $jadwal]);
             break;
 
         default:
