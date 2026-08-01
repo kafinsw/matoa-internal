@@ -1748,18 +1748,19 @@ function getScheduleToday(userId, dateStr) {
   return { outlet: sched.outlet, tasks: sched.tasks, libur: false };
 }
 
-// Filter DC_KATALOG berdasarkan tasks[] — null = tampil semua
-function getFilteredKatalog(userId, tasks) {
+// Filter katalog berdasarkan tasks[] dan user_id — pakai data dari DB
+function getFilteredKatalog(dbKatalog, userId, tasks) {
+  if (!dbKatalog) return [];
   const isGA = userId === 4;
   const isME = userId === 3;
+  // filter kategori milik user ini
+  const userKatalog = dbKatalog.filter(c => c.user_id === userId);
   if (isME && tasks === null) {
-    // ME: hanya tampil kategori E
-    return DC_KATALOG.filter(c => c.kode.startsWith("E"));
+    return userKatalog; // semua E
   }
   if (isGA && Array.isArray(tasks)) {
     const taskSet = new Set(tasks);
-    return DC_KATALOG
-      .filter(c => c.kode.startsWith("c"))
+    return userKatalog
       .map(c => ({ ...c, items: c.items.filter(it => taskSet.has(it.kode_task)) }))
       .filter(c => c.items.length > 0);
   }
@@ -1771,6 +1772,32 @@ function TabDaily({ pic = "" }) {
   const [gps, setGps] = useState({ status: "loading" });
   const _gpsWatchRef = useRef(null);
   const _gpsHardStopRef = useRef(null);
+
+  // fetch katalog dari DB
+  const [dbKatalog, setDbKatalog] = useState(null); // null = loading
+  const [dbOutlets, setDbOutlets] = useState({});
+  useEffect(() => {
+    fetch("/php-api/daily/config")
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) return setDbKatalog([]);
+        // merge poin dari DC_KATALOG hardcode ke items DB
+        const poinMap = {};
+        DC_KATALOG.forEach(cat => cat.items.forEach(it => {
+          poinMap[it.kode_task] = it.poin || [];
+        }));
+        const merged = d.katalog.map(cat => ({
+          ...cat,
+          items: cat.items.map(it => ({
+            ...it,
+            poin: poinMap[it.kode_task] || [],
+          })),
+        }));
+        setDbKatalog(merged);
+        setDbOutlets(d.outlets);
+      })
+      .catch(() => setDbKatalog([]));
+  }, []);
 
   // dev mode: 5x tap label tanggal → bisa edit tanggal
   const [devTap, setDevTap] = useState(0);
@@ -1800,18 +1827,22 @@ function TabDaily({ pic = "" }) {
   const schedule = userId ? getScheduleToday(userId, activeDate) : null;
   const outletLabel = schedule ? schedule.outlet : "";
   const filteredKatalog = schedule && !schedule.libur
-    ? getFilteredKatalog(userId, schedule.tasks)
+    ? getFilteredKatalog(dbKatalog, userId, schedule.tasks)
     : [];
 
-  const initChecks = () => {
+  const [checks, setChecks] = useState({});
+  const [openCats, setOpenCats] = useState(() => new Set());
+
+  // re-init checks + openCats saat dbKatalog loaded
+  useEffect(() => {
+    if (!dbKatalog) return;
     const m = {};
-    DC_KATALOG.forEach(cat => cat.items.forEach(it => {
+    dbKatalog.forEach(cat => cat.items.forEach(it => {
       m[it.kode_task] = { status: "", note: "", photos: [] };
     }));
-    return m;
-  };
-  const [checks, setChecks] = useState(initChecks);
-  const [openCats, setOpenCats] = useState(() => new Set(DC_KATALOG.map(c => c.kode)));
+    setChecks(m);
+    setOpenCats(new Set(dbKatalog.map(c => c.kode)));
+  }, [dbKatalog]);
 
   function setCheck(kode_task, field, val) {
     setChecks(prev => ({ ...prev, [kode_task]: { ...prev[kode_task], [field]: val } }));
@@ -1919,6 +1950,8 @@ function TabDaily({ pic = "" }) {
     : gps.status === "error"
       ? "lp-gps-box lp-gps-box--err"
       : "lp-gps-box lp-gps-box--loading";
+
+  if (dbKatalog === null) return <div className="lp-daily-wrap" style={{padding:"32px",textAlign:"center",color:"var(--grey)"}}>Memuat data…</div>;
 
   return (
     <div className="lp-daily-wrap">

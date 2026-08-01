@@ -1252,6 +1252,46 @@ try {
             json_response(['ok' => true, 'data' => $rows]);
             break;
 
+        case '/daily/config':
+            $rows = $pdo->query("
+                SELECT dk.kode, dk.user_id, dk.nama AS kategori_nama,
+                       dt.kode_task, dt.nama AS task_nama,
+                       dt.outlet_id, dt.min_foto, dt.keterangan
+                FROM daily_katalog dk
+                LEFT JOIN daily_task dt ON dt.kode_task LIKE CONCAT(dk.kode, '-%')
+                ORDER BY dk.kode, dt.kode_task
+            ")->fetchAll(PDO::FETCH_ASSOC);
+
+            $katalog = [];
+            foreach ($rows as $row) {
+                $kode = $row['kode'];
+                if (!isset($katalog[$kode])) {
+                    $katalog[$kode] = [
+                        'kode'    => $kode,
+                        'nama'    => $row['kategori_nama'],
+                        'user_id' => (int)$row['user_id'],
+                        'items'   => [],
+                    ];
+                }
+                if ($row['kode_task']) {
+                    $katalog[$kode]['items'][] = [
+                        'kode_task'  => $row['kode_task'],
+                        'nama'       => $row['task_nama'],
+                        'min_foto'   => (int)$row['min_foto'],
+                        'outlet_id'  => json_decode($row['outlet_id'] ?? '[]'),
+                        'keterangan' => json_decode($row['keterangan'] ?? '[]'),
+                    ];
+                }
+            }
+
+            $outlets = [];
+            foreach ($pdo->query("SELECT id, nama FROM outlets ORDER BY id")->fetchAll(PDO::FETCH_ASSOC) as $o) {
+                $outlets[(int)$o['id']] = $o['nama'];
+            }
+
+            json_response(['ok' => true, 'katalog' => array_values($katalog), 'outlets' => $outlets]);
+            break;
+
         default:
             json_response([
                 'ok' => false,
