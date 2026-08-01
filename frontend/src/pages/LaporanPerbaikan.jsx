@@ -1494,7 +1494,86 @@ const OUTLET_IDS_DAILY = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
 // Static katalog — sync with daily_katalog + daily_task in DB
 const DC_KATALOG = [
   {
-    kode: "E1", no: "01", nama: "Kelistrikan & Distribusi Daya",
+    kode: "c1", no: "01", nama: "Kebersihan",
+    items: [
+      {
+        kode_task: "c1-1", nama: "Kebersihan Area & Parkir", min_foto: 0,
+        poin: ["Tidak ada sampah menumpuk di area","Area parkir bersih & rapih"],
+      },
+    ],
+  },
+  {
+    kode: "c2", no: "02", nama: "Kondisi Bangunan",
+    items: [
+      {
+        kode_task: "c2-1", nama: "Lantai Kayu", min_foto: 0,
+        poin: ["Tidak ada lantai kayu yang terlepas","Segera tambal bila ada yang lepas"],
+      },
+      {
+        kode_task: "c2-2", nama: "Dinding", min_foto: 0,
+        poin: ["Tidak ada noda / kotor sedikit pun","Cat mulus & rapi (tidak terkelupas)","Segera cat ulang bila ada noda sekecil apapun"],
+      },
+      {
+        kode_task: "c2-3", nama: "Pintu", min_foto: 0,
+        poin: ["Cat mulus sempurna, tidak terkelupas / lecet sedikit pun","Body pintu mulus dan tidak penyok","Mekanis buka-tutup normal","Segera perbaiki bila ada lecet sekecil apapun"],
+      },
+    ],
+  },
+  {
+    kode: "c3", no: "03", nama: "Fasilitas & Furnitur",
+    items: [
+      {
+        kode_task: "c3-1", nama: "Karpet Upper Room", min_foto: 0,
+        poin: ["Karpet bersih"],
+      },
+      {
+        kode_task: "c3-2", nama: "Kursi Besi (Teras, Kolam, Balkon)", min_foto: 0,
+        poin: ["Cat mulus, tidak terkelupas","Dudukan tidak patah","Segera perbaiki bila cat terlekupas / dudukan rusak"],
+      },
+      {
+        kode_task: "c3-3", nama: "Meja Outdoor (Teras, Kolam & Balkon)", min_foto: 0,
+        poin: ["Kaki meja tidak lecet karena air","Segera repaint bila bagian bawah kaki terkelupas"],
+      },
+      {
+        kode_task: "c3-4", nama: "Kursi & Sofa", min_foto: 1,
+        poin: ["Bersih, tidak noda / bau","Kokoh & tidak rusak"],
+      },
+      {
+        kode_task: "c3-5", nama: "Meja (dining, bar, GRO)", min_foto: 1,
+        poin: ["Bersih","Kokoh, tidak goyang","Permukaan mulus, tidak rusak"],
+      },
+      {
+        kode_task: "c3-6", nama: "Seluruh Sofa & Kursi", min_foto: 3,
+        poin: ["Tidak ada sofa / kursi yang patah","Periksa kaki kursi outdoor (besi sering patah)","Segera perbaiki bila ada yang rusak"],
+      },
+      {
+        kode_task: "c3-7", nama: "Seluruh Meja", min_foto: 3,
+        poin: ["Tidak ada meja yang patah / tidak layak pakai"],
+      },
+      {
+        kode_task: "c3-8", nama: "DJ Booth", min_foto: 1,
+        poin: ["Acrylic meja tidak patah & tidak goyang","Lampu normal","Kabel rapih"],
+      },
+    ],
+  },
+  {
+    kode: "c4", no: "04", nama: "Taman, Kolam & Landscape",
+    items: [
+      {
+        kode_task: "c4-1", nama: "Tanaman (indoor & outdoor)", min_foto: 0,
+        poin: ["Tidak ada tanaman mati / space kosong","Segar tidak layu / kering","Segera request tanaman baru ke vendor bila ada yang mati"],
+      },
+      {
+        kode_task: "c4-2", nama: "Kolam Hias / Air Mancur", min_foto: 0,
+        poin: ["Air jernih & tidak kotor","Tidak berlumut"],
+      },
+      {
+        kode_task: "c4-3", nama: "Dahan Pohon Outdoor", min_foto: 2,
+        poin: ["Dahan tertata rapi, tidak menjuntai / mengganggu","Tidak ada dahan kering / patah","Lakukan trimming bila ada dahan berlebih"],
+      },
+    ],
+  },
+  {
     items: [
       {
         kode_task: "E1-4", nama: "Genset & ATS", min_foto: 2,
@@ -1638,16 +1717,65 @@ const DC_KATALOG = [
   },
 ];
 
-const DC_STATUSES = ["Normal", "Bermasalah", "Dalam Proses"];
+// Jadwal harian per user_id: { 1=senin..5=jumat: { outlet, tasks: [kode_task] } }
+// sabtu(6)/minggu(0) = libur
+const DC_JADWAL = {
+  4: { // GA
+    1: { outlet: "BRACI",   tasks: ["c1-1","c2-1","c2-2","c2-3","c3-1","c3-2","c3-3","c4-1","c4-2"] },
+    2: { outlet: "OPIUCI",  tasks: ["c1-1","c3-1","c3-2","c3-3","c4-3"] },
+    3: { outlet: "TANATAP", tasks: ["c2-4","c3-4","c3-5","c4-1"] },
+    4: { outlet: "BRACI",   tasks: ["c1-1","c2-1","c2-2","c2-3","c3-1","c3-2","c3-3","c4-1","c4-2"] },
+    5: { outlet: "OPIUCI",  tasks: ["c1-1","c3-6","c3-7","c3-8","c4-3"] },
+  },
+  3: { // ME — E1-E7 semua hari kerja, semua outlet
+    1: { outlet: "BRACI",   tasks: null }, // null = tampil semua item E
+    2: { outlet: "OPIUCI",  tasks: null },
+    3: { outlet: "TANATAP", tasks: null },
+    4: { outlet: "BRACI",   tasks: null },
+    5: { outlet: "OPIUCI",  tasks: null },
+  },
+};
+
+function getScheduleToday(userId) {
+  const day = new Date().getDay(); // 0=minggu,6=sabtu
+  if (day === 0 || day === 6) return { outlet: "LIBUR", tasks: [], libur: true };
+  const sched = DC_JADWAL[userId]?.[day];
+  if (!sched) return { outlet: "LIBUR", tasks: [], libur: true };
+  return { outlet: sched.outlet, tasks: sched.tasks, libur: false };
+}
+
+// Filter DC_KATALOG berdasarkan tasks[] — null = tampil semua
+function getFilteredKatalog(userId, tasks) {
+  const isGA = userId === 4;
+  const isME = userId === 3;
+  if (isME && tasks === null) {
+    // ME: hanya tampil kategori E
+    return DC_KATALOG.filter(c => c.kode.startsWith("E"));
+  }
+  if (isGA && Array.isArray(tasks)) {
+    const taskSet = new Set(tasks);
+    return DC_KATALOG
+      .filter(c => c.kode.startsWith("c"))
+      .map(c => ({ ...c, items: c.items.filter(it => taskSet.has(it.kode_task)) }))
+      .filter(c => c.items.length > 0);
+  }
+  return [];
+}
 
 function TabDaily({ pic = "" }) {
-  const [outlet, setOutlet] = useState("");
   const [tim, setTim] = useState("");
   const [gps, setGps] = useState({ status: "loading" });
   const _gpsWatchRef = useRef(null);
   const _gpsHardStopRef = useRef(null);
 
-  // checks: { [kode_task]: { status: ""|"Normal"|"Bermasalah"|"Dalam Proses", note: "", photos: [] } }
+  // derived from tim selection
+  const userId = tim ? Number(tim) : null;
+  const schedule = userId ? getScheduleToday(userId) : null;
+  const outletLabel = schedule ? schedule.outlet : "";
+  const filteredKatalog = schedule && !schedule.libur
+    ? getFilteredKatalog(userId, schedule.tasks)
+    : [];
+
   const initChecks = () => {
     const m = {};
     DC_KATALOG.forEach(cat => cat.items.forEach(it => {
@@ -1656,7 +1784,6 @@ function TabDaily({ pic = "" }) {
     return m;
   };
   const [checks, setChecks] = useState(initChecks);
-  // openCats: Set of kode kategori that are expanded
   const [openCats, setOpenCats] = useState(() => new Set(DC_KATALOG.map(c => c.kode)));
 
   function setCheck(kode_task, field, val) {
@@ -1686,9 +1813,10 @@ function TabDaily({ pic = "" }) {
     reader.readAsDataURL(file);
   }
 
-  // derived progress
-  const totalItems = DC_KATALOG.reduce((s, c) => s + c.items.length, 0);
-  const doneItems = Object.values(checks).filter(v => v.status !== "").length;
+  // derived progress — hanya dari filtered katalog
+  const totalItems = filteredKatalog.reduce((s, c) => s + c.items.length, 0);
+  const doneItems = filteredKatalog.reduce((s, c) =>
+    s + c.items.filter(it => checks[it.kode_task]?.status !== "").length, 0);
 
   // reverse geocode
   async function reverseGeocode(lat, lon) {
@@ -1770,37 +1898,27 @@ function TabDaily({ pic = "" }) {
       <div className="lp-form-card">
         <div className="lp-form-grid">
           <label className="lp-label">
-            OUTLET
-            <select
-              value={outlet}
-              onChange={(e) => setOutlet(e.target.value)}
-              className={`lp-input${!outlet ? " lp-input--err" : ""}`}
-            >
-              <option value="">— Pilih Outlet —</option>
-              {Object.keys(OUTLET_IDS_DAILY).map((o) => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </select>
-            {!outlet && (
-              <span className="lp-field-warn">⚠ Pilih outlet</span>
-            )}
-          </label>
-          <label className="lp-label">
             TYPE
             <select
               value={tim}
               onChange={(e) => setTim(e.target.value)}
-              className={`lp-input${outlet && !tim ? " lp-input--err" : ""}`}
+              className={`lp-input${!tim ? " lp-input--err" : ""}`}
             >
               <option value="">— Pilih Type —</option>
               {USERS_DAILY.map((u) => (
                 <option key={u.id} value={u.id}>{u.name}</option>
               ))}
             </select>
-            {outlet && !tim && (
+            {!tim && (
               <span className="lp-field-warn">⚠ Pilih type</span>
             )}
           </label>
+          <div>
+            <span className="lp-label">OUTLET</span>
+            <div className={`lp-input-read${outletLabel === "LIBUR" ? " lp-input-read--libur" : ""}`}>
+              {outletLabel || "—"}
+            </div>
+          </div>
           <div>
             <span className="lp-label">TANGGAL (OTOMATIS)</span>
             <div className="lp-input-read">{getToday()}</div>
@@ -1861,7 +1979,13 @@ function TabDaily({ pic = "" }) {
       </div>
 
       {/* checklist accordion */}
-      {DC_KATALOG.map(cat => {
+      {!tim && (
+        <div className="dc-empty">Pilih TYPE untuk memuat checklist.</div>
+      )}
+      {tim && schedule?.libur && (
+        <div className="dc-empty">🌴 Hari ini libur. Tidak ada jadwal.</div>
+      )}
+      {filteredKatalog.map(cat => {
         const catDone = cat.items.filter(it => checks[it.kode_task]?.status !== "").length;
         const isOpen = openCats.has(cat.kode);
         return (

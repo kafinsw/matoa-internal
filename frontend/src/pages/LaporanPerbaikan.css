@@ -252,6 +252,8 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 
 .dc-note { display:block; width:100%; margin-top:10px; padding:10px 12px; border-radius:9px; border:1.5px solid #E4E1DA; background:#FBFAF7; font-size:13px; font-family:inherit; color:#141414; resize:none; box-sizing:border-box; }
 .dc-note:focus { outline:none; border-color:#B4AFA6; }
+.dc-empty { text-align:center; padding:24px 16px; font-size:13px; color:#8A857C; }
+.lp-input-read--libur { color:#D97706; font-weight:700; }
 
 /* ── field margin ── */
 .lp-field-mb { margin-bottom:12px; }
