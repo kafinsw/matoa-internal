@@ -1736,8 +1736,9 @@ const DC_JADWAL = {
   },
 };
 
-function getScheduleToday(userId) {
-  const day = new Date().getDay(); // 0=minggu,6=sabtu
+function getScheduleToday(userId, dateStr) {
+  const d = dateStr ? new Date(dateStr + "T00:00:00") : new Date();
+  const day = d.getDay(); // 0=minggu,6=sabtu
   if (day === 0 || day === 6) return { outlet: "LIBUR", tasks: [], libur: true };
   const sched = DC_JADWAL[userId]?.[day];
   if (!sched) return { outlet: "LIBUR", tasks: [], libur: true };
@@ -1768,9 +1769,32 @@ function TabDaily({ pic = "" }) {
   const _gpsWatchRef = useRef(null);
   const _gpsHardStopRef = useRef(null);
 
+  // dev mode: 5x tap label tanggal → bisa edit tanggal
+  const [devTap, setDevTap] = useState(0);
+  const [devMode, setDevMode] = useState(false);
+  const [devDate, setDevDate] = useState("");
+  function handleDateTap() {
+    const next = devTap + 1;
+    if (next >= 5) {
+      setDevTap(0);
+      if (devMode) {
+        setDevMode(false);
+        setDevDate("");
+        alert("Mode developer non-aktif.");
+      } else {
+        setDevMode(true);
+        setDevDate(getToday());
+        alert("Mode developer aktif.");
+      }
+    } else {
+      setDevTap(next);
+    }
+  }
+  const activeDate = devMode && devDate ? devDate : getToday();
+
   // derived from tim selection
   const userId = tim ? Number(tim) : null;
-  const schedule = userId ? getScheduleToday(userId) : null;
+  const schedule = userId ? getScheduleToday(userId, activeDate) : null;
   const outletLabel = schedule ? schedule.outlet : "";
   const filteredKatalog = schedule && !schedule.libur
     ? getFilteredKatalog(userId, schedule.tasks)
@@ -1817,29 +1841,6 @@ function TabDaily({ pic = "" }) {
   const totalItems = filteredKatalog.reduce((s, c) => s + c.items.length, 0);
   const doneItems = filteredKatalog.reduce((s, c) =>
     s + c.items.filter(it => checks[it.kode_task]?.status !== "").length, 0);
-
-  // dev mode: 5x tap label tanggal → bisa edit tanggal
-  const [devTap, setDevTap] = useState(0);
-  const [devMode, setDevMode] = useState(false);
-  const [devDate, setDevDate] = useState("");
-  function handleDateTap() {
-    const next = devTap + 1;
-    if (next >= 5) {
-      setDevTap(0);
-      if (devMode) {
-        setDevMode(false);
-        setDevDate("");
-        alert("Mode developer non-aktif.");
-      } else {
-        setDevMode(true);
-        setDevDate(getToday());
-        alert("Mode developer aktif.");
-      }
-    } else {
-      setDevTap(next);
-    }
-  }
-  const activeDate = devMode && devDate ? devDate : getToday();
 
   // reverse geocode
   async function reverseGeocode(lat, lon) {
