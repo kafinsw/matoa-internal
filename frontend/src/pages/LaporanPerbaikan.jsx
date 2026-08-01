@@ -1781,16 +1781,11 @@ function TabDaily({ pic = "" }) {
       .then(r => r.json())
       .then(d => {
         if (!d.ok) return setDbKatalog([]);
-        // merge poin dari DC_KATALOG hardcode ke items DB
-        const poinMap = {};
-        DC_KATALOG.forEach(cat => cat.items.forEach(it => {
-          poinMap[it.kode_task] = it.poin || [];
-        }));
         const merged = d.katalog.map(cat => ({
           ...cat,
           items: cat.items.map(it => ({
             ...it,
-            poin: poinMap[it.kode_task] || [],
+            poin: it.keterangan || [],
           })),
         }));
         setDbKatalog(merged);
