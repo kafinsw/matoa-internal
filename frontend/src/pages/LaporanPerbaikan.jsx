@@ -1786,6 +1786,26 @@ function TabDaily({ pic = "" }) {
   const [checks, setChecks] = useState(initChecks);
   const [openCats, setOpenCats] = useState(() => new Set(DC_KATALOG.map(c => c.kode)));
 
+  const [devMode, setDevMode] = useState(false);
+  const [devDate, setDevDate] = useState(getToday());
+  const devTapRef = useRef(0);
+  const activeDate = devMode ? devDate : getToday();
+
+  function handleDateTap() {
+    devTapRef.current += 1;
+    if (devTapRef.current >= 5) {
+      devTapRef.current = 0;
+      if (!devMode) {
+        setDevMode(true);
+        setDevDate(getToday());
+        alert("🛠️ Mode developer aktif. Tanggal bisa diubah.");
+      } else {
+        setDevMode(false);
+        alert("✅ Mode developer non-aktif.");
+      }
+    }
+  }
+
   function setCheck(kode_task, field, val) {
     setChecks(prev => ({ ...prev, [kode_task]: { ...prev[kode_task], [field]: val } }));
   }
@@ -1817,6 +1837,29 @@ function TabDaily({ pic = "" }) {
   const totalItems = filteredKatalog.reduce((s, c) => s + c.items.length, 0);
   const doneItems = filteredKatalog.reduce((s, c) =>
     s + c.items.filter(it => checks[it.kode_task]?.status !== "").length, 0);
+
+  // dev mode: 5x tap label tanggal → bisa edit tanggal
+  const [devTap, setDevTap] = useState(0);
+  const [devMode, setDevMode] = useState(false);
+  const [devDate, setDevDate] = useState("");
+  function handleDateTap() {
+    const next = devTap + 1;
+    if (next >= 5) {
+      setDevTap(0);
+      if (devMode) {
+        setDevMode(false);
+        setDevDate("");
+        alert("Mode developer non-aktif.");
+      } else {
+        setDevMode(true);
+        setDevDate(getToday());
+        alert("Mode developer aktif.");
+      }
+    } else {
+      setDevTap(next);
+    }
+  }
+  const activeDate = devMode && devDate ? devDate : getToday();
 
   // reverse geocode
   async function reverseGeocode(lat, lon) {
@@ -1920,8 +1963,11 @@ function TabDaily({ pic = "" }) {
             </div>
           </div>
           <div>
-            <span className="lp-label">TANGGAL (OTOMATIS)</span>
-            <div className="lp-input-read">{getToday()}</div>
+            <span className="lp-label" onClick={handleDateTap}>TANGGAL (OTOMATIS)</span>
+            {devMode
+              ? <input type="date" className="lp-input" value={devDate} onChange={e => setDevDate(e.target.value)} />
+              : <div className="lp-input-read">{activeDate}</div>
+            }
           </div>
         </div>
         <label className="lp-form-label-mt lp-label">
