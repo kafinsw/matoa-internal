@@ -1786,26 +1786,6 @@ function TabDaily({ pic = "" }) {
   const [checks, setChecks] = useState(initChecks);
   const [openCats, setOpenCats] = useState(() => new Set(DC_KATALOG.map(c => c.kode)));
 
-  const [devMode, setDevMode] = useState(false);
-  const [devDate, setDevDate] = useState(getToday());
-  const devTapRef = useRef(0);
-  const activeDate = devMode ? devDate : getToday();
-
-  function handleDateTap() {
-    devTapRef.current += 1;
-    if (devTapRef.current >= 5) {
-      devTapRef.current = 0;
-      if (!devMode) {
-        setDevMode(true);
-        setDevDate(getToday());
-        alert("🛠️ Mode developer aktif. Tanggal bisa diubah.");
-      } else {
-        setDevMode(false);
-        alert("✅ Mode developer non-aktif.");
-      }
-    }
-  }
-
   function setCheck(kode_task, field, val) {
     setChecks(prev => ({ ...prev, [kode_task]: { ...prev[kode_task], [field]: val } }));
   }
