@@ -1839,7 +1839,7 @@ function TabDaily({ pic = "" }) {
         }
       })
       .catch(() => {});
-  }, [tim, schedule?.outlet, pic]); // dbOutlets dihapus — tidak boleh re-run tiap polling
+  }, [tim, schedule?.outlet, pic, activeDate]);
 
   // Reset lock state tiap ganti tim/outlet/date
   useEffect(() => { setDcBlockedBy(null); setDcSent(false); setChecks({}); }, [tim, pic, schedule?.outlet, activeDate]);
