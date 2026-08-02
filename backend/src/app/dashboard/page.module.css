@@ -528,6 +528,23 @@
 .dtDay { min-width: 110px; text-align: center; }
 .dtDate { font-size: 10px; color: var(--muted); font-family: var(--mono); }
 .dtCell { min-width: 110px; }
+
+/* dispatch table */
+.dtTableWrap { overflow-x: auto; margin-top: 12px; }
+.dtTable { width: 100%; border-collapse: collapse; font-size: 12px; }
+.dtTable th, .dtTable td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
+.dtThNo  { width: 32px; text-align: center; color: var(--grey); font-family: 'JetBrains Mono',monospace; font-size: 10px; text-transform: uppercase; background: var(--card2); }
+.dtThTime { width: 110px; color: var(--grey); font-family: 'JetBrains Mono',monospace; font-size: 10px; text-transform: uppercase; background: var(--card2); white-space: nowrap; }
+.dtThDay { text-align: center; color: var(--grey3); font-family: 'JetBrains Mono',monospace; font-size: 10px; text-transform: uppercase; background: var(--card2); }
+.dtThToday { color: var(--ink); background: var(--card); }
+.dtTdNo  { text-align: center; color: var(--grey2); font-family: 'JetBrains Mono',monospace; background: var(--card2); }
+.dtTdTime { color: var(--grey); font-family: 'JetBrains Mono',monospace; font-size: 11px; white-space: nowrap; background: var(--card2); }
+.dtTd    { background: var(--card); min-width: 130px; }
+.dtTdToday { background: var(--card2); }
+.dtCell  { border-left: 3px solid var(--line); padding-left: 6px; }
+.dtCell .dtLv   { font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono',monospace; }
+.dtCell .dtOutlet { font-size: 11px; font-weight: 600; color: var(--ink); margin-left: 4px; }
+.dtCell .dtKet  { font-size: 11px; color: var(--grey3); margin-top: 2px; }
 .dtItem { display: flex; flex-direction: column; gap: 3px; }
 .dtLv { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
 .dtKet { font-size: 11px; color: var(--ink, #f4f4f5); line-height: 1.4; }

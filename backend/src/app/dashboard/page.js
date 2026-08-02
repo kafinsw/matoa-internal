@@ -287,20 +287,47 @@ function DispatchBoard() {
   const canGoPrev = prevMon.getFullYear() === curY2 && prevMon.getMonth() === curM2;
   const canGoNext = nextMon.getFullYear() === curY2 && nextMon.getMonth() === curM2;
 
-  // distribute sorted dispatch: Mon–Sat max 8 each; overflow appears next week
+  // which week-of-month slot is this? (0=first week, 1=second, ...)
+  // count how many full Mon–Sat blocks have passed since start of month
+  const monthStart = new Date(monday.getFullYear(), monday.getMonth(), 1);
+  // find first Monday of the month
+  const firstMon = new Date(monthStart);
+  const dow = firstMon.getDay(); // 0=Sun
+  const diff = dow === 0 ? 1 : dow === 1 ? 0 : 8 - dow;
+  firstMon.setDate(firstMon.getDate() + diff);
+  const weekIndex = Math.round((monday - firstMon) / (7 * 86400000));
+
+  // distribute: skip weekIndex*48 items, then fill this week's 48 slots
   const dayKeys = days.map(d => toYMD(d));
-  const byDay = {};
-  dayKeys.forEach(k => { byDay[k] = []; });
-  let dayIdx = 0;
-  for (const r of dispatch) {
-    while (dayIdx < 6 && byDay[dayKeys[dayIdx]].length >= 8) dayIdx++;
-    if (dayIdx >= 6) break;
-    byDay[dayKeys[dayIdx]].push(r);
+  const bySlot  = Array.from({ length: 8 }, () => Array(6).fill(null));
+  const skip = weekIndex * 48; // 6 days × 8 slots
+  const counters = [0,0,0,0,0,0];
+  let assigned = 0;
+  for (let i = skip; i < dispatch.length; i++) {
+    const r = dispatch[i];
+    let placed = false;
+    for (let di = 0; di < 6; di++) {
+      if (counters[di] < 8) {
+        bySlot[counters[di]][di] = r;
+        counters[di]++;
+        placed = true;
+        assigned++;
+        break;
+      }
+    }
+    if (!placed) break;
   }
 
   const sat = days[5];
   const weekLabel = `${toDDMMM(monday)} – ${toDDMMMYYYY(sat)}`;
-  const todayKey = toYMD(nowWIB());
+  const todayKey  = toYMD(nowWIB());
+
+  // format day header: "SENIN (03/08)"
+  const dayHeaders = days.map((d, i) => {
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    return `${DAY_NAMES[i]} (${dd}/${mm})`;
+  });
 
   return (
     <div style={{ marginTop:32 }}>
@@ -314,44 +341,39 @@ function DispatchBoard() {
         )}
       </div>
 
-      {/* card grid per hari */}
-      <div className={s.dtGrid}>
-        {days.map((d, i) => {
-          const key     = toYMD(d);
-          const items   = byDay[key] || [];
-          const isToday = key === todayKey;
-          return (
-            <div key={i} className={`${s.dtDayCard} ${isToday ? s.dtDayCardToday : ''}`}>
-              <div className={s.dtDayHead}>
-                <span className={s.dtDayName}>{DAY_NAMES[i]}</span>
-                <span className={s.dtDayDate}>{toDDMM(d)}</span>
-                {items.length > 0 && <span className={s.dtBadge}>{items.length}</span>}
-              </div>
-              <div className={s.dtDayBody}>
-                {items.length === 0
-                  ? <span className={s.dtEmpty}>Tidak ada</span>
-                  : items.map((item, idx) => (
-                      <div key={idx} className={s.dtCard} style={{ borderLeftColor: LV_COLOR[item.level] || 'var(--line)' }}>
-                        <div className={s.dtCardTop}>
-                          <span className={s.dtLv} style={{ color: LV_COLOR[item.level] || 'var(--grey)' }}>
-                            {item.level || '—'}
-                          </span>
-                          <span className={s.dtOutlet}>{item.outlet_kode || item.outlet_nama || '—'}</span>
-                        </div>
+      {/* dispatch table */}
+      <div className={s.dtTableWrap}>
+        <table className={s.dtTable}>
+          <thead>
+            <tr>
+              <th className={s.dtThNo}>NO</th>
+              <th className={s.dtThTime}>WAKTU</th>
+              {dayHeaders.map((h, i) => (
+                <th key={i} className={`${s.dtThDay} ${dayKeys[i] === todayKey ? s.dtThToday : ''}`}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {bySlot.map((row, slotIdx) => (
+              <tr key={slotIdx}>
+                <td className={s.dtTdNo}>{slotIdx + 1}</td>
+                <td className={s.dtTdTime}>{DISPATCH_SLOTS[slotIdx]}</td>
+                {row.map((item, di) => (
+                  <td key={di} className={`${s.dtTd} ${dayKeys[di] === todayKey ? s.dtTdToday : ''}`}>
+                    {item ? (
+                      <div className={s.dtCell} style={{ borderLeftColor: LV_COLOR[item.level] || 'var(--line)' }}>
+                        <span className={s.dtLv} style={{ color: LV_COLOR[item.level] || 'var(--grey)' }}>{item.level || '—'}</span>
+                        {' · '}
+                        <span className={s.dtOutlet}>{item.outlet_kode || item.outlet_nama || '—'}</span>
                         <div className={s.dtKet}>{item.keterangan || '—'}</div>
-                        <div className={s.dtMeta}>
-                          {item.tim_name && <span className={s.dtTim}>{item.tim_name}</span>}
-                          <span className={s.dtTime2}>{
-                            (() => { const w = createdToWIB(item.created_at); return w ? `${String(w.getHours()).padStart(2,'0')}:${String(w.getMinutes()).padStart(2,'0')}` : ''; })()
-                          }</span>
-                        </div>
                       </div>
-                    ))
-                }
-              </div>
-            </div>
-          );
-        })}
+                    ) : null}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
