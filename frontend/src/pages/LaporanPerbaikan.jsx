@@ -1842,7 +1842,7 @@ function TabDaily({ pic = "" }) {
   }, [tim, schedule?.outlet, pic]); // dbOutlets dihapus — tidak boleh re-run tiap polling
 
   // Reset lock state tiap ganti tim/outlet/date
-  useEffect(() => { setDcBlockedBy(null); }, [tim, pic, schedule?.outlet]);
+  useEffect(() => { setDcBlockedBy(null); setDcSent(false); setChecks({}); }, [tim, pic, schedule?.outlet, activeDate]);
 
   // Heartbeat lock — acquire saat form aktif, release saat unmount/submit
   const dcLockRef = useRef(null);
