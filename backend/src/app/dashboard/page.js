@@ -1058,7 +1058,7 @@ export default function LaporanDashboard() {
                   ['Type',      lp.tim_name || '—'],
                   ['Level SLA', lp.level ? `${lp.level} · ${SLA_HOURS[lp.level]}j` : '—'],
                   ['Created',   lp.created_at ? fmtDatetime(lp.created_at) : '—'],
-                  ['Selesai',   lp.updated_at ? fmtDatetime(lp.updated_at) : '—'],
+                  ['Selesai',   (['selesai_dikerjakan','terverifikasi'].includes(lp.status) && lp.updated_at) ? fmtDatetime(lp.updated_at) : '—'],
                   ['Deadline',  deadline ? `${fmtDatetime(deadline)}${slaSt==='overdue'?' ⚠ overdue':''}` : '—'],
                   ['Alamat',    lp.address||'—'],
                   ['Koordinat', (lp.lat&&lp.lon) ? `${lp.lat}, ${lp.lon}` : '—'],
