@@ -1979,7 +1979,7 @@ function TabDaily({ pic = "" }) {
       {tim && !schedule?.libur && totalItems === 0 && dbKatalog !== null && !dcBlocedBy && (
         <div className="dc-empty">Daily Task Tidak Tersedia</div>
       )}
-      {filteredKatalog.map((cat, idx) => {
+      {!dcBlocedBy && filteredKatalog.map((cat, idx) => {
         const catDone = cat.items.filter(it => isItemComplete(it, checks[it.kode_task])).length;
         const catComplete = catDone === cat.items.length && cat.items.length > 0;
         const isOpen = openCats.has(cat.kode);
@@ -2138,7 +2138,7 @@ function TabDaily({ pic = "" }) {
         </div>
       )}
 
-      {totalItems > 0 && (
+      {totalItems > 0 && !dcBlocedBy && (
         <div className="dc-sticky-bar">
           <div className="dc-sticky-row">
             <span className="dc-sticky-label">Progress pemeriksaan</span>
