@@ -200,6 +200,8 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 
 /* ── daily check accordion ── */
 .dc-cat-group { margin-top:12px; }
+.dc-checklist-wrap { transition: opacity 0.3s ease, transform 0.3s ease; opacity:1; transform:translateY(0); }
+.dc-checklist-wrap--hidden { opacity:0; pointer-events:none; transform:translateY(8px); }
 
 .dc-acc { width:100%; display:flex; align-items:center; gap:11px; background:#141414; border:none; border-radius:12px; padding:14px 15px; cursor:pointer; text-align:left; font-family:inherit; }
 .dc-acc-no { font-size:10px; font-family:'IBM Plex Mono',monospace; font-weight:700; color:#5A574F; flex:0 0 auto; }
