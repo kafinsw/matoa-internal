@@ -1352,7 +1352,7 @@ try {
                 break;
             }
 
-            $created_at = $date_store ? date('Y-m-d H:i:s', strtotime($date_store . ' 12:00:00') - 7*3600) : date('Y-m-d H:i:s');
+            $created_at = $date_store ? ($date_store . ' 12:00:00') : date('Y-m-d H:i:s');
             // folder: daily_check_DDMMYY based on WIB date
             $wib_date  = $date_store ?: date('d-m-y', strtotime($created_at) + 7*3600);
             $dc_folder = 'daily_check_' . str_replace('-', '', date('dmy', strtotime(str_replace('-','/',$wib_date ?: date('Y-m-d')))));

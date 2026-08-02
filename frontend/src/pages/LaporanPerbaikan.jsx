@@ -2150,11 +2150,11 @@ function TabDaily({ pic = "" }) {
                             rows={1}
                             placeholder="Tulis keterangan…"
                             disabled={dcSent}
-                            className={`dc-note${ck.status === "Bermasalah" && ck.note.trim() === "" ? " dc-note--err" : ""}`}
-                            value={ck.note}
+                            className={`dc-note${ck.status === "Bermasalah" && (ck.note||'').trim() === "" ? " dc-note--err" : ""}`}
+                            value={ck.note||''}
                             onChange={e => setCheck(item.kode_task, "note", e.target.value)}
                           />
-                          {ck.status === "Bermasalah" && ck.note.trim() === "" && (
+                          {ck.status === "Bermasalah" && (ck.note||'').trim() === "" && (
                             <div className="dc-note--err-msg">Keterangan harus di isi</div>
                           )}
                         </div>
