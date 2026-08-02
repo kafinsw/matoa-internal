@@ -271,14 +271,15 @@ function DispatchBoard() {
     return d;
   });
 
-  // group by WIB date key, no slot limit — show all per day
+  // distribute sorted dispatch across 6 days, max 8 per day
   const byDay = {};
   days.forEach(d => { byDay[toYMD(d)] = []; });
-  dispatch.forEach(r => {
-    const wib = createdToWIB(r.created_at);
-    const key = wib ? toYMD(wib) : null;
-    if (key && byDay[key]) byDay[key].push(r);
-  });
+  let dayIdx = 0;
+  for (const r of dispatch) {
+    while (dayIdx < 6 && byDay[toYMD(days[dayIdx])].length >= 8) dayIdx++;
+    if (dayIdx >= 6) break;
+    byDay[toYMD(days[dayIdx])].push(r);
+  }
 
   const sat = days[5];
   const weekLabel = `${toDDMMM(monday)} – ${toDDMMMYYYY(sat)}`;
