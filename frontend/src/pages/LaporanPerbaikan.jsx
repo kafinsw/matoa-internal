@@ -2361,6 +2361,7 @@ function TabRutin({ pic = "" }) {
           )}
         </div>
       </div>
+      <div className="rt-empty">Tugas Rutin Belum Tersedia</div>
     </div>
   );
 }
