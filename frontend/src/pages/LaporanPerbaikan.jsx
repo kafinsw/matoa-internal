@@ -1470,6 +1470,11 @@ const getToday = () =>
       year: "numeric",
     });
 
+const getTodayISO = () => {
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+
 /* ── atoms ── */
 function Pill({ children, className = "" }) {
   return <span className={`lp-pill ${className}`}>{children}</span>;
@@ -1598,7 +1603,7 @@ function TabDaily({ pic = "" }) {
       setDevTap(next);
     }
   }
-  const activeDate = devMode && devDate ? devDate : getToday();
+  const activeDate = devMode && devDate ? devDate : getTodayISO();
 
   // derived from tim selection
   const userId = tim ? Number(tim) : null;
