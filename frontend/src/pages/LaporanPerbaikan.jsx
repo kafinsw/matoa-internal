@@ -2126,7 +2126,7 @@ function TabDaily({ pic = "" }) {
                             <div className="dc-photo-grid">
                               {ck.photos.map((src, i) => (
                                 <div key={i} className="dc-photo-cell">
-                                  <img src={src} className="dc-photo-img" alt={`foto-${i + 1}`} onClick={() => setDcPvSrc(src)} style={{cursor:"zoom-in"}} />
+                                  <img src={fotoSrc(src) ?? src} className="dc-photo-img" alt={`foto-${i + 1}`} onClick={() => setDcPvSrc(fotoSrc(src) ?? src)} style={{cursor:"zoom-in"}} />
                                   <button
                                     className="dc-photo-del"
                                     disabled={dcSent}
