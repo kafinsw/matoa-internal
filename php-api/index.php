@@ -1362,7 +1362,7 @@ try {
 
             $whereStr = implode(' AND ', $where);
             $stmt = $pdo->prepare(
-                "SELECT dl.*, o.nama AS outlet_nama, u.nama AS user_nama, p.nama AS petugas_nama
+                "SELECT dl.*, o.nama AS outlet_nama, u.name AS user_nama, p.name AS petugas_nama
                  FROM daily_laporan dl
                  LEFT JOIN outlets o ON o.id = dl.outlet_id
                  LEFT JOIN user u ON u.id = dl.user_id
