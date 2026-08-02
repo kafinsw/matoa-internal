@@ -50,6 +50,17 @@ function saveFotoBase64($base64Data, $folder = 'laporan', $prefix = 'foto', $tik
     $dir = __DIR__ . "/../uploads/{$subdir}";
     if (!is_dir($dir)) mkdir($dir, 0755, true);
 
+    // Convert to webp if GD available
+    if (function_exists('imagewebp') && in_array($ext, ['jpg','jpeg','png'])) {
+        $img = imagecreatefromstring($raw);
+        if ($img !== false) {
+            ob_start();
+            imagewebp($img, null, 82);
+            $webpRaw = ob_get_clean();
+            imagedestroy($img);
+            if ($webpRaw) { $raw = $webpRaw; $ext = 'webp'; }
+        }
+    }
     $filename = "{$prefix}_" . time() . '_' . uniqid() . '.' . $ext;
     file_put_contents($dir . '/' . $filename, $raw);
     return "uploads/{$subdir}/{$filename}";
@@ -1341,11 +1352,30 @@ try {
                 break;
             }
 
+            $created_at = $date_store ? date('Y-m-d H:i:s', strtotime($date_store . ' 12:00:00') - 7*3600) : date('Y-m-d H:i:s');
+            // folder: daily_check_DDMMYY based on WIB date
+            $wib_date  = $date_store ?: date('d-m-y', strtotime($created_at) + 7*3600);
+            $dc_folder = 'daily_check_' . str_replace('-', '', date('dmy', strtotime(str_replace('-','/',$wib_date ?: date('Y-m-d')))));
+
+            // save photos inside tasks
+            if (is_array($tasks)) {
+                foreach ($tasks as $kode => &$task) {
+                    if (!empty($task['photos']) && is_array($task['photos'])) {
+                        foreach ($task['photos'] as &$photo) {
+                            if ($photo && str_starts_with($photo, 'data:')) {
+                                $photo = saveFotoBase64($photo, $dc_folder, 'dc_' . $kode);
+                            }
+                        }
+                        unset($photo);
+                    }
+                }
+                unset($task);
+            }
+
             $stmt = $pdo->prepare(
                 'INSERT INTO daily_laporan (outlet_id, user_id, petugas_id, tasks, lat, lon, address, device, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
-            $created_at = $date_store ? $date_store . ' 00:00:00' : date('Y-m-d H:i:s');
             $stmt->execute([
                 $outlet_id, $user_id, $petugas_id,
                 is_string($tasks) ? $tasks : json_encode($tasks),
