@@ -1656,7 +1656,7 @@ function TabDaily({ pic = "" }) {
     setChecks(prev => {
       const next = {
         ...prev,
-        [dcCamTarget]: { ...prev[dcCamTarget], photos: [...prev[dcCamTarget].photos, stamped] },
+        [dcCamTarget]: { ...prev[dcCamTarget], photos: [...(prev[dcCamTarget]?.photos || []), stamped] },
       };
       try { sessionStorage.setItem("dc_checks", JSON.stringify(next)); } catch {}
       return next;
@@ -1702,7 +1702,7 @@ function TabDaily({ pic = "" }) {
         ...prev,
         [kode_task]: {
           ...prev[kode_task],
-          photos: [...prev[kode_task].photos, stamped],
+          photos: [...(prev[kode_task]?.photos || []), stamped],
         },
       }));
     };
