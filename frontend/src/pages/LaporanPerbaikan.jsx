@@ -1519,27 +1519,61 @@ function TabDaily({ pic = "" }) {
   const _gpsWatchRef = useRef(null);
   const _gpsHardStopRef = useRef(null);
 
-  // fetch katalog dari DB
+  // fetch katalog dari DB — polling 5 menit, skip update jika data sama
   const [dbKatalog, setDbKatalog] = useState(null); // null = loading
   const [dbOutlets, setDbOutlets] = useState({});
   const [dbJadwal, setDbJadwal] = useState({});
+  const _configHashRef = useRef(null);
+
+  function applyConfig(d) {
+    if (!d.ok) { setDbKatalog([]); return; }
+    const hash = JSON.stringify(d);
+    if (hash === _configHashRef.current) return; // tidak ada perubahan
+    _configHashRef.current = hash;
+    const merged = d.katalog.map(cat => ({
+      ...cat,
+      items: cat.items.map(it => ({ ...it, poin: it.keterangan || [] })),
+    }));
+    setDbKatalog(merged);
+    setDbOutlets(d.outlets || {});
+    setDbJadwal(d.jadwal || {});
+  }
+
   useEffect(() => {
-    fetch("/php-api/daily/config")
-      .then(r => r.json())
-      .then(d => {
-        if (!d.ok) return setDbKatalog([]);
-        const merged = d.katalog.map(cat => ({
-          ...cat,
-          items: cat.items.map(it => ({
-            ...it,
-            poin: it.keterangan || [],
-          })),
-        }));
-        setDbKatalog(merged);
-        setDbOutlets(d.outlets || {});
-        setDbJadwal(d.jadwal || {});
-      })
-      .catch(() => setDbKatalog([]));
+    // clear data stale (dari hari sebelumnya)
+    const savedDate = sessionStorage.getItem("dc_date");
+    const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+    if (savedDate && savedDate !== today) {
+      sessionStorage.removeItem("dc_checks");
+      sessionStorage.removeItem("dc_tim");
+    }
+    sessionStorage.setItem("dc_date", today);
+
+    // fetch awal
+    fetch("/php-api/daily/config").then(r => r.json()).then(applyConfig).catch(() => setDbKatalog([]));
+
+    // polling 5 menit
+    const poll = setInterval(() => {
+      fetch("/php-api/daily/config").then(r => r.json()).then(applyConfig).catch(() => {});
+    }, 5 * 60 * 1000);
+
+    // reset jam 00:00 WIB
+    function schedMidnight() {
+      const now = new Date();
+      const wib = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+      const msToMidnight = (24 * 60 * 60 * 1000)
+        - (wib.getHours() * 3600 + wib.getMinutes() * 60 + wib.getSeconds()) * 1000
+        - wib.getMilliseconds() + 1000;
+      return setTimeout(() => {
+        sessionStorage.removeItem("dc_checks");
+        sessionStorage.removeItem("dc_tim");
+        sessionStorage.removeItem("dc_date");
+        window.location.reload();
+      }, msToMidnight);
+    }
+    const midnight = schedMidnight();
+
+    return () => { clearInterval(poll); clearTimeout(midnight); };
   }, []);
 
   // dev mode: 5x tap label tanggal → bisa edit tanggal
