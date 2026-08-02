@@ -2111,8 +2111,8 @@ function TabDaily({ pic = "" }) {
                         <div className="dc-photo-wrap">
                           <div className="dc-photo-row">
                             <span className="dc-photo-label">Foto bukti (kamera)</span>
-                            <span className={`dc-photo-count${ck.photos.length < item.min_foto ? " dc-photo-count--warn" : " dc-photo-count--ok"}`}>
-                              {ck.photos.length}/{item.min_foto} min
+                            <span className={`dc-photo-count${(ck.photos||[]).length < item.min_foto ? " dc-photo-count--warn" : " dc-photo-count--ok"}`}>
+                              {(ck.photos||[]).length}/{item.min_foto} min
                             </span>
                           </div>
                           {needAlasan
@@ -2125,15 +2125,15 @@ function TabDaily({ pic = "" }) {
                                 Ambil Foto (Kamera)
                               </button>
                           }
-                          {ck.photos.length > 0 && (
+                          {(ck.photos||[]).length > 0 && (
                             <div className="dc-photo-grid">
-                              {ck.photos.map((src, i) => (
+                              {(ck.photos||[]).map((src, i) => (
                                 <div key={i} className="dc-photo-cell">
                                   <img src={fotoSrc(src) ?? src} className="dc-photo-img" alt={`foto-${i + 1}`} onClick={() => setDcPvSrc(fotoSrc(src) ?? src)} style={{cursor:"zoom-in"}} />
                                   <button
                                     className="dc-photo-del"
                                     disabled={dcSent}
-                                    onClick={() => setCheck(item.kode_task, "photos", ck.photos.filter((_, j) => j !== i))}
+                                    onClick={() => setCheck(item.kode_task, "photos", (ck.photos||[]).filter((_, j) => j !== i))}
                                   >✕</button>
                                 </div>
                               ))}
