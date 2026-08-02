@@ -1823,21 +1823,19 @@ function TabDaily({ pic = "" }) {
       .then(r => r.json())
       .then(d => {
         if (d.ok && d.exists) {
-          if (d.petugas_nama && d.petugas_nama !== pic) setDcBlockedBy(d.petugas_nama);
-          else {
-            setDcSent(true);
-            // load data dari DB ke checks state
-            const outletIdForList = outletId;
-            fetch(`/php-api/daily/list?outlet_id=${outletIdForList}&user_id=${tim}&date=${activeDate}`)
-              .then(r => r.json())
-              .then(dl => {
-                if (dl.ok && dl.data?.length) {
-                  const tasks = dl.data[0].tasks || {};
-                  setChecks(typeof tasks === 'string' ? JSON.parse(tasks) : tasks);
-                }
-              })
-              .catch(() => {});
-          }
+          // sudah ada laporan — load data ke checks, set read-only (siapapun yang submit)
+          setDcSent(true);
+          // load data dari DB ke checks state
+          const outletIdForList = outletId;
+          fetch(`/php-api/daily/list?outlet_id=${outletIdForList}&user_id=${tim}&date=${activeDate}`)
+            .then(r => r.json())
+            .then(dl => {
+              if (dl.ok && dl.data?.length) {
+                const tasks = dl.data[0].tasks || {};
+                setChecks(typeof tasks === 'string' ? JSON.parse(tasks) : tasks);
+              }
+            })
+            .catch(() => {});
         }
       })
       .catch(() => {});
