@@ -1310,6 +1310,80 @@ try {
             json_response(['ok' => true, 'katalog' => array_values($katalog), 'outlets' => $outlets, 'jadwal' => $jadwal]);
             break;
 
+        // ---- Daily Laporan ----
+        case '/daily/store':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                json_response(['ok' => false, 'message' => 'Method not allowed'], 405);
+                break;
+            }
+            $body = json_decode(file_get_contents('php://input'), true) ?? [];
+            $outlet_id  = (int)($body['outlet_id']  ?? 0);
+            $user_id    = (int)($body['user_id']    ?? 0);
+            $petugas_id = (int)($body['petugas_id'] ?? 0);
+            $tasks      = $body['tasks']      ?? null;
+            $lat        = isset($body['lat'])  ? (float)$body['lat']  : null;
+            $lon        = isset($body['lon'])  ? (float)$body['lon']  : null;
+            $address    = $body['address']    ?? null;
+            $device     = $body['device']     ?? null;
+
+            if (!$outlet_id || !$user_id || !$petugas_id || !$tasks) {
+                json_response(['ok' => false, 'message' => 'outlet_id, user_id, petugas_id, tasks wajib diisi'], 422);
+                break;
+            }
+
+            $stmt = $pdo->prepare(
+                'INSERT INTO daily_laporan (outlet_id, user_id, petugas_id, tasks, lat, lon, address, device, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+            );
+            $stmt->execute([
+                $outlet_id, $user_id, $petugas_id,
+                is_string($tasks) ? $tasks : json_encode($tasks),
+                $lat, $lon, $address, $device,
+            ]);
+            $newId = $pdo->lastInsertId();
+            $row = $pdo->query("SELECT * FROM daily_laporan WHERE id = $newId")->fetch();
+            foreach (['created_at', 'updated_at'] as $f) {
+                if (!empty($row[$f])) $row[$f] = utc_to_wib($row[$f]);
+            }
+            json_response(['ok' => true, 'data' => $row]);
+            break;
+
+        case '/daily/list':
+            $outlet_id  = isset($_GET['outlet_id'])  ? (int)$_GET['outlet_id']  : null;
+            $user_id    = isset($_GET['user_id'])     ? (int)$_GET['user_id']    : null;
+            $date       = $_GET['date'] ?? date('Y-m-d'); // YYYY-MM-DD, default hari ini
+            $limit      = min((int)($_GET['limit'] ?? 50), 200);
+            $offset     = (int)($_GET['offset'] ?? 0);
+
+            $where  = ['DATE(dl.created_at) = ?'];
+            $params = [$date];
+            if ($outlet_id) { $where[] = 'dl.outlet_id = ?';  $params[] = $outlet_id; }
+            if ($user_id)   { $where[] = 'dl.user_id = ?';    $params[] = $user_id; }
+
+            $whereStr = implode(' AND ', $where);
+            $stmt = $pdo->prepare(
+                "SELECT dl.*, o.nama AS outlet_nama, u.nama AS user_nama,
+                        p.nama AS petugas_nama
+                 FROM daily_laporan dl
+                 LEFT JOIN outlets o ON o.id = dl.outlet_id
+                 LEFT JOIN users u   ON u.id = dl.user_id
+                 LEFT JOIN users p   ON p.id = dl.petugas_id
+                 WHERE $whereStr
+                 ORDER BY dl.created_at DESC
+                 LIMIT ? OFFSET ?"
+            );
+            $stmt->execute([...$params, $limit, $offset]);
+            $rows = $stmt->fetchAll();
+            foreach ($rows as &$r) {
+                foreach (['created_at', 'updated_at'] as $f) {
+                    if (!empty($r[$f])) $r[$f] = utc_to_wib($r[$f]);
+                }
+                if (is_string($r['tasks'])) $r['tasks'] = json_decode($r['tasks'], true);
+            }
+            unset($r);
+            json_response(['ok' => true, 'data' => $rows, 'date' => $date]);
+            break;
+
         default:
             json_response([
                 'ok' => false,
