@@ -1859,7 +1859,10 @@ function TabDaily({ pic = "" }) {
     const payload = JSON.stringify({ outlet_id: outletId, user_id: Number(tim), petugas_nama: pic, date: activeDate });
     const acquire = () => fetch('/php-api/daily/lock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload })
       .then(r => r.json())
-      .then(d => { if (!d.ok && d.locked_by && d.locked_by !== pic) setDcBlockedBy(prev => prev || d.locked_by); })
+      .then(d => {
+        if (d.ok) { setDcBlockedBy(null); }
+        else if (!d.ok && d.locked_by && d.locked_by !== pic) { setDcBlockedBy(d.locked_by); }
+      })
       .catch(() => {});
     const release = () => fetch('/php-api/daily/lock', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: payload }).catch(() => {});
 
