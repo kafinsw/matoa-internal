@@ -1791,6 +1791,51 @@ function TabDaily({ pic = "" }) {
     };
   }, []);
 
+  const [dcSending, setDcSending] = useState(false);
+  const [dcSent, setDcSent] = useState(false);
+
+  async function kirimDaily() {
+    if (!tim || !schedule || schedule.libur || doneItems < totalItems) return;
+    const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
+    if (!outletId) { alert("Outlet tidak ditemukan."); return; }
+
+    // build tasks payload: { kode_task: { status, note, photos[] } }
+    const tasks = {};
+    filteredKatalog.forEach(cat => {
+      cat.items.forEach(it => {
+        const ck = checks[it.kode_task] || {};
+        tasks[it.kode_task] = { status: ck.status, note: ck.note || "", photos: ck.photos || [] };
+      });
+    });
+
+    setDcSending(true);
+    try {
+      const res = await fetch("/php-api/daily/store", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          outlet_id: outletId,
+          user_id: Number(tim),
+          petugas_id: Number(tim), // same as user_id for daily
+          tasks,
+          lat: gps.lat ?? null,
+          lon: gps.lon ?? null,
+          address: gps.addr ?? null,
+          device: navigator.userAgent,
+        }),
+      });
+      const d = await res.json();
+      if (!d.ok) throw new Error(d.message || "Gagal kirim");
+      setDcSent(true);
+      sessionStorage.removeItem("dc_checks");
+      alert("✓ Daily check terkirim!");
+    } catch (err) {
+      alert("Gagal kirim: " + err.message);
+    } finally {
+      setDcSending(false);
+    }
+  }
+
   const gpsOk = gps.status === "ok";
   const gpsBoxCls = gpsOk
     ? "lp-gps-box lp-gps-box--ok"
@@ -2060,6 +2105,18 @@ function TabDaily({ pic = "" }) {
             <span className="dc-sticky-warn">● {countWarn} Dalam Proses</span>
             <span className="dc-sticky-belum">○ {countBelum} Belum</span>
           </div>
+          {doneItems === totalItems && !dcSent && (
+            <button
+              className="dc-kirim-btn"
+              onClick={kirimDaily}
+              disabled={dcSending}
+            >
+              {dcSending ? "Mengirim…" : "Kirim Daily Check"}
+            </button>
+          )}
+          {dcSent && (
+            <div className="dc-sent-badge">✓ Terkirim</div>
+          )}
         </div>
       )}
       {dcPvSrc && <PhotoViewer src={dcPvSrc} onClose={() => setDcPvSrc(null)} />}

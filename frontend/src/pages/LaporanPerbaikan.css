@@ -376,6 +376,9 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 .dc-sticky-err   { color:#e5674f; font-weight:600; }
 .dc-sticky-warn  { color:#D97706; font-weight:600; }
 .dc-sticky-belum { color:#8b8d93; font-weight:600; }
+.dc-kirim-btn    { width:100%; margin-top:12px; padding:13px; background:#1F8A5B; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; }
+.dc-kirim-btn:disabled { opacity:.5; cursor:not-allowed; }
+.dc-sent-badge   { margin-top:12px; text-align:center; color:#1F8A5B; font-size:13px; font-weight:600; }
 .lp-filter-bar      { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
 .lp-filter-sel      { flex:1; min-width:0; background:#0d0e10; color:#f4f4f5; border:1px solid #26272b; border-radius:10px; padding:8px 10px; font-size:12px; appearance:none; cursor:pointer; }
 .lp-filter-sel:focus{ outline:none; border-color:#5e6066; }
