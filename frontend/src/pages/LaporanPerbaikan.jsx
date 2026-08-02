@@ -1543,6 +1543,7 @@ function TabDaily({ pic = "" }) {
   }, []);
 
   // dev mode: 5x tap label tanggal → bisa edit tanggal
+  const [dcPvSrc, setDcPvSrc] = useState(null);
   const [devTap, setDevTap] = useState(0);
   const [devMode, setDevMode] = useState(false);
   const [devDate, setDevDate] = useState("");
@@ -1929,7 +1930,7 @@ function TabDaily({ pic = "" }) {
                             <div className="dc-photo-grid">
                               {ck.photos.map((src, i) => (
                                 <div key={i} className="dc-photo-cell">
-                                  <img src={src} className="dc-photo-img" alt={`foto-${i + 1}`} />
+                                  <img src={src} className="dc-photo-img" alt={`foto-${i + 1}`} onClick={() => setDcPvSrc(src)} style={{cursor:"zoom-in"}} />
                                   <button
                                     className="dc-photo-del"
                                     onClick={() => setCheck(item.kode_task, "photos", ck.photos.filter((_, j) => j !== i))}
@@ -2003,6 +2004,7 @@ function TabDaily({ pic = "" }) {
           </div>
         </div>
       )}
+      {dcPvSrc && <PhotoViewer src={dcPvSrc} onClose={() => setDcPvSrc(null)} />}
     </div>
   );
 }
