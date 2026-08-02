@@ -271,17 +271,18 @@ function DispatchBoard() {
     return d;
   });
 
-  // group by date, max 8 per day
+  // group by WIB date key, no slot limit — show all per day
   const byDay = {};
   days.forEach(d => { byDay[toYMD(d)] = []; });
   dispatch.forEach(r => {
     const wib = createdToWIB(r.created_at);
     const key = wib ? toYMD(wib) : null;
-    if (key && byDay[key] && byDay[key].length < 8) byDay[key].push(r);
+    if (key && byDay[key]) byDay[key].push(r);
   });
 
   const sat = days[5];
   const weekLabel = `${toDDMMM(monday)} – ${toDDMMMYYYY(sat)}`;
+  const todayKey = toYMD(nowWIB());
 
   return (
     <div style={{ marginTop:32 }}>
@@ -294,45 +295,45 @@ function DispatchBoard() {
           <button className={s.dtNavBtnSm} onClick={() => setWeekOffset(0)}>Hari Ini</button>
         )}
       </div>
-      <div style={{ overflowX:'auto', marginTop:12 }}>
-        <table className={s.dispatchTable}>
-          <thead>
-            <tr>
-              <th className={s.dtNo}>NO</th>
-              <th className={s.dtTime}>WAKTU</th>
-              {days.map((d, i) => (
-                <th key={i} className={s.dtDay}>
-                  {DAY_NAMES[i]}<br/>
-                  <span className={s.dtDate}>{toDDMM(d)}</span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {DISPATCH_SLOTS.map((slot, rowIdx) => (
-              <tr key={rowIdx}>
-                <td className={s.dtNo}>{rowIdx + 1}</td>
-                <td className={s.dtTime}>{slot}</td>
-                {days.map((d, colIdx) => {
-                  const key  = d.toLocaleDateString('sv-SE', { timeZone:'Asia/Jakarta' });
-                  const item = byDay[key]?.[rowIdx];
-                  return (
-                    <td key={colIdx} className={s.dtCell}>
-                      {item ? (
-                        <div className={s.dtItem}>
-                          <span className={s.dtLv} style={{ color: LV_COLOR[item.level] || 'var(--muted)' }}>
-                            {item.level || '—'} · {item.outlet_kode || item.outlet_nama || '—'}
+
+      {/* card grid per hari */}
+      <div className={s.dtGrid}>
+        {days.map((d, i) => {
+          const key     = toYMD(d);
+          const items   = byDay[key] || [];
+          const isToday = key === todayKey;
+          return (
+            <div key={i} className={`${s.dtDayCard} ${isToday ? s.dtDayCardToday : ''}`}>
+              <div className={s.dtDayHead}>
+                <span className={s.dtDayName}>{DAY_NAMES[i]}</span>
+                <span className={s.dtDayDate}>{toDDMM(d)}</span>
+                {items.length > 0 && <span className={s.dtBadge}>{items.length}</span>}
+              </div>
+              <div className={s.dtDayBody}>
+                {items.length === 0
+                  ? <span className={s.dtEmpty}>Tidak ada</span>
+                  : items.map((item, idx) => (
+                      <div key={idx} className={s.dtCard} style={{ borderLeftColor: LV_COLOR[item.level] || 'var(--line)' }}>
+                        <div className={s.dtCardTop}>
+                          <span className={s.dtLv} style={{ color: LV_COLOR[item.level] || 'var(--grey)' }}>
+                            {item.level || '—'}
                           </span>
-                          <span className={s.dtKet}>{item.keterangan}</span>
+                          <span className={s.dtOutlet}>{item.outlet_kode || item.outlet_nama || '—'}</span>
                         </div>
-                      ) : <span className={s.dtEmpty}>—</span>}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                        <div className={s.dtKet}>{item.keterangan || '—'}</div>
+                        <div className={s.dtMeta}>
+                          {item.tim_name && <span className={s.dtTim}>{item.tim_name}</span>}
+                          <span className={s.dtTime2}>{
+                            (() => { const w = createdToWIB(item.created_at); return w ? `${String(w.getHours()).padStart(2,'0')}:${String(w.getMinutes()).padStart(2,'0')}` : ''; })()
+                          }</span>
+                        </div>
+                      </div>
+                    ))
+                }
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
