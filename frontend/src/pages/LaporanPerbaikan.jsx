@@ -1847,7 +1847,7 @@ function TabDaily({ pic = "" }) {
   // Heartbeat lock — acquire saat form aktif, release saat unmount/submit
   const dcLockRef = useRef(null);
   useEffect(() => {
-    if (!tim || !pic || !schedule || schedule.libur || !dbOutlets) return;
+    if (!tim || !pic || !schedule || schedule.libur || !dbOutlets || dcSent) return;
     const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
     if (!outletId) return;
 
@@ -1866,7 +1866,7 @@ function TabDaily({ pic = "" }) {
       window.removeEventListener('beforeunload', release);
       release();
     };
-  }, [tim, pic, schedule?.outlet]); // dbOutlets dihapus — re-run tiap polling kalau masuk dep
+  }, [tim, pic, schedule?.outlet, dcSent]); // stop heartbeat when dcSent
 
   async function kirimDaily() {
     if (!tim || !schedule || schedule.libur || doneItems < totalItems) return;
