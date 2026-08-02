@@ -1779,16 +1779,7 @@ function TabDaily({ pic = "" }) {
           )}
         </div>
       </div>
-      {/* progress bar */}
-      <div className="lp-progress-wrap">
-        <div className="lp-progress-row">
-          <span className="lp-progress-label">Progress</span>
-          <span className="lp-progress-count">{doneItems}/{totalItems}</span>
-        </div>
-        <div className="lp-progress-bar">
-          <div className="lp-progress-fill" style={{ width: totalItems ? `${(doneItems / totalItems) * 100}%` : "0%" }} />
-        </div>
-      </div>
+
 
       {/* checklist accordion */}
       {!tim && (
