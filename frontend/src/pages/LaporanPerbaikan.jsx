@@ -2228,70 +2228,138 @@ function TabDaily({ pic = "" }) {
 }
 
 /* ── tab tugas rutin ── */
-function TabRutin() {
+function TabRutin({ pic = "" }) {
+  const [tim, setTim] = useState(() => sessionStorage.getItem("rt_tim") || "");
+  const [gps, setGps] = useState({ status: "loading" });
+  const _gpsWatchRef = useRef(null);
+  const _gpsHardStopRef = useRef(null);
+
+  const [dbJadwal, setDbJadwal] = useState({});
+  const [devTap, setDevTap] = useState(0);
+  const [devMode, setDevMode] = useState(false);
+  const [devDate, setDevDate] = useState("");
+  function handleDateTap() {
+    const next = devTap + 1;
+    if (next >= 5) {
+      setDevTap(0);
+      if (devMode) { setDevMode(false); setDevDate(""); alert("Mode developer non-aktif."); }
+      else { setDevMode(true); setDevDate(getToday()); alert("Mode developer aktif."); }
+    } else { setDevTap(next); }
+  }
+  const activeDate = devMode && devDate ? devDate : getTodayISO();
+
+  useEffect(() => {
+    fetch("/php-api/daily/config").then(r => r.json()).then(d => {
+      if (d.ok) setDbJadwal(d.jadwal || {});
+    }).catch(() => {});
+  }, []);
+
+  const userId = tim ? Number(tim) : null;
+  const schedule = userId ? getScheduleToday(userId, activeDate, dbJadwal) : null;
+  const outletLabel = schedule ? schedule.outlet : "";
+
+  // GPS
+  async function reverseGeocode(lat, lon) {
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`, { headers: { "Accept-Language": "id" } });
+      const d = await r.json(); return d.display_name || "";
+    } catch { return ""; }
+  }
+  function fetchGps() {
+    if (!navigator.geolocation) { setGps({ status: "error", message: "GPS tidak tersedia" }); return; }
+    setGps({ status: "loading" });
+    let bestAcc = Infinity;
+    async function commit(lat, lon, acc) {
+      const addr = await reverseGeocode(lat, lon);
+      setGps({ status: "ok", lat, lon, accuracy: acc, addr });
+    }
+    _gpsWatchRef.current = navigator.geolocation.watchPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lon, accuracy: acc } = pos.coords;
+        if (acc < bestAcc) { bestAcc = acc; await commit(lat, lon, acc); }
+        if (acc <= 20) { navigator.geolocation.clearWatch(_gpsWatchRef.current); clearTimeout(_gpsHardStopRef.current); }
+      },
+      (err) => setGps({ status: "error", message: err.message }),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+    );
+    _gpsHardStopRef.current = setTimeout(() => navigator.geolocation.clearWatch(_gpsWatchRef.current), 30000);
+  }
+  useEffect(() => {
+    fetchGps();
+    return () => { navigator.geolocation.clearWatch(_gpsWatchRef.current); clearTimeout(_gpsHardStopRef.current); };
+  }, []);
+
+  const gpsOk = gps.status === "ok";
+  const gpsBoxCls = gpsOk ? "lp-gps-box lp-gps-box--ok" : gps.status === "error" ? "lp-gps-box lp-gps-box--err" : "lp-gps-box lp-gps-box--loading";
+
   return (
-    <div className="lp-rutin-wrap">
-      <Sec>Jadwal Daily Check</Sec>
-      <DarkBox>
-        <div className="lp-rotasi-label">ROTASI OUTLET</div>
-        <div className="lp-rotasi-list">
-          {ROTASI.map((r) => (
-            <div key={r.outlet} className="lp-rotasi-row">
-              <Pill className="pill-pink">{r.outlet}</Pill>
-              <span className="lp-rotasi-days">{r.days}</span>
+    <div className="lp-daily-wrap">
+      <div className="lp-form-card">
+        <div className="lp-form-grid">
+          <label className="lp-label">
+            TYPE
+            <select
+              value={tim}
+              onChange={(e) => { sessionStorage.setItem("rt_tim", e.target.value); setTim(e.target.value); }}
+              className={`lp-input${!tim ? " lp-input--err" : ""}`}
+            >
+              <option value="">— Pilih Type —</option>
+              {USERS_DAILY.map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+            {!tim && <span className="lp-field-warn">⚠ Pilih type</span>}
+          </label>
+          <div>
+            <span className="lp-label">OUTLET</span>
+            <div className={`lp-input-read${outletLabel === "LIBUR" ? " lp-input-read--libur" : ""}`}>
+              {outletLabel || "—"}
             </div>
-          ))}
-          <div className="lp-rotasi-footer">
-            Sabtu &amp; Minggu — libur rotasi
+          </div>
+          <div>
+            <span className="lp-label" onClick={handleDateTap}>TANGGAL (OTOMATIS)</span>
+            {devMode
+              ? <input type="date" className="lp-input" value={devDate} onChange={e => setDevDate(e.target.value)} />
+              : <div className="lp-input-read">{getToday()}</div>
+            }
           </div>
         </div>
-      </DarkBox>
-
-      <Sec>Jadwal Tasking Rutin</Sec>
-      <div className="lp-card lp-mb14">
-        <div className="lp-harian-header">
-          <span className="lp-harian-title">Setiap Hari</span>
-          <span className="lp-harian-outlet">OPIUCI</span>
-        </div>
-        {HARIAN.map((t) => (
-          <div key={t.id} className="lp-harian-row">
-            <span className="lp-item-name">{t.name}</span>
-            <span className="lp-jadwal-task-outlet">{t.outlet}</span>
-          </div>
-        ))}
-      </div>
-
-      {PER_HARI.map((g) => (
-        <div key={g.hari} className="lp-hari-group">
-          <div className="lp-hari-header-row">
-            <Sec>{g.hari}</Sec>
-            <span className="lp-hari-count">{g.tasks.length} tugas</span>
-          </div>
-          <div className="lp-card">
-            {g.tasks.map((t, i) => (
-              <div
-                key={i}
-                className={`lp-hari-task-row${i === 0 ? " first" : ""}`}
-              >
-                <span className="lp-task-name">{t.name}</span>
-                <div className="lp-task-tags">
-                  <Pill className="pill-pink-light">{t.outlet}</Pill>
-                  <FTag label={t.freq} />
-                </div>
+        <label className="lp-form-label-mt lp-label">
+          NAMA PETUGAS
+          <div className="lp-input-read">{pic || "—"}</div>
+        </label>
+        <div className={gpsBoxCls}>
+          <div className="lp-gps-top">
+            <div className="lp-gps-ic">
+              {gpsOk ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
+              ) : gps.status === "error" ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /></svg>
+              )}
+            </div>
+            <div>
+              <div className="lp-gps-ttl">Lokasi GPS</div>
+              <div className="lp-gps-st">
+                {gpsOk
+                  ? `Terdeteksi · akurasi ±${Math.round(gps.accuracy)} m`
+                  : gps.status === "error"
+                    ? gps.message
+                    : "Mendeteksi lokasi..."}
               </div>
-            ))}
+            </div>
           </div>
+          {gpsOk && (
+            <div className="lp-coord">
+              <div>
+                <span className="lp-coord-k">LAT</span>{"  "}{gps.lat?.toFixed(6)}{"  "}
+                <span className="lp-coord-k">LON</span>{"  "}{gps.lon?.toFixed(6)}
+              </div>
+              {gps.addr && <div className="lp-coord-addr">{gps.addr}</div>}
+            </div>
+          )}
         </div>
-      ))}
-
-      <Sec>Vendor</Sec>
-      <div className="lp-card">
-        {VENDOR.map((v, i) => (
-          <div key={i} className={`lp-vendor-row${i === 0 ? " first" : ""}`}>
-            <span className="lp-item-name">{v.name}</span>
-            <FTag label={v.freq} />
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -3200,7 +3268,7 @@ export default function LaporanPerbaikan() {
         </div>
 
         {tab === "daily" && <TabDaily pic={pic} />}
-        {tab === "rutin" && <TabRutin />}
+        {tab === "rutin" && <TabRutin pic={pic} />}
         {tab === "perbaikan" && (
           <TabPerbaikan
             outlet={outlet}
