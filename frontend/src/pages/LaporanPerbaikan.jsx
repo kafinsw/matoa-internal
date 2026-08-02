@@ -1831,7 +1831,7 @@ function TabDaily({ pic = "" }) {
         body: JSON.stringify({
           outlet_id: outletId,
           user_id: Number(tim),
-          petugas_id: Number(tim),
+          petugas_nama: pic,
           tasks,
           lat: gps.lat ?? null,
           lon: gps.lon ?? null,

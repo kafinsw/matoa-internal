@@ -1317,17 +1317,26 @@ try {
                 break;
             }
             $body = json_decode(file_get_contents('php://input'), true) ?? [];
-            $outlet_id  = (int)($body['outlet_id']  ?? 0);
-            $user_id    = (int)($body['user_id']    ?? 0);
-            $petugas_id = (int)($body['petugas_id'] ?? 0);
-            $tasks      = $body['tasks']      ?? null;
-            $lat        = isset($body['lat'])  ? (float)$body['lat']  : null;
-            $lon        = isset($body['lon'])  ? (float)$body['lon']  : null;
-            $address    = $body['address']    ?? null;
-            $device     = $body['device']     ?? null;
+            $outlet_id     = (int)($body['outlet_id']     ?? 0);
+            $user_id       = (int)($body['user_id']       ?? 0);
+            $petugas_nama  = trim($body['petugas_nama']   ?? '');
+            $tasks         = $body['tasks']      ?? null;
+            $lat           = isset($body['lat'])  ? (float)$body['lat']  : null;
+            $lon           = isset($body['lon'])  ? (float)$body['lon']  : null;
+            $address       = $body['address']    ?? null;
+            $device        = $body['device']     ?? null;
 
-            if (!$outlet_id || !$user_id || !$petugas_id || !$tasks) {
-                json_response(['ok' => false, 'message' => 'outlet_id, user_id, petugas_id, tasks wajib diisi'], 422);
+            if (!$outlet_id || !$user_id || !$petugas_nama || !$tasks) {
+                json_response(['ok' => false, 'message' => 'outlet_id, user_id, petugas_nama, tasks wajib diisi'], 422);
+                break;
+            }
+
+            // lookup petugas.id dari nama
+            $ps = $pdo->prepare('SELECT id FROM petugas WHERE nama = ? LIMIT 1');
+            $ps->execute([$petugas_nama]);
+            $petugas_id = (int)($ps->fetchColumn() ?: 0);
+            if (!$petugas_id) {
+                json_response(['ok' => false, 'message' => "Petugas '$petugas_nama' tidak ditemukan"], 422);
                 break;
             }
 
@@ -1354,9 +1363,9 @@ try {
             $user_id   = isset($_GET['user_id'])   ? (int)$_GET['user_id']   : 0;
             if (!$outlet_id || !$user_id) { json_response(['ok' => false, 'message' => 'outlet_id dan user_id wajib'], 422); break; }
             $row = $pdo->prepare(
-                "SELECT dl.id, u.name AS petugas_nama
+                "SELECT dl.id, p.nama AS petugas_nama
                  FROM daily_laporan dl
-                 LEFT JOIN user u ON u.id = dl.petugas_id
+                 LEFT JOIN petugas p ON p.id = dl.petugas_id
                  WHERE dl.outlet_id = ? AND dl.user_id = ? AND DATE(dl.created_at) = CURDATE()
                  LIMIT 1"
             );
