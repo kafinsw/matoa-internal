@@ -1,7 +1,7 @@
 /* ── layout ── */
 .lp-root { background:#0E0E0E; min-height:100vh; display:flex; flex-direction:column; align-items:center; font-family:'IBM Plex Sans',system-ui,sans-serif; }
 .lp-footer { width:100%; background:#0E0E0E; display:flex; align-items:center; justify-content:center; gap:8px; padding:16px 0 24px; color:#fff; font-size:13px; font-weight:500; }
-.lp-frame { background:#f5f4f0; width:100%; max-width:480px; height:100%; box-shadow:0 0 40px #1414142e; }
+.lp-frame { background:#f5f4f0; width:100%; max-width:480px; min-height:100%; box-shadow:0 0 40px #1414142e; }
 
 /* ── header ── */
 .lp-header { position:sticky; top:0; z-index:30; background:#0E0E0E; color:#fff; padding:calc(18px + env(safe-area-inset-top)) 16px 0; }
@@ -177,7 +177,7 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 .lp-bb-kirim-btn:disabled { opacity:.6; cursor:not-allowed; }
 
 /* ── tab daily ── */
-.lp-daily-wrap { padding:16px 16px 0; height:80vh; }
+.lp-daily-wrap { padding:16px 16px 0; height:100%; }
 .lp-daily-top-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
 .lp-daily-top-grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px; }
 .lp-progress-wrap { margin-bottom:14px; }
