@@ -2005,7 +2005,7 @@ function TabDaily({ pic = "" }) {
                         <div>
                           <textarea
                             rows={1}
-                            placeholder="Keterangan (opsional)…"
+                            placeholder="Tulis keterangan…"
                             className={`dc-note${ck.status === "Bermasalah" && ck.note.trim() === "" ? " dc-note--err" : ""}`}
                             value={ck.note}
                             onChange={e => setCheck(item.kode_task, "note", e.target.value)}
