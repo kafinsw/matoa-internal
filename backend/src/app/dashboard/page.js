@@ -132,6 +132,8 @@ function relTime(ts) {
 }
 
 // ── TrendChart ────────────────────────────────────────────────────────
+const ID_MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+
 function TrendChart({ buckets }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -150,7 +152,9 @@ function TrendChart({ buckets }) {
       svg += `<rect x="${x-bw-1}" y="${y0-meH}" width="${bw}" height="${Math.max(meH,1)}" fill="#f2f2f3" rx="2"/>`;
       svg += `<rect x="${x+1}" y="${y0-gaH}" width="${bw}" height="${Math.max(gaH,1)}" fill="#5a5a61" rx="2"/>`;
       if (i % 3 === 0 && b.date) {
-        const lbl = parseWIB(b.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        const d2 = new Date(b.date + 'T00:00:00');
+        const wibD = new Date(d2.getTime() + (d2.getTimezoneOffset() + 420) * 60000);
+        const lbl = `${String(wibD.getDate()).padStart(2,'0')} ${ID_MONTHS[wibD.getMonth()]}`;
         svg += `<text x="${x}" y="${H-6}" text-anchor="middle" font-size="9" fill="#5a5a61" font-family="JetBrains Mono,monospace">${lbl}</text>`;
       }
     });
@@ -205,7 +209,6 @@ function toYMD(d) {
 function toDDMM(d) {
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
 }
-const ID_MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
 function toDDMMMYYYY(d) {
   return `${String(d.getDate()).padStart(2,'0')} ${ID_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
