@@ -2105,13 +2105,13 @@ function TabDaily({ pic = "" }) {
             <span className="dc-sticky-warn">● {countWarn} Dalam Proses</span>
             <span className="dc-sticky-belum">○ {countBelum} Belum</span>
           </div>
-          {doneItems === totalItems && !dcSent && (
+          {doneItems === totalItems && totalItems > 0 && !dcSent && (
             <button
               className="dc-kirim-btn"
               onClick={kirimDaily}
               disabled={dcSending}
             >
-              {dcSending ? "Mengirim…" : "Kirim Daily Check"}
+              {dcSending ? "Mengirim…" : "KIRIM"}
             </button>
           )}
           {dcSent && (
