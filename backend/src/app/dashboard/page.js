@@ -229,7 +229,7 @@ const DAY_NAMES = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const LV_COLOR  = { L1:'#ef4444', L2:'#f97316', L3:'#eab308' };
 const LV_ORD    = { L1:0, L2:1, L3:2 };
 
-function DispatchBoard() {
+function DispatchBoard({ onOpenDetail }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [dispatch, setDispatch]     = useState([]);
 
@@ -359,7 +359,10 @@ function DispatchBoard() {
             {row.map((item, di) => (
               <div key={di} style={{ background: dayKeys[di] === todayKey ? 'var(--panel2)' : undefined, borderRadius: 6, minHeight: 32 }}>
                 {item && (
-                  <div style={{ borderLeft: `3px solid ${LV_COLOR[item.level] || 'var(--line)'}`, paddingLeft: 6 }}>
+                  <div
+                    style={{ borderLeft: `3px solid ${LV_COLOR[item.level] || 'var(--line)'}`, paddingLeft: 6, cursor: 'pointer' }}
+                    onClick={() => onOpenDetail && onOpenDetail(item.id)}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
                       <span className={s.typ} style={{ color: LV_COLOR[item.level], background: 'transparent', border: `1px solid ${LV_COLOR[item.level] || 'var(--line)'}`, padding: '2px 5px' }}>{item.level || '—'}</span>
                       <span className={s.lgOut} style={{ fontSize: 12 }}>{item.outlet_kode || item.outlet_nama || '—'}</span>
@@ -622,7 +625,16 @@ export default function LaporanDashboard() {
         </div>
 
         {/* ── DISPATCH ── */}
-        <DispatchBoard />
+        <DispatchBoard onOpenDetail={async (id) => {
+          setDetail(null); setDetailLoading(true); setDetailVisible(false);
+          try {
+            const r = await fetch(`/internal/api/laporan/detail?id=${id}`);
+            const d = await r.json();
+            if (d.ok) { setDetail(d); requestAnimationFrame(() => requestAnimationFrame(() => setDetailVisible(true))); }
+            else { setToast('❌ Detail gagal: ' + (d.message || 'error')); setTimeout(() => setToast(null), 4000); }
+          } catch(e) { setToast('❌ ' + e.message); setTimeout(() => setToast(null), 4000); }
+          finally { setDetailLoading(false); }
+        }} />
 
         {/* ── LEDGER ── */}
         <div className={s.eyebrow}><span className={s.n}>05</span> Catatan Laporan</div>
