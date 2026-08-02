@@ -179,6 +179,87 @@ const STATUS_OPTIONS = [
 const RANGE_OPTIONS = [{ v:0,l:'Semua' },{ v:7,l:'7 Hari' },{ v:14,l:'14 Hari' },{ v:30,l:'30 Hari' }];
 const LIMIT = 10;
 
+// ── DispatchBoard ─────────────────────────────────────────────────────
+const DISPATCH_SLOTS = [
+  '08:00 – 10:00','08:00 – 10:00',
+  '10:00 – 12:00','10:00 – 12:00',
+  '13:00 – 15:00','13:00 – 15:00',
+  '15:00 – 17:00','15:00 – 17:00',
+];
+const DAY_NAMES = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+
+function DispatchBoard({ dispatch }) {
+  // build Mon–Sat of current WIB week
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+  const day = now.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const days = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(now.getDate() + mondayOffset + i);
+    return d;
+  });
+
+  // group dispatch by date string YYYY-MM-DD, max 8 per day
+  const byDay = {};
+  days.forEach(d => {
+    const key = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    byDay[key] = [];
+  });
+  dispatch.forEach(r => {
+    const key = r.created_at ? new Date(r.created_at).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) : null;
+    if (key && byDay[key] && byDay[key].length < 8) byDay[key].push(r);
+  });
+
+  const lvColor = { L1: '#ef4444', L2: '#f97316', L3: '#eab308' };
+
+  return (
+    <div style={{ marginTop: 32 }}>
+      <div className={s.eyebrow}><span className={s.n}>04</span> Papan Dispatch</div>
+      <div style={{ overflowX: 'auto', marginTop: 16 }}>
+        <table className={s.dispatchTable}>
+          <thead>
+            <tr>
+              <th className={s.dtNo}>NO</th>
+              <th className={s.dtTime}>WAKTU</th>
+              {days.map((d, i) => (
+                <th key={i} className={s.dtDay}>
+                  {DAY_NAMES[i]}<br/>
+                  <span className={s.dtDate}>{d.toLocaleDateString('id-ID', { day:'2-digit', month:'2-digit', timeZone:'Asia/Jakarta' })}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {DISPATCH_SLOTS.map((slot, rowIdx) => (
+              <tr key={rowIdx}>
+                <td className={s.dtNo}>{rowIdx + 1}</td>
+                <td className={s.dtTime}>{slot}</td>
+                {days.map((d, colIdx) => {
+                  const key = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+                  const item = byDay[key]?.[rowIdx];
+                  return (
+                    <td key={colIdx} className={s.dtCell}>
+                      {item ? (
+                        <div className={s.dtItem}>
+                          <span className={s.dtLv} style={{ color: lvColor[item.level] || 'var(--muted)' }}>
+                            {item.level || '—'} · {item.outlet_kode || item.outlet_nama || '—'}
+                          </span>
+                          <span className={s.dtKet}>{item.keterangan}</span>
+                        </div>
+                      ) : <span className={s.dtEmpty}>—</span>}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
 const EMPTY = {
   me:{ total:0,pending:0,completed:0,resolution_rate:0,oldest_age_days:0 },
   ga:{ total:0,pending_verify:0,verified:0,tech_count:0 },
@@ -200,6 +281,39 @@ export default function LaporanDashboard() {
   const [detailVisible, setDetailVisible] = useState(false); // controls .show class
   const [lightbox, setLightbox] = useState(null); // url | null
   const [detailTab, setDetailTab] = useState('me');
+  const [dispatch, setDispatch] = useState([]);
+
+  // ── Dispatch: fetch laporan kendala minggu ini (Mon–Sat WIB) ────────
+  useEffect(() => {
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const day = now.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    monday.setHours(0,0,0,0);
+    const saturday = new Date(monday);
+    saturday.setDate(monday.getDate() + 5);
+    const fmt = d => d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    const ac = new AbortController();
+    fetch(`/internal/api/laporan/feed?limit=200&filter=semua`, { signal: ac.signal })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok || !Array.isArray(d.data)) return;
+        const monMs = monday.getTime();
+        const satMs = saturday.getTime() + 86400000 - 1;
+        // filter minggu ini, sort L1→L2→L3→no level
+        const lvOrd = { L1:0, L2:1, L3:2 };
+        const filtered = d.data
+          .filter(r => {
+            const t = r.created_at ? new Date(r.created_at).getTime() : 0;
+            return t >= monMs && t <= satMs;
+          })
+          .sort((a,b) => (lvOrd[a.level]??9) - (lvOrd[b.level]??9));
+        setDispatch(filtered);
+      })
+      .catch(() => {});
+    return () => ac.abort();
+  }, [refreshTick]);
 
   const [copied, setCopied] = useState(null);
   const [toast, setToast] = useState(null);
@@ -423,8 +537,11 @@ export default function LaporanDashboard() {
           </div>
         </div>
 
+        {/* ── DISPATCH ── */}
+        <DispatchBoard dispatch={dispatch} />
+
         {/* ── LEDGER ── */}
-        <div className={s.eyebrow}><span className={s.n}>04</span> Catatan Laporan</div>
+        <div className={s.eyebrow}><span className={s.n}>05</span> Catatan Laporan</div>
         <div className={s.tabBar}>
           <button className={`${s.tabBtn}${mainTab==='laporan'?' '+s.tabActive:''}`} onClick={()=>setMainTab('laporan')}>LAPORAN</button>
           <button className={`${s.tabBtn}${mainTab==='daily'?' '+s.tabActive:''}`} onClick={()=>setMainTab('daily')}>DAILY CHECK</button>
