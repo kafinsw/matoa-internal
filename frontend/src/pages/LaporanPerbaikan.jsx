@@ -1796,44 +1796,45 @@ function TabDaily({ pic = "" }) {
   const [dcBlocedBy, setDcBlockedBy] = useState(null); // nama petugas yg sudah kirim
   const [dcToast, setDcToast] = useState(false);
 
-  // Cek apakah sudah ada laporan hari ini untuk outlet+user ini
+  // Cek apakah sudah ada laporan hari ini untuk outlet+user ini (one-shot, bukan polling)
   useEffect(() => {
     if (!tim || !schedule || schedule.libur || !dbOutlets) return;
     const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
     if (!outletId) return;
-    fetch(`/php-api/daily/check?outlet_id=${outletId}&user_id=${tim}&petugas_nama=${encodeURIComponent(pic)}`)
+    fetch(`/php-api/daily/check?outlet_id=${outletId}&user_id=${tim}`)
       .then(r => r.json())
       .then(d => {
-        if (d.ok && d.exists && d.petugas_nama && d.petugas_nama !== pic) setDcBlockedBy(d.petugas_nama);
-        else setDcBlockedBy(null);
+        if (d.ok && d.exists) {
+          if (d.petugas_nama && d.petugas_nama !== pic) setDcBlockedBy(d.petugas_nama);
+          else setDcSent(true); // sudah kirim sendiri
+        }
       })
       .catch(() => {});
-  }, [tim, schedule, dbOutlets, pic]);
+  }, [tim, schedule?.outlet, pic]); // dbOutlets dihapus — tidak boleh re-run tiap polling
 
   // Heartbeat lock — acquire saat form aktif, release saat unmount/submit
+  const dcLockRef = useRef(null);
   useEffect(() => {
     if (!tim || !pic || !schedule || schedule.libur || !dbOutlets) return;
     const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
     if (!outletId) return;
 
-    const body = JSON.stringify({ outlet_id: outletId, user_id: Number(tim), petugas_nama: pic });
-    const acquire = () => fetch('/php-api/daily/lock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+    const payload = JSON.stringify({ outlet_id: outletId, user_id: Number(tim), petugas_nama: pic });
+    const acquire = () => fetch('/php-api/daily/lock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload })
       .then(r => r.json())
-      .then(d => { if (!d.ok && d.locked_by) setDcBlockedBy(d.locked_by); })
+      .then(d => { if (!d.ok && d.locked_by && d.locked_by !== pic) setDcBlockedBy(prev => prev || d.locked_by); })
       .catch(() => {});
-    const release = () => navigator.sendBeacon('/php-api/daily/lock?_method=DELETE',
-      new Blob([JSON.stringify({ outlet_id: outletId, user_id: Number(tim), petugas_nama: pic })], { type: 'application/json' }));
+    const release = () => fetch('/php-api/daily/lock', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: payload }).catch(() => {});
 
     acquire();
-    const hb = setInterval(acquire, 5000);
+    dcLockRef.current = { interval: setInterval(acquire, 5000), release };
     window.addEventListener('beforeunload', release);
     return () => {
-      clearInterval(hb);
+      if (dcLockRef.current) { clearInterval(dcLockRef.current.interval); dcLockRef.current = null; }
       window.removeEventListener('beforeunload', release);
-      // proper DELETE on unmount
-      fetch('/php-api/daily/lock', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body }).catch(() => {});
+      release();
     };
-  }, [tim, pic, schedule, dbOutlets]);
+  }, [tim, pic, schedule?.outlet]); // dbOutlets dihapus — re-run tiap polling kalau masuk dep
 
   async function kirimDaily() {
     if (!tim || !schedule || schedule.libur || doneItems < totalItems) return;
