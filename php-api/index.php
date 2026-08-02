@@ -1357,6 +1357,55 @@ try {
             json_response(['ok' => true, 'data' => $row]);
             break;
 
+        case '/daily/lock':
+            // POST=acquire/heartbeat, DELETE=release (or POST with _method=DELETE)
+            $body      = json_decode(file_get_contents('php://input'), true) ?? [];
+            $method    = $_SERVER['REQUEST_METHOD'];
+            if ($method === 'POST' && (($_GET['_method'] ?? '') === 'DELETE' || ($body['_method'] ?? '') === 'DELETE')) {
+                $method = 'DELETE';
+            }
+            $outlet_id = (int)($body['outlet_id'] ?? $_GET['outlet_id'] ?? 0);
+            $user_id   = (int)($body['user_id']   ?? $_GET['user_id']   ?? 0);
+            $petugas_nm = trim($body['petugas_nama'] ?? $_GET['petugas_nama'] ?? '');
+            if (!$outlet_id || !$user_id || !$petugas_nm) {
+                json_response(['ok' => false, 'message' => 'outlet_id, user_id, petugas_nama wajib'], 422);
+                break;
+            }
+            // lookup petugas.id
+            $ps2 = $pdo->prepare('SELECT id FROM petugas WHERE nama = ? LIMIT 1');
+            $ps2->execute([$petugas_nm]);
+            $pid = (int)($ps2->fetchColumn() ?: 0);
+            if (!$pid) { json_response(['ok' => false, 'message' => "Petugas '$petugas_nm' tidak ditemukan"], 422); break; }
+
+            if ($method === 'DELETE') {
+                $pdo->prepare('DELETE FROM daily_lock WHERE outlet_id=? AND user_id=? AND petugas_id=?')
+                    ->execute([$outlet_id, $user_id, $pid]);
+                json_response(['ok' => true]);
+                break;
+            }
+            // POST — acquire or heartbeat (UPSERT)
+            // Check if someone else holds lock and it's fresh (<15s)
+            $lk = $pdo->prepare('SELECT petugas_id, locked_at FROM daily_lock WHERE outlet_id=? AND user_id=? LIMIT 1');
+            $lk->execute([$outlet_id, $user_id]);
+            $existing = $lk->fetch();
+            if ($existing && $existing['petugas_id'] != $pid) {
+                $age = time() - strtotime($existing['locked_at']);
+                if ($age < 15) {
+                    // locked by someone else and fresh
+                    $nm2 = $pdo->prepare('SELECT nama FROM petugas WHERE id=? LIMIT 1');
+                    $nm2->execute([$existing['petugas_id']]);
+                    json_response(['ok' => false, 'locked_by' => $nm2->fetchColumn() ?: 'Petugas Lain']);
+                    break;
+                }
+            }
+            $pdo->prepare(
+                'INSERT INTO daily_lock (outlet_id, user_id, petugas_id, locked_at)
+                 VALUES (?, ?, ?, NOW())
+                 ON DUPLICATE KEY UPDATE petugas_id=VALUES(petugas_id), locked_at=NOW()'
+            )->execute([$outlet_id, $user_id, $pid]);
+            json_response(['ok' => true]);
+            break;
+
         case '/daily/check':
             // Cek apakah outlet+user sudah ada laporan hari ini
             $outlet_id    = isset($_GET['outlet_id'])    ? (int)$_GET['outlet_id']    : 0;

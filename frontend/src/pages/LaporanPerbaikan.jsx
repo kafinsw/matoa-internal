@@ -1810,6 +1810,31 @@ function TabDaily({ pic = "" }) {
       .catch(() => {});
   }, [tim, schedule, dbOutlets, pic]);
 
+  // Heartbeat lock — acquire saat form aktif, release saat unmount/submit
+  useEffect(() => {
+    if (!tim || !pic || !schedule || schedule.libur || !dbOutlets) return;
+    const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
+    if (!outletId) return;
+
+    const body = JSON.stringify({ outlet_id: outletId, user_id: Number(tim), petugas_nama: pic });
+    const acquire = () => fetch('/php-api/daily/lock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+      .then(r => r.json())
+      .then(d => { if (!d.ok && d.locked_by) setDcBlockedBy(d.locked_by); })
+      .catch(() => {});
+    const release = () => navigator.sendBeacon('/php-api/daily/lock?_method=DELETE',
+      new Blob([JSON.stringify({ outlet_id: outletId, user_id: Number(tim), petugas_nama: pic })], { type: 'application/json' }));
+
+    acquire();
+    const hb = setInterval(acquire, 5000);
+    window.addEventListener('beforeunload', release);
+    return () => {
+      clearInterval(hb);
+      window.removeEventListener('beforeunload', release);
+      // proper DELETE on unmount
+      fetch('/php-api/daily/lock', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body }).catch(() => {});
+    };
+  }, [tim, pic, schedule, dbOutlets]);
+
   async function kirimDaily() {
     if (!tim || !schedule || schedule.libur || doneItems < totalItems) return;
     const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
