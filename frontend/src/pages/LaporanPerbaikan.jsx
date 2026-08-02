@@ -3104,10 +3104,13 @@ export default function LaporanPerbaikan() {
   const [petugasList, setPetugasList] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Fetch daftar petugas saat popup muncul
+  // Fetch daftar petugas saat popup muncul — polling 5s agar aktif realtime
   useEffect(() => {
     if (pic) return;
-    fetch("/php-api/petugas/list").then(r => r.json()).then(d => setPetugasList(Array.isArray(d) ? d : [])).catch(() => {});
+    const load = () => fetch("/php-api/petugas/list").then(r => r.json()).then(d => setPetugasList(Array.isArray(d) ? d : [])).catch(() => {});
+    load();
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
   }, [pic]);
 
   const picSuggestions = picInput.trim().length >= 1 && showDropdown
