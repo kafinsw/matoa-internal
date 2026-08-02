@@ -490,6 +490,13 @@
 .overSlaDesc { color: #8b8d93; font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
 .overSlaOkBtn { background: #e5674f; color: #fff; border: none; border-radius: 10px; padding: 10px 32px; font-weight: 700; font-size: 14px; cursor: pointer; }
 
+/* dispatch nav */
+.dtNav { display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap; }
+.dtNavBtn { background:var(--card); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+.dtNavBtn:hover { background:var(--card2); }
+.dtNavBtnSm { background:transparent; border:1px solid var(--err); color:var(--err); border-radius:8px; padding:4px 10px; font-size:12px; cursor:pointer; }
+.dtWeekLabel { flex:1; text-align:center; font-size:13px; font-weight:600; color:var(--grey3); }
+
 /* ── Dispatch Board ── */
 .dispatchTable { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .dispatchTable th, .dispatchTable td { border: 1px solid var(--border); padding: 8px 10px; vertical-align: top; }

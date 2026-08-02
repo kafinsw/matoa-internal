@@ -187,35 +187,115 @@ const DISPATCH_SLOTS = [
   '15:00 – 17:00','15:00 – 17:00',
 ];
 const DAY_NAMES = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const LV_COLOR  = { L1:'#ef4444', L2:'#f97316', L3:'#eab308' };
+const LV_ORD    = { L1:0, L2:1, L3:2 };
 
-function DispatchBoard({ dispatch }) {
-  // build Mon–Sat of current WIB week
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-  const day = now.getDay();
-  const mondayOffset = day === 0 ? -6 : 1 - day;
+// WIB = UTC+7, no ICU needed
+function nowWIB() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() + d.getTimezoneOffset() + 7 * 60);
+  return d;
+}
+function toYMD(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+function toDDMM(d) {
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+const ID_MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+function toDDMMMYYYY(d) {
+  return `${String(d.getDate()).padStart(2,'0')} ${ID_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+function toDDMMM(d) {
+  return `${String(d.getDate()).padStart(2,'0')} ${ID_MONTHS[d.getMonth()]}`;
+}
+// convert any created_at string to WIB Date for YMD comparison
+function createdToWIB(str) {
+  if (!str) return null;
+  const d = new Date(str);
+  if (isNaN(d)) return null;
+  const wib = new Date(d);
+  wib.setMinutes(wib.getMinutes() + wib.getTimezoneOffset() + 7 * 60);
+  return wib;
+}
+function getMondayWIB(offsetWeeks = 0) {
+  const now = nowWIB();
+  const dow = now.getDay();
+  const diff = dow === 0 ? -6 : 1 - dow;
+  now.setDate(now.getDate() + diff + offsetWeeks * 7);
+  now.setHours(0, 0, 0, 0);
+  return now;
+}
+
+function DispatchBoard() {
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [dispatch, setDispatch]     = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    function load() {
+      const monday  = getMondayWIB(weekOffset);
+      const satEnd  = new Date(monday.getTime() + 6 * 86400000 - 1);
+      const monMs   = monday.getTime();
+      const satMs   = satEnd.getTime();
+      fetch('/internal/api/laporan/feed?limit=500&filter=semua')
+        .then(r => r.json())
+        .then(d => {
+          if (cancelled || !d.ok || !Array.isArray(d.data)) return;
+          const filtered = d.data
+            .filter(r => {
+              const t = r.created_at ? new Date(r.created_at).getTime() : 0;
+              return t >= monMs && t <= satMs;
+            })
+            .sort((a, b) => {
+              const lo = (LV_ORD[a.level] ?? 9) - (LV_ORD[b.level] ?? 9);
+              if (lo !== 0) return lo;
+              // oldest first
+              return new Date(a.created_at||0) - new Date(b.created_at||0);
+            });
+          setDispatch(filtered);
+        })
+        .catch(() => {});
+    }
+    load();
+    const t = setInterval(load, 5000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [weekOffset]);
+
+  const monday = getMondayWIB(weekOffset);
   const days = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now);
-    d.setDate(now.getDate() + mondayOffset + i);
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
     return d;
   });
 
-  // group dispatch by date string YYYY-MM-DD, max 8 per day
+  // group by date, max 8 per day
   const byDay = {};
-  days.forEach(d => {
-    const key = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-    byDay[key] = [];
-  });
+  days.forEach(d => { byDay[toYMD(d)] = []; });
   dispatch.forEach(r => {
-    const key = r.created_at ? new Date(r.created_at).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) : null;
+    const wib = createdToWIB(r.created_at);
+    const key = wib ? toYMD(wib) : null;
     if (key && byDay[key] && byDay[key].length < 8) byDay[key].push(r);
   });
 
-  const lvColor = { L1: '#ef4444', L2: '#f97316', L3: '#eab308' };
+  const sat = days[5];
+  const weekLabel = `${toDDMMM(monday)} – ${toDDMMMYYYY(sat)}`;
 
   return (
-    <div style={{ marginTop: 32 }}>
+    <div style={{ marginTop:32 }}>
       <div className={s.eyebrow}><span className={s.n}>04</span> Papan Dispatch</div>
-      <div style={{ overflowX: 'auto', marginTop: 16 }}>
+      <div className={s.dtNav}>
+        <button className={s.dtNavBtn} onClick={() => setWeekOffset(w => w - 1)}>← Minggu Lalu</button>
+        <span className={s.dtWeekLabel}>{weekLabel}</span>
+        <button className={s.dtNavBtn} onClick={() => setWeekOffset(w => w + 1)}>Minggu Depan →</button>
+        {weekOffset !== 0 && (
+          <button className={s.dtNavBtnSm} onClick={() => setWeekOffset(0)}>Hari Ini</button>
+        )}
+      </div>
+      <div style={{ overflowX:'auto', marginTop:12 }}>
         <table className={s.dispatchTable}>
           <thead>
             <tr>
@@ -224,7 +304,7 @@ function DispatchBoard({ dispatch }) {
               {days.map((d, i) => (
                 <th key={i} className={s.dtDay}>
                   {DAY_NAMES[i]}<br/>
-                  <span className={s.dtDate}>{d.toLocaleDateString('id-ID', { day:'2-digit', month:'2-digit', timeZone:'Asia/Jakarta' })}</span>
+                  <span className={s.dtDate}>{toDDMM(d)}</span>
                 </th>
               ))}
             </tr>
@@ -235,13 +315,13 @@ function DispatchBoard({ dispatch }) {
                 <td className={s.dtNo}>{rowIdx + 1}</td>
                 <td className={s.dtTime}>{slot}</td>
                 {days.map((d, colIdx) => {
-                  const key = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+                  const key  = d.toLocaleDateString('sv-SE', { timeZone:'Asia/Jakarta' });
                   const item = byDay[key]?.[rowIdx];
                   return (
                     <td key={colIdx} className={s.dtCell}>
                       {item ? (
                         <div className={s.dtItem}>
-                          <span className={s.dtLv} style={{ color: lvColor[item.level] || 'var(--muted)' }}>
+                          <span className={s.dtLv} style={{ color: LV_COLOR[item.level] || 'var(--muted)' }}>
                             {item.level || '—'} · {item.outlet_kode || item.outlet_nama || '—'}
                           </span>
                           <span className={s.dtKet}>{item.keterangan}</span>
@@ -538,7 +618,7 @@ export default function LaporanDashboard() {
         </div>
 
         {/* ── DISPATCH ── */}
-        <DispatchBoard dispatch={dispatch} />
+        <DispatchBoard />
 
         {/* ── LEDGER ── */}
         <div className={s.eyebrow}><span className={s.n}>05</span> Catatan Laporan</div>
