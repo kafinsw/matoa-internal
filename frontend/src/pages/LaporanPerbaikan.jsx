@@ -2190,7 +2190,7 @@ function TabDaily({ pic = "" }) {
         </div>
       )}
 
-      {totalItems > 0 && (
+      {totalItems > 0 && !dcBlocedBy && (
         <div className="dc-sticky-bar">
           <div className="dc-sticky-row">
             <span className="dc-sticky-label">Progress pemeriksaan</span>
