@@ -69,6 +69,42 @@ function PhotoViewer({ src, onClose }) {
 
 const STATIC_BASE = process.env.NEXT_PUBLIC_STATIC_BASE || '/php-api';
 
+// ── WIB helpers (no ICU/toLocaleString) ──────────────────────────────
+const ID_MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+function nowWIB() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() + d.getTimezoneOffset() + 7 * 60);
+  return d;
+}
+function toYMD(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function toDDMM(d) {
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function toDDMMM(d) {
+  return `${String(d.getDate()).padStart(2,'0')} ${ID_MONTHS[d.getMonth()]}`;
+}
+function toDDMMMYYYY(d) {
+  return `${String(d.getDate()).padStart(2,'0')} ${ID_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+function createdToWIB(str) {
+  if (!str) return null;
+  const d = new Date(str);
+  if (isNaN(d)) return null;
+  const wib = new Date(d);
+  wib.setMinutes(wib.getMinutes() + wib.getTimezoneOffset() + 7 * 60);
+  return wib;
+}
+function getMondayWIB(offsetWeeks = 0) {
+  const now = nowWIB();
+  const dow = now.getDay();
+  const diff = dow === 0 ? -6 : 1 - dow;
+  now.setDate(now.getDate() + diff + offsetWeeks * 7);
+  now.setHours(0, 0, 0, 0);
+  return now;
+}
+
 // ── SLA config ───────────────────────────────────────────────────────
 const SLA_HOURS = { L1: 24, L2: 72, L3: 120 };
 
@@ -80,12 +116,13 @@ function slaDeadline(createdAt, level, status, deadlineDate) {
 
 function scheduleStatus(scheduleDate) {
   if (!scheduleDate) return null;
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+  const now = nowWIB();
   const sch = parseWIB(scheduleDate);
+  const schWIB = new Date(sch.getTime() + (sch.getTimezoneOffset() + 420) * 60000);
   const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const schDay = new Date(sch.getFullYear(), sch.getMonth(), sch.getDate());
-  if (schDay < nowDay) return 'overdue';   // sudah lewat → merah
-  if (schDay.getTime() === nowDay.getTime()) return 'today'; // hari H → orange
+  const schDay = new Date(schWIB.getFullYear(), schWIB.getMonth(), schWIB.getDate());
+  if (schDay < nowDay) return 'overdue';
+  if (schDay.getTime() === nowDay.getTime()) return 'today';
   return 'ok';
 }
 
@@ -132,8 +169,6 @@ function relTime(ts) {
 }
 
 // ── TrendChart ────────────────────────────────────────────────────────
-const ID_MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-
 function TrendChart({ buckets }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -193,45 +228,6 @@ const DISPATCH_SLOTS = [
 const DAY_NAMES = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const LV_COLOR  = { L1:'#ef4444', L2:'#f97316', L3:'#eab308' };
 const LV_ORD    = { L1:0, L2:1, L3:2 };
-
-// WIB = UTC+7, no ICU needed
-function nowWIB() {
-  const d = new Date();
-  d.setMinutes(d.getMinutes() + d.getTimezoneOffset() + 7 * 60);
-  return d;
-}
-function toYMD(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const dd = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${dd}`;
-}
-function toDDMM(d) {
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-function toDDMMMYYYY(d) {
-  return `${String(d.getDate()).padStart(2,'0')} ${ID_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
-}
-function toDDMMM(d) {
-  return `${String(d.getDate()).padStart(2,'0')} ${ID_MONTHS[d.getMonth()]}`;
-}
-// convert any created_at string to WIB Date for YMD comparison
-function createdToWIB(str) {
-  if (!str) return null;
-  const d = new Date(str);
-  if (isNaN(d)) return null;
-  const wib = new Date(d);
-  wib.setMinutes(wib.getMinutes() + wib.getTimezoneOffset() + 7 * 60);
-  return wib;
-}
-function getMondayWIB(offsetWeeks = 0) {
-  const now = nowWIB();
-  const dow = now.getDay();
-  const diff = dow === 0 ? -6 : 1 - dow;
-  now.setDate(now.getDate() + diff + offsetWeeks * 7);
-  now.setHours(0, 0, 0, 0);
-  return now;
-}
 
 function DispatchBoard() {
   const [weekOffset, setWeekOffset] = useState(0);
@@ -364,39 +360,6 @@ export default function LaporanDashboard() {
   const [detailVisible, setDetailVisible] = useState(false); // controls .show class
   const [lightbox, setLightbox] = useState(null); // url | null
   const [detailTab, setDetailTab] = useState('me');
-  const [dispatch, setDispatch] = useState([]);
-
-  // ── Dispatch: fetch laporan kendala minggu ini (Mon–Sat WIB) ────────
-  useEffect(() => {
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-    const day = now.getDay();
-    const mondayOffset = day === 0 ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + mondayOffset);
-    monday.setHours(0,0,0,0);
-    const saturday = new Date(monday);
-    saturday.setDate(monday.getDate() + 5);
-    const fmt = d => d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-    const ac = new AbortController();
-    fetch(`/internal/api/laporan/feed?limit=200&filter=semua`, { signal: ac.signal })
-      .then(r => r.json())
-      .then(d => {
-        if (!d.ok || !Array.isArray(d.data)) return;
-        const monMs = monday.getTime();
-        const satMs = saturday.getTime() + 86400000 - 1;
-        // filter minggu ini, sort L1→L2→L3→no level
-        const lvOrd = { L1:0, L2:1, L3:2 };
-        const filtered = d.data
-          .filter(r => {
-            const t = r.created_at ? new Date(r.created_at).getTime() : 0;
-            return t >= monMs && t <= satMs;
-          })
-          .sort((a,b) => (lvOrd[a.level]??9) - (lvOrd[b.level]??9));
-        setDispatch(filtered);
-      })
-      .catch(() => {});
-    return () => ac.abort();
-  }, [refreshTick]);
 
   const [copied, setCopied] = useState(null);
   const [toast, setToast] = useState(null);
