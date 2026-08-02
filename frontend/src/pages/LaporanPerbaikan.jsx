@@ -1575,6 +1575,51 @@ function TabDaily({ pic = "" }) {
 
   const [checks, setChecks] = useState({});
   const [openCats, setOpenCats] = useState(() => new Set());
+  const [showDcCam, setShowDcCam] = useState(false);
+  const [dcCamTarget, setDcCamTarget] = useState(null); // kode_task
+  const dcVideoRef = useRef(null);
+  const dcStreamRef = useRef(null);
+
+  function stopDcStream() {
+    dcStreamRef.current?.getTracks().forEach(t => t.stop());
+    dcStreamRef.current = null;
+  }
+
+  async function openDcCamera(kode_task) {
+    setDcCamTarget(kode_task);
+    try {
+      let ms;
+      try {
+        ms = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      } catch {
+        ms = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+      dcStreamRef.current = ms;
+      setShowDcCam(true);
+      requestAnimationFrame(() => {
+        const v = dcVideoRef.current;
+        if (v) { v.srcObject = ms; v.play().catch(() => {}); }
+        else setTimeout(() => { const v2 = dcVideoRef.current; if (v2) { v2.srcObject = ms; v2.play().catch(() => {}); } }, 100);
+      });
+    } catch (err) {
+      alert(err.name === "NotAllowedError" ? "Izin kamera ditolak." : err.name === "NotFoundError" ? "Kamera tidak ditemukan." : "Gagal akses kamera.");
+    }
+  }
+
+  async function captureDcPhoto() {
+    const v = dcVideoRef.current;
+    if (!v) return;
+    const cv = document.createElement("canvas");
+    cv.width = v.videoWidth; cv.height = v.videoHeight;
+    cv.getContext("2d").drawImage(v, 0, 0, cv.width, cv.height);
+    const stamped = await stampGpsOnImage(cv.toDataURL("image/webp", 0.8), gps, outletLabel);
+    setChecks(prev => ({
+      ...prev,
+      [dcCamTarget]: { ...prev[dcCamTarget], photos: [...prev[dcCamTarget].photos, stamped] },
+    }));
+    setShowDcCam(false);
+    stopDcStream();
+  }
 
   // re-init checks + openCats saat dbKatalog loaded
   useEffect(() => {
@@ -1873,22 +1918,13 @@ function TabDaily({ pic = "" }) {
                               {ck.photos.length}/{item.min_foto} min
                             </span>
                           </div>
-                          <div className="dc-photo-btn-wrap">
-                            <div className="dc-photo-btn">
+                          <button className="dc-photo-btn" onClick={() => openDcCamera(item.kode_task)}>
                               <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
                                 <circle cx="12" cy="13" r="3.2" />
                               </svg>
                               Ambil Foto (Kamera)
-                            </div>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              {...(navigator.maxTouchPoints > 0 ? { capture: "environment" } : {})}
-                              className="dc-photo-input"
-                              onChange={e => handlePhoto(item.kode_task, e.target.files?.[0])}
-                            />
-                          </div>
+                            </button>
                           {ck.photos.length > 0 && (
                             <div className="dc-photo-grid">
                               {ck.photos.map((src, i) => (
@@ -1928,6 +1964,28 @@ function TabDaily({ pic = "" }) {
           </div>
         );
       })}
+      {/* DC Camera modal */}
+      {showDcCam && (
+        <div className="cam-view">
+          <div className="cam-container">
+            <video ref={dcVideoRef} autoPlay playsInline muted className="cam-video" />
+            <GpsOverlay gps={gps} outlet={outletLabel} />
+          </div>
+          <div className="cam-controls">
+            <button className="cam-btn capture" onClick={captureDcPhoto}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" fill="currentColor" />
+              </svg>
+            </button>
+            <button className="cam-btn cancel" onClick={() => { setShowDcCam(false); stopDcStream(); }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {totalItems > 0 && (
         <div className="dc-sticky-bar">
           <div className="dc-sticky-row">
