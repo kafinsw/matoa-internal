@@ -1461,14 +1461,14 @@ const VENDOR = [
   { name: "Cuci Sofa", outlet: "OPIUCI · BRACI", freq: "Bulanan (1×)" },
   { name: "Cuci Sofa", outlet: "TANATAP", freq: "2 bulan sekali" },
 ];
-const getToday = () =>
-  new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }))
-    .toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+const getToday = () => {
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+  const weekday = d.toLocaleDateString("id-ID", { weekday: "long" });
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${weekday}, ${dd}/${mm}/${yy}`;
+};
 
 const getTodayISO = () => {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
