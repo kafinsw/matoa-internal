@@ -1661,15 +1661,22 @@ function TabDaily({ pic = "" }) {
   }
 
   // derived progress — hanya dari filtered katalog
+  // item lengkap = status diisi + foto cukup + keterangan wajib diisi
+  function isItemComplete(item, ck) {
+    if (!ck || ck.status === "") return false;
+    if (item.min_foto > 0 && (ck.photos || []).length < item.min_foto) return false;
+    if (ck.status === "Bermasalah" && (!ck.note || ck.note.trim() === "")) return false;
+    return true;
+  }
   const totalItems = filteredKatalog.reduce((s, c) => s + c.items.length, 0);
   const doneItems = filteredKatalog.reduce((s, c) =>
-    s + c.items.filter(it => checks[it.kode_task]?.status !== "").length, 0);
+    s + c.items.filter(it => isItemComplete(it, checks[it.kode_task])).length, 0);
   const countNormal = filteredKatalog.reduce((s, c) =>
-    s + c.items.filter(it => checks[it.kode_task]?.status === "Normal").length, 0);
+    s + c.items.filter(it => isItemComplete(it, checks[it.kode_task]) && checks[it.kode_task]?.status === "Normal").length, 0);
   const countErr = filteredKatalog.reduce((s, c) =>
-    s + c.items.filter(it => checks[it.kode_task]?.status === "Bermasalah").length, 0);
+    s + c.items.filter(it => isItemComplete(it, checks[it.kode_task]) && checks[it.kode_task]?.status === "Bermasalah").length, 0);
   const countWarn = filteredKatalog.reduce((s, c) =>
-    s + c.items.filter(it => checks[it.kode_task]?.status === "Dalam Proses").length, 0);
+    s + c.items.filter(it => isItemComplete(it, checks[it.kode_task]) && checks[it.kode_task]?.status === "Dalam Proses").length, 0);
   const countBelum = totalItems - doneItems;
 
   // reverse geocode
@@ -1836,13 +1843,14 @@ function TabDaily({ pic = "" }) {
         <div className="dc-empty">🌴 Hari ini libur. Tidak ada jadwal.</div>
       )}
       {filteredKatalog.map((cat, idx) => {
-        const catDone = cat.items.filter(it => checks[it.kode_task]?.status !== "").length;
+        const catDone = cat.items.filter(it => isItemComplete(it, checks[it.kode_task])).length;
+        const catComplete = catDone === cat.items.length && cat.items.length > 0;
         const isOpen = openCats.has(cat.kode);
         return (
           <div key={cat.kode} className="dc-cat-group">
             <button className="dc-acc" onClick={() => toggleCat(cat.kode)}>
               <span className="dc-acc-no">{String(idx+1).padStart(2,'0')}</span>
-              <span className="dc-acc-ttl">{cat.nama}</span>
+              <span className="dc-acc-ttl">{cat.nama}{catComplete && <span className="dc-acc-done">✓</span>}</span>
               <span className="dc-acc-cnt">{catDone}/{cat.items.length}</span>
               <span className={`dc-acc-chev${isOpen ? " dc-acc-chev--open" : ""}`}>▾</span>
             </button>
