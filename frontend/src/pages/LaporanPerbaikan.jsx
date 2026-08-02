@@ -1945,9 +1945,12 @@ function TabDaily({ pic = "" }) {
         <div className="dc-empty">Pilih TYPE untuk memuat checklist.</div>
       )}
       {tim && schedule?.libur && (
-        <div className="dc-empty">Daily Task sedang dikerjakan oleh Petugas : {dcBlocedBy || "—"}</div>
+        <div className="dc-empty">🌴 Hari ini libur. Tidak ada jadwal.</div>
       )}
-      {tim && !schedule?.libur && totalItems === 0 && dbKatalog !== null && (
+      {tim && !schedule?.libur && dcBlocedBy && (
+        <div className="dc-empty">Daily Task sedang dikerjakan oleh Petugas : {dcBlocedBy}</div>
+      )}
+      {tim && !schedule?.libur && totalItems === 0 && dbKatalog !== null && !dcBlocedBy && (
         <div className="dc-empty">Daily Task Tidak Tersedia</div>
       )}
       {filteredKatalog.map((cat, idx) => {
