@@ -1963,7 +1963,7 @@ function TabDaily({ pic = "" }) {
             <span className="lp-label" onClick={handleDateTap}>TANGGAL (OTOMATIS)</span>
             {devMode
               ? <input type="date" className="lp-input" value={devDate} onChange={e => setDevDate(e.target.value)} />
-              : <div className="lp-input-read">{activeDate}</div>
+              : <div className="lp-input-read">{getToday()}</div>
             }
           </div>
         </div>
