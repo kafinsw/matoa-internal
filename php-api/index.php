@@ -1362,12 +1362,11 @@ try {
 
             $whereStr = implode(' AND ', $where);
             $stmt = $pdo->prepare(
-                "SELECT dl.*, o.nama AS outlet_nama, u.nama AS user_nama,
-                        p.nama AS petugas_nama
+                "SELECT dl.*, o.nama AS outlet_nama, u.nama AS user_nama, p.nama AS petugas_nama
                  FROM daily_laporan dl
                  LEFT JOIN outlets o ON o.id = dl.outlet_id
-                 LEFT JOIN users u   ON u.id = dl.user_id
-                 LEFT JOIN users p   ON p.id = dl.petugas_id
+                 LEFT JOIN user u ON u.id = dl.user_id
+                 LEFT JOIN user p ON p.id = dl.petugas_id
                  WHERE $whereStr
                  ORDER BY dl.created_at DESC
                  LIMIT ? OFFSET ?"
