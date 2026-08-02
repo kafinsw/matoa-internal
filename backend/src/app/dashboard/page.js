@@ -244,10 +244,17 @@ function DispatchBoard() {
         .then(r => r.json())
         .then(d => {
           if (cancelled || !d.ok || !Array.isArray(d.data)) return;
+          // current month in WIB
+          const nowW = nowWIB();
+          const curY = nowW.getFullYear();
+          const curM = nowW.getMonth(); // 0-indexed
           const filtered = d.data
             .filter(r => {
-              const t = r.created_at ? new Date(r.created_at).getTime() : 0;
-              return t >= monMs && t <= satMs;
+              if (!r.created_at) return false;
+              const w = createdToWIB(r.created_at);
+              if (!w) return false;
+              // only current month
+              return w.getFullYear() === curY && w.getMonth() === curM;
             })
             .sort((a, b) => {
               const lo = (LV_ORD[a.level] ?? 9) - (LV_ORD[b.level] ?? 9);
@@ -265,20 +272,30 @@ function DispatchBoard() {
   }, [weekOffset]);
 
   const monday = getMondayWIB(weekOffset);
+  // Mon–Sat (6 days), skip Sunday
   const days = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+    d.setDate(monday.getDate() + i); // 0=Mon … 5=Sat
     return d;
   });
+  // nav boundary: lock to current WIB month
+  const nowW2 = nowWIB();
+  const curY2 = nowW2.getFullYear();
+  const curM2 = nowW2.getMonth();
+  const prevMon = new Date(monday); prevMon.setDate(monday.getDate() - 7);
+  const nextMon = new Date(monday); nextMon.setDate(monday.getDate() + 7);
+  const canGoPrev = prevMon.getFullYear() === curY2 && prevMon.getMonth() === curM2;
+  const canGoNext = nextMon.getFullYear() === curY2 && nextMon.getMonth() === curM2;
 
-  // distribute sorted dispatch across 6 days, max 8 per day
+  // distribute sorted dispatch: Mon–Sat max 8 each; overflow appears next week
+  const dayKeys = days.map(d => toYMD(d));
   const byDay = {};
-  days.forEach(d => { byDay[toYMD(d)] = []; });
+  dayKeys.forEach(k => { byDay[k] = []; });
   let dayIdx = 0;
   for (const r of dispatch) {
-    while (dayIdx < 6 && byDay[toYMD(days[dayIdx])].length >= 8) dayIdx++;
+    while (dayIdx < 6 && byDay[dayKeys[dayIdx]].length >= 8) dayIdx++;
     if (dayIdx >= 6) break;
-    byDay[toYMD(days[dayIdx])].push(r);
+    byDay[dayKeys[dayIdx]].push(r);
   }
 
   const sat = days[5];
@@ -289,9 +306,9 @@ function DispatchBoard() {
     <div style={{ marginTop:32 }}>
       <div className={s.eyebrow}><span className={s.n}>04</span> Papan Dispatch</div>
       <div className={s.dtNav}>
-        <button className={s.dtNavBtn} onClick={() => setWeekOffset(w => w - 1)}>← Minggu Lalu</button>
+        <button className={s.dtNavBtn} onClick={() => setWeekOffset(w => w - 1)} disabled={!canGoPrev}>← Minggu Lalu</button>
         <span className={s.dtWeekLabel}>{weekLabel}</span>
-        <button className={s.dtNavBtn} onClick={() => setWeekOffset(w => w + 1)}>Minggu Depan →</button>
+        <button className={s.dtNavBtn} onClick={() => setWeekOffset(w => w + 1)} disabled={!canGoNext}>Minggu Depan →</button>
         {weekOffset !== 0 && (
           <button className={s.dtNavBtnSm} onClick={() => setWeekOffset(0)}>Hari Ini</button>
         )}
