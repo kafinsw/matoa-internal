@@ -1618,6 +1618,13 @@ function TabDaily({ pic = "" }) {
   const totalItems = filteredKatalog.reduce((s, c) => s + c.items.length, 0);
   const doneItems = filteredKatalog.reduce((s, c) =>
     s + c.items.filter(it => checks[it.kode_task]?.status !== "").length, 0);
+  const countNormal = filteredKatalog.reduce((s, c) =>
+    s + c.items.filter(it => checks[it.kode_task]?.status === "Normal").length, 0);
+  const countErr = filteredKatalog.reduce((s, c) =>
+    s + c.items.filter(it => checks[it.kode_task]?.status === "Bermasalah").length, 0);
+  const countWarn = filteredKatalog.reduce((s, c) =>
+    s + c.items.filter(it => checks[it.kode_task]?.status === "Dalam Proses").length, 0);
+  const countBelum = totalItems - doneItems;
 
   // reverse geocode
   async function reverseGeocode(lat, lon) {
@@ -1894,6 +1901,23 @@ function TabDaily({ pic = "" }) {
           </div>
         );
       })}
+      {totalItems > 0 && (
+        <div className="dc-sticky-bar">
+          <div className="dc-sticky-row">
+            <span className="dc-sticky-label">Progress pemeriksaan</span>
+            <span className="dc-sticky-count mono">{doneItems}<span className="dc-sticky-total">/{totalItems}</span></span>
+          </div>
+          <div className="dc-sticky-track">
+            <div className="dc-sticky-fill" style={{ width: totalItems ? `${(doneItems / totalItems) * 100}%` : "0%" }} />
+          </div>
+          <div className="dc-sticky-legend">
+            <span className="dc-sticky-ok">● {countNormal} Normal</span>
+            <span className="dc-sticky-err">● {countErr} Bermasalah</span>
+            <span className="dc-sticky-warn">● {countWarn} Dalam Proses</span>
+            <span className="dc-sticky-belum">○ {countBelum} Belum</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
