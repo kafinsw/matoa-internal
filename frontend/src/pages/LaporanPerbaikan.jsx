@@ -1793,13 +1793,28 @@ function TabDaily({ pic = "" }) {
 
   const [dcSending, setDcSending] = useState(false);
   const [dcSent, setDcSent] = useState(false);
+  const [dcBlocedBy, setDcBlockedBy] = useState(null); // nama petugas yg sudah kirim
+  const [dcToast, setDcToast] = useState(false);
+
+  // Cek apakah sudah ada laporan hari ini untuk outlet+user ini
+  useEffect(() => {
+    if (!tim || !schedule || schedule.libur || !dbOutlets) return;
+    const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
+    if (!outletId) return;
+    fetch(`/php-api/daily/check?outlet_id=${outletId}&user_id=${tim}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok && d.exists) setDcBlockedBy(d.petugas_nama || 'Petugas Lain');
+        else setDcBlockedBy(null);
+      })
+      .catch(() => {});
+  }, [tim, schedule, dbOutlets]);
 
   async function kirimDaily() {
     if (!tim || !schedule || schedule.libur || doneItems < totalItems) return;
     const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
     if (!outletId) { alert("Outlet tidak ditemukan."); return; }
 
-    // build tasks payload: { kode_task: { status, note, photos[] } }
     const tasks = {};
     filteredKatalog.forEach(cat => {
       cat.items.forEach(it => {
@@ -1816,7 +1831,7 @@ function TabDaily({ pic = "" }) {
         body: JSON.stringify({
           outlet_id: outletId,
           user_id: Number(tim),
-          petugas_id: Number(tim), // same as user_id for daily
+          petugas_id: Number(tim),
           tasks,
           lat: gps.lat ?? null,
           lon: gps.lon ?? null,
@@ -1825,12 +1840,13 @@ function TabDaily({ pic = "" }) {
         }),
       });
       const d = await res.json();
-      if (!d.ok) throw new Error(d.message || "Gagal kirim");
+      if (!d.ok) throw new Error(d.message || d.error || JSON.stringify(d));
       setDcSent(true);
+      setDcToast(true);
+      setTimeout(() => setDcToast(false), 3000);
       sessionStorage.removeItem("dc_checks");
-      alert("✓ Daily check terkirim!");
     } catch (err) {
-      alert("Gagal kirim: " + err.message);
+      alert("Gagal kirim:\n" + err.message);
     } finally {
       setDcSending(false);
     }
@@ -1929,7 +1945,10 @@ function TabDaily({ pic = "" }) {
         <div className="dc-empty">Pilih TYPE untuk memuat checklist.</div>
       )}
       {tim && schedule?.libur && (
-        <div className="dc-empty">🌴 Hari ini libur. Tidak ada jadwal.</div>
+        <div className="dc-empty">Daily Task sedang dikerjakan oleh Petugas : {dcBlocedBy || "—"}</div>
+      )}
+      {tim && !schedule?.libur && totalItems === 0 && dbKatalog !== null && (
+        <div className="dc-empty">Daily Task Tidak Tersedia</div>
       )}
       {filteredKatalog.map((cat, idx) => {
         const catDone = cat.items.filter(it => isItemComplete(it, checks[it.kode_task])).length;
@@ -2105,7 +2124,7 @@ function TabDaily({ pic = "" }) {
             <span className="dc-sticky-warn">● {countWarn} Dalam Proses</span>
             <span className="dc-sticky-belum">○ {countBelum} Belum</span>
           </div>
-          {doneItems === totalItems && totalItems > 0 && !dcSent && (
+          {doneItems === totalItems && totalItems > 0 && !dcSent && !dcBlocedBy && (
             <button
               className="dc-kirim-btn"
               onClick={kirimDaily}
@@ -2114,10 +2133,13 @@ function TabDaily({ pic = "" }) {
               {dcSending ? "Mengirim…" : "KIRIM"}
             </button>
           )}
-          {dcSent && (
-            <div className="dc-sent-badge">✓ Terkirim</div>
+          {(dcSent || dcBlocedBy) && (
+            <button className="dc-kirim-btn dc-kirim-btn--done" disabled>SELESAI</button>
           )}
         </div>
+      )}
+      {dcToast && (
+        <div className="dc-toast">✓ Daily Check Terkirim</div>
       )}
       {dcPvSrc && <PhotoViewer src={dcPvSrc} onClose={() => setDcPvSrc(null)} />}
     </div>

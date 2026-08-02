@@ -1348,6 +1348,23 @@ try {
             json_response(['ok' => true, 'data' => $row]);
             break;
 
+        case '/daily/check':
+            // Cek apakah outlet+user sudah ada laporan hari ini
+            $outlet_id = isset($_GET['outlet_id']) ? (int)$_GET['outlet_id'] : 0;
+            $user_id   = isset($_GET['user_id'])   ? (int)$_GET['user_id']   : 0;
+            if (!$outlet_id || !$user_id) { json_response(['ok' => false, 'message' => 'outlet_id dan user_id wajib'], 422); break; }
+            $row = $pdo->prepare(
+                "SELECT dl.id, u.name AS petugas_nama
+                 FROM daily_laporan dl
+                 LEFT JOIN user u ON u.id = dl.petugas_id
+                 WHERE dl.outlet_id = ? AND dl.user_id = ? AND DATE(dl.created_at) = CURDATE()
+                 LIMIT 1"
+            );
+            $row->execute([$outlet_id, $user_id]);
+            $found = $row->fetch();
+            json_response(['ok' => true, 'exists' => (bool)$found, 'petugas_nama' => $found['petugas_nama'] ?? null]);
+            break;
+
         case '/daily/list':
             $outlet_id  = isset($_GET['outlet_id'])  ? (int)$_GET['outlet_id']  : null;
             $user_id    = isset($_GET['user_id'])     ? (int)$_GET['user_id']    : null;
