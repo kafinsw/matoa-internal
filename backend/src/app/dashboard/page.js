@@ -407,7 +407,7 @@ export default function LaporanDashboard() {
             </div>
           </div>
           <div className={s.card}>
-            <h3>Produktivitas Teknisi GA</h3>
+            <h3>Produktivitas Teknisi GA & ME</h3>
             <div className={s.chSub}>Pekerjaan diselesaikan</div>
             <div className={s.lead}>
               {tech_productivity.length===0&&<div className={s.empty}>Belum ada data</div>}
