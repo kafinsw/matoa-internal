@@ -1796,12 +1796,30 @@ function TabDaily({ pic = "" }) {
   const [dcBlocedBy, setDcBlockedBy] = useState(null); // nama petugas yg sudah kirim
   const [dcToast, setDcToast] = useState(false);
 
+  // Auto-reset dc state + sessionStorage setiap jam 00:00 WIB
+  useEffect(() => {
+    const getMsToMidnightWIB = () => {
+      const now = new Date();
+      const wib = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+      const next = new Date(wib);
+      next.setHours(24, 0, 0, 0);
+      return next - wib;
+    };
+    let t = setTimeout(function tick() {
+      Object.keys(sessionStorage).filter(k => k.startsWith('dc_')).forEach(k => sessionStorage.removeItem(k));
+      setDcSent(false);
+      setDcBlockedBy(null);
+      t = setTimeout(tick, getMsToMidnightWIB());
+    }, getMsToMidnightWIB());
+    return () => clearTimeout(t);
+  }, []);
+
   // Cek apakah sudah ada laporan hari ini untuk outlet+user ini (one-shot, bukan polling)
   useEffect(() => {
     if (!tim || !schedule || schedule.libur || !dbOutlets) return;
     const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
     if (!outletId) return;
-    fetch(`/php-api/daily/check?outlet_id=${outletId}&user_id=${tim}`)
+    fetch(`/php-api/daily/check?outlet_id=${outletId}&user_id=${tim}&date=${activeDate}`)
       .then(r => r.json())
       .then(d => {
         if (d.ok && d.exists) {
@@ -1822,7 +1840,7 @@ function TabDaily({ pic = "" }) {
     const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
     if (!outletId) return;
 
-    const payload = JSON.stringify({ outlet_id: outletId, user_id: Number(tim), petugas_nama: pic });
+    const payload = JSON.stringify({ outlet_id: outletId, user_id: Number(tim), petugas_nama: pic, date: activeDate });
     const acquire = () => fetch('/php-api/daily/lock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload })
       .then(r => r.json())
       .then(d => { if (!d.ok && d.locked_by && d.locked_by !== pic) setDcBlockedBy(prev => prev || d.locked_by); })
@@ -1861,6 +1879,7 @@ function TabDaily({ pic = "" }) {
           outlet_id: outletId,
           user_id: Number(tim),
           petugas_nama: pic,
+          date: activeDate,
           tasks,
           lat: gps.lat ?? null,
           lon: gps.lon ?? null,

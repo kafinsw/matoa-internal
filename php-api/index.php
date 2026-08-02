@@ -1321,6 +1321,7 @@ try {
             $user_id       = (int)($body['user_id']       ?? 0);
             $petugas_nama  = trim($body['petugas_nama']   ?? '');
             $tasks         = $body['tasks']      ?? null;
+            $date_store    = $body['date'] ?? null; // dev mode: tanggal custom, null=NOW()
             $lat           = isset($body['lat'])  ? (float)$body['lat']  : null;
             $lon           = isset($body['lon'])  ? (float)$body['lon']  : null;
             $address       = $body['address']    ?? null;
@@ -1342,12 +1343,13 @@ try {
 
             $stmt = $pdo->prepare(
                 'INSERT INTO daily_laporan (outlet_id, user_id, petugas_id, tasks, lat, lon, address, device, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
+            $created_at = $date_store ? $date_store . ' 00:00:00' : date('Y-m-d H:i:s');
             $stmt->execute([
                 $outlet_id, $user_id, $petugas_id,
                 is_string($tasks) ? $tasks : json_encode($tasks),
-                $lat, $lon, $address, $device,
+                $lat, $lon, $address, $device, $created_at,
             ]);
             $newId = $pdo->lastInsertId();
             $row = $pdo->query("SELECT * FROM daily_laporan WHERE id = $newId")->fetch();
@@ -1410,15 +1412,16 @@ try {
             // Cek apakah outlet+user sudah ada laporan hari ini
             $outlet_id    = isset($_GET['outlet_id'])    ? (int)$_GET['outlet_id']    : 0;
             $user_id      = isset($_GET['user_id'])      ? (int)$_GET['user_id']      : 0;
+            $date_check   = $_GET['date'] ?? date('Y-m-d');
             if (!$outlet_id || !$user_id) { json_response(['ok' => false, 'message' => 'outlet_id dan user_id wajib'], 422); break; }
             $row = $pdo->prepare(
                 "SELECT dl.id, p.nama AS petugas_nama
                  FROM daily_laporan dl
                  LEFT JOIN petugas p ON p.id = dl.petugas_id
-                 WHERE dl.outlet_id = ? AND dl.user_id = ? AND DATE(dl.created_at) = CURDATE()
+                 WHERE dl.outlet_id = ? AND dl.user_id = ? AND DATE(CONVERT_TZ(dl.created_at,'+00:00','+07:00')) = ?
                  LIMIT 1"
             );
-            $row->execute([$outlet_id, $user_id]);
+            $row->execute([$outlet_id, $user_id, $date_check]);
             $found = $row->fetch();
             json_response(['ok' => true, 'exists' => (bool)$found, 'petugas_nama' => $found['petugas_nama'] ?? null]);
             break;
