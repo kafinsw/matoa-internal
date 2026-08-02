@@ -1359,8 +1359,8 @@ try {
 
         case '/daily/check':
             // Cek apakah outlet+user sudah ada laporan hari ini
-            $outlet_id = isset($_GET['outlet_id']) ? (int)$_GET['outlet_id'] : 0;
-            $user_id   = isset($_GET['user_id'])   ? (int)$_GET['user_id']   : 0;
+            $outlet_id    = isset($_GET['outlet_id'])    ? (int)$_GET['outlet_id']    : 0;
+            $user_id      = isset($_GET['user_id'])      ? (int)$_GET['user_id']      : 0;
             if (!$outlet_id || !$user_id) { json_response(['ok' => false, 'message' => 'outlet_id dan user_id wajib'], 422); break; }
             $row = $pdo->prepare(
                 "SELECT dl.id, p.nama AS petugas_nama

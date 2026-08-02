@@ -1801,14 +1801,14 @@ function TabDaily({ pic = "" }) {
     if (!tim || !schedule || schedule.libur || !dbOutlets) return;
     const outletId = parseInt(Object.entries(dbOutlets).find(([, o]) => o.kode === schedule.outlet)?.[0] ?? 0);
     if (!outletId) return;
-    fetch(`/php-api/daily/check?outlet_id=${outletId}&user_id=${tim}`)
+    fetch(`/php-api/daily/check?outlet_id=${outletId}&user_id=${tim}&petugas_nama=${encodeURIComponent(pic)}`)
       .then(r => r.json())
       .then(d => {
-        if (d.ok && d.exists) setDcBlockedBy(d.petugas_nama || 'Petugas Lain');
+        if (d.ok && d.exists && d.petugas_nama && d.petugas_nama !== pic) setDcBlockedBy(d.petugas_nama);
         else setDcBlockedBy(null);
       })
       .catch(() => {});
-  }, [tim, schedule, dbOutlets]);
+  }, [tim, schedule, dbOutlets, pic]);
 
   async function kirimDaily() {
     if (!tim || !schedule || schedule.libur || doneItems < totalItems) return;
