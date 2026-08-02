@@ -253,6 +253,20 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 .dc-photo-input { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
 .dc-photo-thumbs { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
 .dc-photo-thumb { width:64px; height:64px; object-fit:cover; border-radius:8px; border:1.5px solid #E4E1DA; }
+/* new photo grid + delete */
+.dc-photo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; }
+.dc-photo-cell { position:relative; aspect-ratio:1; border-radius:10px; overflow:hidden; }
+.dc-photo-img  { width:100%; height:100%; object-fit:cover; display:block; }
+.dc-photo-del  { position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,0.6); color:#fff; font-size:11px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; padding:0; }
+/* note error */
+.dc-note--err { border-color:#e5674f !important; background:#2a1411 !important; }
+.dc-note--err::placeholder { color:#e5674f; }
+/* alasan chips */
+.dc-alasan-wrap  { margin-top:11px; }
+.dc-alasan-label { font-size:11px; font-weight:600; color:#8A5E14; margin-bottom:7px; }
+.dc-alasan-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.dc-alasan-chip  { font-size:12px; padding:5px 12px; border-radius:99px; border:1.5px solid #3a3520; background:#1e1c0e; color:#c9a84c; cursor:pointer; }
+.dc-alasan-chip--on { background:#3a2e00; border-color:#c9a84c; color:#f5d077; font-weight:600; }
 
 .dc-note { display:block; width:100%; margin-top:10px; padding:10px 12px; border-radius:9px; border:1.5px solid #E4E1DA; background:#FBFAF7; font-size:13px; line-height:1.5; font-family:inherit; color:#141414; resize:none; box-sizing:border-box; vertical-align:top; }
 .dc-note:focus { outline:none; border-color:#B4AFA6; }

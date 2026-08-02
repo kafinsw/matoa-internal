@@ -1581,7 +1581,7 @@ function TabDaily({ pic = "" }) {
     if (!dbKatalog) return;
     const m = {};
     dbKatalog.forEach(cat => cat.items.forEach(it => {
-      m[it.kode_task] = { status: "", note: "", photos: [] };
+      m[it.kode_task] = { status: "", note: "", photos: [], alasan: [] };
     }));
     setChecks(m);
   }, [dbKatalog]);
@@ -1601,12 +1601,13 @@ function TabDaily({ pic = "" }) {
   function handlePhoto(kode_task, file) {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = async e => {
+      const stamped = await stampGpsOnImage(e.target.result, gps, outletLabel);
       setChecks(prev => ({
         ...prev,
         [kode_task]: {
           ...prev[kode_task],
-          photos: [...prev[kode_task].photos, e.target.result],
+          photos: [...prev[kode_task].photos, stamped],
         },
       }));
     };
@@ -1842,12 +1843,34 @@ function TabDaily({ pic = "" }) {
                         ))}
                       </div>
 
-                      {item.min_foto > 0 && (
+                      {/* Alasan penundaan — hanya Dalam Proses */}
+                      {ck.status === "Dalam Proses" && (
+                        <div className="dc-alasan-wrap">
+                          <div className="dc-alasan-label">Alasan penundaan (pilih satu / lebih)</div>
+                          <div className="dc-alasan-chips">
+                            {["Butuh Anggaran", "Perlu Waktu", "Menunggu Sparepart/Vendor"].map(a => (
+                              <button
+                                key={a}
+                                className={`dc-alasan-chip${(ck.alasan||[]).includes(a) ? " dc-alasan-chip--on" : ""}`}
+                                onClick={() => {
+                                  const cur = ck.alasan || [];
+                                  setCheck(item.kode_task, "alasan",
+                                    cur.includes(a) ? cur.filter(x => x !== a) : [...cur, a]
+                                  );
+                                }}
+                              >{a}</button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Foto — tampil saat status dipilih */}
+                      {ck.status !== "" && item.min_foto > 0 && (
                         <div className="dc-photo-wrap">
                           <div className="dc-photo-row">
                             <span className="dc-photo-label">Foto bukti (kamera)</span>
                             <span className={`dc-photo-count${ck.photos.length < item.min_foto ? " dc-photo-count--warn" : " dc-photo-count--ok"}`}>
-                              {ck.photos.length} foto
+                              {ck.photos.length}/{item.min_foto} min
                             </span>
                           </div>
                           <div className="dc-photo-btn-wrap">
@@ -1867,22 +1890,31 @@ function TabDaily({ pic = "" }) {
                             />
                           </div>
                           {ck.photos.length > 0 && (
-                            <div className="dc-photo-thumbs">
+                            <div className="dc-photo-grid">
                               {ck.photos.map((src, i) => (
-                                <img key={i} src={src} className="dc-photo-thumb" alt={`foto-${i + 1}`} />
+                                <div key={i} className="dc-photo-cell">
+                                  <img src={src} className="dc-photo-img" alt={`foto-${i + 1}`} />
+                                  <button
+                                    className="dc-photo-del"
+                                    onClick={() => setCheck(item.kode_task, "photos", ck.photos.filter((_, j) => j !== i))}
+                                  >✕</button>
+                                </div>
                               ))}
                             </div>
                           )}
                         </div>
                       )}
 
-                      <textarea
-                        rows={1}
-                        placeholder="Catatan (opsional)…"
-                        className="dc-note"
-                        value={ck.note}
-                        onChange={e => setCheck(item.kode_task, "note", e.target.value)}
-                      />
+                      {/* Keterangan — Bermasalah = wajib, lainnya = opsional */}
+                      {ck.status !== "" && (
+                        <textarea
+                          rows={1}
+                          placeholder={ck.status === "Bermasalah" ? "Keterangan (wajib)…" : "Keterangan (opsional)…"}
+                          className={`dc-note${ck.status === "Bermasalah" && ck.note.trim() === "" ? " dc-note--err" : ""}`}
+                          value={ck.note}
+                          onChange={e => setCheck(item.kode_task, "note", e.target.value)}
+                        />
+                      )}
                     </div>
                   );
                 })}
