@@ -1514,7 +1514,7 @@ function getFilteredKatalog(dbKatalog, userId, tasks) {
 }
 
 function TabDaily({ pic = "" }) {
-  const [tim, setTim] = useState("");
+  const [tim, setTim] = useState(() => sessionStorage.getItem("dc_tim") || "");
   const [gps, setGps] = useState({ status: "loading" });
   const _gpsWatchRef = useRef(null);
   const _gpsHardStopRef = useRef(null);
@@ -1614,10 +1614,14 @@ function TabDaily({ pic = "" }) {
     cv.width = v.videoWidth; cv.height = v.videoHeight;
     cv.getContext("2d").drawImage(v, 0, 0, cv.width, cv.height);
     const stamped = await stampGpsOnImage(cv.toDataURL("image/webp", 0.8), gps, outletLabel);
-    setChecks(prev => ({
-      ...prev,
-      [dcCamTarget]: { ...prev[dcCamTarget], photos: [...prev[dcCamTarget].photos, stamped] },
-    }));
+    setChecks(prev => {
+      const next = {
+        ...prev,
+        [dcCamTarget]: { ...prev[dcCamTarget], photos: [...prev[dcCamTarget].photos, stamped] },
+      };
+      try { sessionStorage.setItem("dc_checks", JSON.stringify(next)); } catch {}
+      return next;
+    });
     setShowDcCam(false);
     stopDcStream();
   }
@@ -1625,15 +1629,21 @@ function TabDaily({ pic = "" }) {
   // re-init checks + openCats saat dbKatalog loaded
   useEffect(() => {
     if (!dbKatalog) return;
+    const saved = (() => { try { return JSON.parse(sessionStorage.getItem("dc_checks") || "{}"); } catch { return {}; } })();
     const m = {};
     dbKatalog.forEach(cat => cat.items.forEach(it => {
-      m[it.kode_task] = { status: "", note: "", photos: [], alasan: [] };
+      // keep existing data if already filled, else fresh
+      m[it.kode_task] = saved[it.kode_task] || { status: "", note: "", photos: [], alasan: [] };
     }));
     setChecks(m);
   }, [dbKatalog]);
 
   function setCheck(kode_task, field, val) {
-    setChecks(prev => ({ ...prev, [kode_task]: { ...prev[kode_task], [field]: val } }));
+    setChecks(prev => {
+      const next = { ...prev, [kode_task]: { ...prev[kode_task], [field]: val } };
+      try { sessionStorage.setItem("dc_checks", JSON.stringify(next)); } catch {}
+      return next;
+    });
   }
 
   function toggleCat(kode) {
@@ -1764,7 +1774,7 @@ function TabDaily({ pic = "" }) {
             TYPE
             <select
               value={tim}
-              onChange={(e) => setTim(e.target.value)}
+              onChange={(e) => { sessionStorage.setItem("dc_tim", e.target.value); setTim(e.target.value); }}
               className={`lp-input${!tim ? " lp-input--err" : ""}`}
             >
               <option value="">— Pilih Type —</option>
