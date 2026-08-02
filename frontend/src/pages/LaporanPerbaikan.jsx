@@ -1919,7 +1919,9 @@ function TabDaily({ pic = "" }) {
                       )}
 
                       {/* Foto — tampil saat status dipilih */}
-                      {ck.status !== "" && item.min_foto > 0 && (
+                      {ck.status !== "" && item.min_foto > 0 && (() => {
+                        const needAlasan = ck.status === "Dalam Proses" && !(ck.alasan||[]).length;
+                        return (
                         <div className="dc-photo-wrap">
                           <div className="dc-photo-row">
                             <span className="dc-photo-label">Foto bukti (kamera)</span>
@@ -1927,13 +1929,16 @@ function TabDaily({ pic = "" }) {
                               {ck.photos.length}/{item.min_foto} min
                             </span>
                           </div>
-                          <button className="dc-photo-btn" onClick={() => openDcCamera(item.kode_task)}>
-                              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
-                                <circle cx="12" cy="13" r="3.2" />
-                              </svg>
-                              Ambil Foto (Kamera)
-                            </button>
+                          {needAlasan
+                            ? <div className="dc-photo-alasan-warn">Pilih alasan terlebih dahulu</div>
+                            : <button className="dc-photo-btn" onClick={() => openDcCamera(item.kode_task)}>
+                                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
+                                  <circle cx="12" cy="13" r="3.2" />
+                                </svg>
+                                Ambil Foto (Kamera)
+                              </button>
+                          }
                           {ck.photos.length > 0 && (
                             <div className="dc-photo-grid">
                               {ck.photos.map((src, i) => (
@@ -1948,7 +1953,8 @@ function TabDaily({ pic = "" }) {
                             </div>
                           )}
                         </div>
-                      )}
+                        );
+                      })()}
 
                       {/* Keterangan — Bermasalah = wajib, lainnya = opsional */}
                       {ck.status !== "" && (

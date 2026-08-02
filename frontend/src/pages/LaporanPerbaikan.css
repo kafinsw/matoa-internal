@@ -251,6 +251,7 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 .dc-photo-count--ok  { background:#D8F0E5; color:#1F8A5B; }
 .dc-photo-btn-wrap { position:relative; }
 .dc-photo-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 14px; background:#F5F4F0; border:1.5px dashed #C7C2B8; border-radius:10px; font-size:13px; font-weight:600; color:#5A574F; cursor:pointer; }
+.dc-photo-alasan-warn { font-size:12px; font-weight:600; color:#e5674f; padding:8px 0 4px; }
 .dc-photo-input { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
 .dc-photo-thumbs { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
 .dc-photo-thumb { width:64px; height:64px; object-fit:cover; border-radius:8px; border:1.5px solid #E4E1DA; }
