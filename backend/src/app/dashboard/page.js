@@ -341,39 +341,36 @@ function DispatchBoard() {
         )}
       </div>
 
-      {/* dispatch table */}
-      <div className={s.dtTableWrap}>
-        <table className={s.dtTable}>
-          <thead>
-            <tr>
-              <th className={s.dtThNo}>NO</th>
-              <th className={s.dtThTime}>WAKTU</th>
-              {dayHeaders.map((h, i) => (
-                <th key={i} className={`${s.dtThDay} ${dayKeys[i] === todayKey ? s.dtThToday : ''}`}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {bySlot.map((row, slotIdx) => (
-              <tr key={slotIdx}>
-                <td className={s.dtTdNo}>{slotIdx + 1}</td>
-                <td className={s.dtTdTime}>{DISPATCH_SLOTS[slotIdx]}</td>
-                {row.map((item, di) => (
-                  <td key={di} className={`${s.dtTd} ${dayKeys[di] === todayKey ? s.dtTdToday : ''}`}>
-                    {item ? (
-                      <div className={s.dtCell} style={{ borderLeftColor: LV_COLOR[item.level] || 'var(--line)' }}>
-                        <span className={s.dtLv} style={{ color: LV_COLOR[item.level] || 'var(--grey)' }}>{item.level || '—'}</span>
-                        {' · '}
-                        <span className={s.dtOutlet}>{item.outlet_kode || item.outlet_nama || '—'}</span>
-                        <div className={s.dtKet}>{item.keterangan || '—'}</div>
-                      </div>
-                    ) : null}
-                  </td>
-                ))}
-              </tr>
+      {/* dispatch table — same ledger style as laporan */}
+      <div className={s.ledger} style={{ marginTop: 12 }}>
+        {/* header row */}
+        <div className={`${s.lgRow} ${s.h} ${s.dtDispRow}`}>
+          <span>NO</span>
+          <span>WAKTU</span>
+          {dayHeaders.map((h, i) => (
+            <span key={i} style={{ color: dayKeys[i] === todayKey ? 'var(--ink)' : undefined }}>{h}</span>
+          ))}
+        </div>
+        {/* data rows */}
+        {bySlot.map((row, slotIdx) => (
+          <div key={slotIdx} className={`${s.lgRow} ${s.dtDispRow}`}>
+            <span className={s.lgRowNo}>{slotIdx + 1}</span>
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', whiteSpace: 'nowrap' }}>{DISPATCH_SLOTS[slotIdx]}</span>
+            {row.map((item, di) => (
+              <div key={di} style={{ background: dayKeys[di] === todayKey ? 'var(--panel2)' : undefined, borderRadius: 6, minHeight: 32 }}>
+                {item && (
+                  <div style={{ borderLeft: `3px solid ${LV_COLOR[item.level] || 'var(--line)'}`, paddingLeft: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                      <span className={s.typ} style={{ color: LV_COLOR[item.level], background: 'transparent', border: `1px solid ${LV_COLOR[item.level] || 'var(--line)'}`, padding: '2px 5px' }}>{item.level || '—'}</span>
+                      <span className={s.lgOut} style={{ fontSize: 12 }}>{item.outlet_kode || item.outlet_nama || '—'}</span>
+                    </div>
+                    <div className={s.lgKet} style={{ fontSize: 11, marginTop: 2, WebkitLineClamp: 2 }}>{item.keterangan || '—'}</div>
+                  </div>
+                )}
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        ))}
       </div>
     </div>
   );
