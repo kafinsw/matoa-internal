@@ -1884,7 +1884,7 @@ function TabDaily({ pic = "" }) {
                             <input
                               type="file"
                               accept="image/*"
-                              capture="environment"
+                              {...(navigator.maxTouchPoints > 0 ? { capture: "environment" } : {})}
                               className="dc-photo-input"
                               onChange={e => handlePhoto(item.kode_task, e.target.files?.[0])}
                             />
