@@ -1873,7 +1873,10 @@ function TabDaily({ pic = "" }) {
       setDcSent(true);
       setDcToast(true);
       setTimeout(() => setDcToast(false), 3000);
-      sessionStorage.removeItem("dc_checks");
+      // stop heartbeat
+      if (dcLockRef.current) { clearInterval(dcLockRef.current.interval); dcLockRef.current.release(); dcLockRef.current = null; }
+      // clear semua dc sessionStorage
+      Object.keys(sessionStorage).filter(k => k.startsWith('dc_')).forEach(k => sessionStorage.removeItem(k));
     } catch (err) {
       alert("Gagal kirim:\n" + err.message);
     } finally {
@@ -2030,6 +2033,7 @@ function TabDaily({ pic = "" }) {
                         {DC_STATUSES.map(s => (
                           <button
                             key={s}
+                            disabled={dcSent}
                             className={`dc-seg-btn${ck.status === s ? ` dc-seg-btn--on dc-seg-btn--${s === "Normal" ? "ok" : s === "Bermasalah" ? "err" : "warn"}` : ""}`}
                             onClick={() => setCheck(item.kode_task, "status", ck.status === s ? "" : s)}
                           >
@@ -2046,6 +2050,7 @@ function TabDaily({ pic = "" }) {
                             {["Butuh Anggaran", "Perlu Waktu", "Menunggu Sparepart/Vendor"].map(a => (
                               <button
                                 key={a}
+                                disabled={dcSent}
                                 className={`dc-alasan-chip${(ck.alasan||[]).includes(a) ? " dc-alasan-chip--on" : ""}`}
                                 onClick={() => {
                                   const cur = ck.alasan || [];
@@ -2072,7 +2077,7 @@ function TabDaily({ pic = "" }) {
                           </div>
                           {needAlasan
                             ? <div className="dc-photo-alasan-warn">Pilih alasan terlebih dahulu</div>
-                            : <button className="dc-photo-btn" onClick={() => openDcCamera(item.kode_task)}>
+                            : <button className="dc-photo-btn" disabled={dcSent} onClick={() => openDcCamera(item.kode_task)}>
                                 <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                   <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
                                   <circle cx="12" cy="13" r="3.2" />
@@ -2087,6 +2092,7 @@ function TabDaily({ pic = "" }) {
                                   <img src={src} className="dc-photo-img" alt={`foto-${i + 1}`} onClick={() => setDcPvSrc(src)} style={{cursor:"zoom-in"}} />
                                   <button
                                     className="dc-photo-del"
+                                    disabled={dcSent}
                                     onClick={() => setCheck(item.kode_task, "photos", ck.photos.filter((_, j) => j !== i))}
                                   >✕</button>
                                 </div>
@@ -2103,6 +2109,7 @@ function TabDaily({ pic = "" }) {
                           <textarea
                             rows={1}
                             placeholder="Tulis keterangan…"
+                            disabled={dcSent}
                             className={`dc-note${ck.status === "Bermasalah" && ck.note.trim() === "" ? " dc-note--err" : ""}`}
                             value={ck.note}
                             onChange={e => setCheck(item.kode_task, "note", e.target.value)}
