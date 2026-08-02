@@ -1824,7 +1824,20 @@ function TabDaily({ pic = "" }) {
       .then(d => {
         if (d.ok && d.exists) {
           if (d.petugas_nama && d.petugas_nama !== pic) setDcBlockedBy(d.petugas_nama);
-          else setDcSent(true); // sudah kirim sendiri
+          else {
+            setDcSent(true);
+            // load data dari DB ke checks state
+            const outletIdForList = outletId;
+            fetch(`/php-api/daily/list?outlet_id=${outletIdForList}&user_id=${tim}&date=${activeDate}`)
+              .then(r => r.json())
+              .then(dl => {
+                if (dl.ok && dl.data?.length) {
+                  const tasks = dl.data[0].tasks || {};
+                  setChecks(typeof tasks === 'string' ? JSON.parse(tasks) : tasks);
+                }
+              })
+              .catch(() => {});
+          }
         }
       })
       .catch(() => {});
@@ -1896,6 +1909,11 @@ function TabDaily({ pic = "" }) {
       if (dcLockRef.current) { clearInterval(dcLockRef.current.interval); dcLockRef.current.release(); dcLockRef.current = null; }
       // clear semua dc sessionStorage
       Object.keys(sessionStorage).filter(k => k.startsWith('dc_')).forEach(k => sessionStorage.removeItem(k));
+      // reload checks dari DB
+      fetch(`/php-api/daily/list?outlet_id=${outletId}&user_id=${tim}&date=${activeDate}`)
+        .then(r => r.json())
+        .then(dl => { if (dl.ok && dl.data?.length) { const t = dl.data[0].tasks || {}; setChecks(typeof t === 'string' ? JSON.parse(t) : t); } })
+        .catch(() => {});
     } catch (err) {
       alert("Gagal kirim:\n" + err.message);
     } finally {

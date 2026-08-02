@@ -1433,7 +1433,7 @@ try {
             $limit      = min((int)($_GET['limit'] ?? 50), 200);
             $offset     = (int)($_GET['offset'] ?? 0);
 
-            $where  = ['DATE(dl.created_at) = ?'];
+            $where  = ["DATE(CONVERT_TZ(dl.created_at,'+00:00','+07:00')) = ?"];
             $params = [$date];
             if ($outlet_id) { $where[] = 'dl.outlet_id = ?';  $params[] = $outlet_id; }
             if ($user_id)   { $where[] = 'dl.user_id = ?';    $params[] = $user_id; }
