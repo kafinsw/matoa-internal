@@ -1907,13 +1907,18 @@ function TabDaily({ pic = "" }) {
 
                       {/* Keterangan — Bermasalah = wajib, lainnya = opsional */}
                       {ck.status !== "" && (
-                        <textarea
-                          rows={1}
-                          placeholder={ck.status === "Bermasalah" ? "Keterangan (wajib)…" : "Keterangan (opsional)…"}
-                          className={`dc-note${ck.status === "Bermasalah" && ck.note.trim() === "" ? " dc-note--err" : ""}`}
-                          value={ck.note}
-                          onChange={e => setCheck(item.kode_task, "note", e.target.value)}
-                        />
+                        <div>
+                          <textarea
+                            rows={1}
+                            placeholder="Keterangan (opsional)…"
+                            className={`dc-note${ck.status === "Bermasalah" && ck.note.trim() === "" ? " dc-note--err" : ""}`}
+                            value={ck.note}
+                            onChange={e => setCheck(item.kode_task, "note", e.target.value)}
+                          />
+                          {ck.status === "Bermasalah" && ck.note.trim() === "" && (
+                            <div className="dc-note--err-msg">Keterangan harus di isi</div>
+                          )}
+                        </div>
                       )}
                     </div>
                   );
