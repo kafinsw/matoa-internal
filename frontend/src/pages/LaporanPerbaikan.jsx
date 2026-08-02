@@ -2042,7 +2042,7 @@ function TabDaily({ pic = "" }) {
             {isOpen && (
               <div className="dc-items">
                 {cat.items.map(item => {
-                  const ck = checks[item.kode_task] || { status: "", note: "", photos: [] };
+                  const ck = checks[item.kode_task] || { status: "", note: "", photos: [], alasan: [] };
                   const stCls = ck.status === "Normal" ? " dc-item--ok"
                     : ck.status === "Bermasalah" ? " dc-item--issue"
                     : ck.status === "Dalam Proses" ? " dc-item--process"
