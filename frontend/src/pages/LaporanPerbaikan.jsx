@@ -1584,7 +1584,6 @@ function TabDaily({ pic = "" }) {
       m[it.kode_task] = { status: "", note: "", photos: [] };
     }));
     setChecks(m);
-    setOpenCats(new Set(dbKatalog.map(c => c.kode)));
   }, [dbKatalog]);
 
   function setCheck(kode_task, field, val) {
