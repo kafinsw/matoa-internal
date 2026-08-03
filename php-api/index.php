@@ -157,6 +157,51 @@ try {
             break;
 
         // ---- Petugas session ----
+        case '/petugas-list':
+            $pdo->exec("CREATE TABLE IF NOT EXISTS petugas (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nama VARCHAR(100) NOT NULL,
+                nama_lower VARCHAR(100) NOT NULL,
+                is_active TINYINT(1) NOT NULL DEFAULT 0,
+                last_seen DATETIME NULL,
+                created_at DATETIME DEFAULT NOW(),
+                UNIQUE KEY uq_nama_lower (nama_lower)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                $rows = $pdo->query("SELECT id, nama, is_active, last_seen FROM petugas ORDER BY nama")->fetchAll(PDO::FETCH_ASSOC);
+                json_response($rows);
+                break;
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $b = json_decode(file_get_contents('php://input'), true);
+                $nama = trim($b['nama'] ?? '');
+                if (strlen($nama) < 2) { json_response(['error' => 'nama min 2'], 400); break; }
+                $lower = strtolower($nama);
+                $st = $pdo->prepare("INSERT INTO petugas (nama, nama_lower, is_active) VALUES (?,?,?) ON DUPLICATE KEY UPDATE nama=VALUES(nama), is_active=VALUES(is_active)");
+                $st->execute([$nama, $lower, intval($b['is_active'] ?? 1)]);
+                json_response(['id' => $pdo->lastInsertId()], 201);
+                break;
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+                $b = json_decode(file_get_contents('php://input'), true);
+                $id = intval($b['id'] ?? 0);
+                if (!$id) { json_response(['error' => 'id required'], 400); break; }
+                $nama = trim($b['nama'] ?? '');
+                $lower = strtolower($nama);
+                $st = $pdo->prepare("UPDATE petugas SET nama=?, nama_lower=?, is_active=? WHERE id=?");
+                $st->execute([$nama, $lower, intval($b['is_active'] ?? 1), $id]);
+                json_response(['ok' => true]);
+                break;
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+                $id = intval($_GET['id'] ?? 0);
+                if (!$id) { json_response(['error' => 'id required'], 400); break; }
+                $pdo->prepare("DELETE FROM petugas WHERE id=?")->execute([$id]);
+                json_response(['ok' => true]);
+                break;
+            }
+            break;
+
         case '/petugas':
             // CREATE TABLE IF NOT EXISTS (auto-migrate)
             $pdo->exec("CREATE TABLE IF NOT EXISTS petugas (
