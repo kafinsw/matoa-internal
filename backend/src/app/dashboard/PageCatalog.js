@@ -83,7 +83,11 @@ function AddCatalogModal({ onClose, onSaved }) {
     });
     const data = await res.json();
     setSubmitting(false);
-    if (!res.ok) { setErr(data.error || 'Gagal simpan'); return; }
+    if (!res.ok) { 
+      console.error('[catalog-form] submit error:', res.status, data);
+      setErr(data.error || `Gagal simpan (HTTP ${res.status})`); 
+      return; 
+    }
     onSaved();
     onClose();
   }
