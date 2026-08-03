@@ -571,6 +571,9 @@
 /* catalog ledger row — 8 cols: NO | KATEGORI | TYPE | GEJALA_ID | GEJALA | SLA | CONTOH | ACTION */
 .catLgRow { grid-template-columns: 40px 150px 80px 90px 1fr 90px 180px 70px !important; }
 
+/* kategori ledger row — 4 cols: NO | NAMA | TYPE | ACTION */
+.katLgRow { grid-template-columns: 40px 1fr 100px 70px !important; }
+
 .catNo      { text-align: center; }
 .catKat     { text-align: center; font-weight: 600; }
 .catType    { text-align: center; }

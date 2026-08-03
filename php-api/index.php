@@ -221,7 +221,30 @@ try {
 
         // ---- Kategori Kendala ----
         case '/kategori-kendala':
-            $rows = $pdo->query("SELECT id, nama FROM kategori_kendala ORDER BY nama")->fetchAll(PDO::FETCH_ASSOC);
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $b = json_decode(file_get_contents('php://input'), true);
+                $st = $pdo->prepare("INSERT INTO kategori_kendala (nama, user_id) VALUES (?, ?)");
+                $st->execute([$b['nama'], $b['user_id']]);
+                json_response(['id' => $pdo->lastInsertId()], 201);
+                break;
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+                $b = json_decode(file_get_contents('php://input'), true);
+                $id = intval($b['id'] ?? 0);
+                if (!$id) { json_response(['error' => 'id required'], 400); break; }
+                $st = $pdo->prepare("UPDATE kategori_kendala SET nama=?, user_id=? WHERE id=?");
+                $st->execute([$b['nama'], $b['user_id'], $id]);
+                json_response(['ok' => true]);
+                break;
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+                $id = intval($_GET['id'] ?? 0);
+                if (!$id) { json_response(['error' => 'id required'], 400); break; }
+                $pdo->prepare("DELETE FROM kategori_kendala WHERE id=?")->execute([$id]);
+                json_response(['ok' => true]);
+                break;
+            }
+            $rows = $pdo->query("SELECT kk.id, kk.nama, kk.user_id, u.name AS user_name FROM kategori_kendala kk LEFT JOIN user u ON u.id = kk.user_id ORDER BY kk.nama")->fetchAll(PDO::FETCH_ASSOC);
             json_response($rows);
             break;
 
