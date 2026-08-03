@@ -172,8 +172,6 @@ export default function PageKategori() {
 
   useEffect(() => {
     fetchData();
-    timer.current = setInterval(() => fetchData(true), 5000);
-    return () => clearInterval(timer.current);
   }, [fetchData]);
 
   async function handleDeleteConfirm() {
