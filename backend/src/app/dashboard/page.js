@@ -541,7 +541,6 @@ export default function LaporanDashboard() {
           <button className={`${s.navItem}${activePage==='dashboard'?` ${s.navActive}`:''}`} onClick={()=>{setActivePage('dashboard');setOpenMenu(null);}}>Dashboard</button>
 
           <button className={`${s.navItem}${activePage==='catalog'?` ${s.navActive}`:''}`} onClick={()=>setActivePage('catalog')}>Catalog</button>
-          <button className={`${s.navItem}${activePage==='kategori'?` ${s.navActive}`:''}`} onClick={()=>setActivePage('kategori')}>Kategori</button>
 
           <button className={`${s.navItem}${activePage==='outlet'?` ${s.navActive}`:''}`} onClick={()=>setActivePage('outlet')}>Outlet</button>
 
@@ -891,8 +890,8 @@ export default function LaporanDashboard() {
         <div className={s.siteFoot}>Matoa Group · Sistem Internal Maintenance · {new Date().getFullYear()}</div>
       </div>}
 
-      {activePage === 'catalog' && <PageCatalog sub={activePage} />}
-      {activePage === 'kategori' && <PageKategori />}
+      {activePage === 'catalog' && <><PageCatalog sub={activePage} /><PageKategori /></>}
+
       {activePage === 'outlet' && <PageOutlet />}
       {activePage === 'user' && <PageUser sub={activePage} />}
 
