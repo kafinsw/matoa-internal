@@ -47,20 +47,65 @@ function useDropdowns() {
   return { kategoriList, userList, slaList };
 }
 
-function AddCatalogModal({ onClose, onSaved }) {
+function CatalogForm({ initial, isEdit, onSubmit, submitting, err }) {
   const { kategoriList, userList, slaList } = useDropdowns();
-  const [form, setForm] = useState({ kategori_id: '', user_id: '', gejala_id: '', gejala: '', level: '' });
-  const [submitting, setSubmitting] = useState(false);
-  const [err, setErr] = useState('');
+  const [form, setForm] = useState(initial);
 
+  // auto gejala_id on add mode
   useEffect(() => {
+    if (isEdit) return;
     if (!form.kategori_id) { setForm(f => ({ ...f, gejala_id: '' })); return; }
     fetch(`/internal/api/katalog-form?type=next-id&kategori_id=${form.kategori_id}`)
       .then(r => r.json()).then(d => setForm(f => ({ ...f, gejala_id: d.next_id ?? '' })));
-  }, [form.kategori_id]);
+  }, [form.kategori_id, isEdit]);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
+
+  return (
+    <form className={s.catModalForm} onSubmit={e => { e.preventDefault(); onSubmit(form); }}>
+      <label className={s.catFormLabel}>Kategori</label>
+      <select className={s.catFormSelect} value={form.kategori_id} onChange={e => set('kategori_id', e.target.value)}>
+        <option value="">— pilih kategori —</option>
+        {kategoriList.map(k => <option key={k.id} value={String(k.id)}>{k.nama}</option>)}
+      </select>
+
+      <label className={s.catFormLabel}>Type</label>
+      <select className={s.catFormSelect} value={form.user_id} onChange={e => set('user_id', e.target.value)}>
+        <option value="">— pilih type —</option>
+        {userList.map(u => <option key={u.id} value={String(u.id)}>{u.name}</option>)}
+      </select>
+
+      <label className={s.catFormLabel}>Gejala ID</label>
+      <input className={s.catFormInput} value={form.gejala_id} readOnly placeholder="Otomatis terisi..." />
+
+      <label className={s.catFormLabel}>Gejala</label>
+      <textarea className={s.catFormTextarea} value={form.gejala} onChange={e => set('gejala', e.target.value)} placeholder="Deskripsi gejala..." rows={3} />
+
+      <label className={s.catFormLabel}>SLA Level</label>
+      <select className={s.catFormSelect} value={String(form.level)} onChange={e => set('level', e.target.value)}>
+        <option value="">— pilih SLA —</option>
+        {slaList.map(sl => <option key={sl.kode} value={String(sl.kode)}>{sl.kode} · {sl.max_hours}j — {sl.nama}</option>)}
+      </select>
+
+      {isEdit && <>
+        <label className={s.catFormLabel}>Contoh</label>
+        <textarea className={s.catFormTextarea} value={form.contoh ?? ''} onChange={e => set('contoh', e.target.value)} rows={2} placeholder="Opsional..." />
+      </>}
+
+      {err && <span className={s.catFormErr}>{err}</span>}
+      <button className={s.catFormSubmit} type="submit" disabled={submitting}>
+        {submitting ? 'Menyimpan…' : isEdit ? 'OK' : 'SUBMIT'}
+      </button>
+    </form>
+  );
+}
+
+function AddCatalogModal({ onClose, onSaved }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState('');
+  const initial = { kategori_id: '', user_id: '', gejala_id: '', gejala: '', level: '' };
+
+  async function handleSubmit(form) {
     if (!form.kategori_id || !form.user_id || !form.gejala_id || !form.gejala || !form.level) {
       setErr('Semua field wajib diisi'); return;
     }
@@ -82,57 +127,28 @@ function AddCatalogModal({ onClose, onSaved }) {
       <div className={s.catModal}>
         <div className={s.catModalHead}>
           <span className={s.catModalTitle}>+ CATALOG</span>
-          <button className={s.catModalClose} onClick={onClose}>✕</button>
+          <button className={s.catModalClose} type="button" onClick={onClose}>✕</button>
         </div>
-        <form className={s.catModalForm} onSubmit={handleSubmit}>
-          <label className={s.catFormLabel}>Pilih Kategori</label>
-          <select className={s.catFormSelect} value={form.kategori_id} onChange={e => setForm(f => ({ ...f, kategori_id: e.target.value }))}>
-            <option value="">— pilih kategori —</option>
-            {kategoriList.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
-          </select>
-
-          <label className={s.catFormLabel}>Pilih Type</label>
-          <select className={s.catFormSelect} value={form.user_id} onChange={e => setForm(f => ({ ...f, user_id: e.target.value }))}>
-            <option value="">— pilih type —</option>
-            {userList.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
-
-          <label className={s.catFormLabel}>Gejala ID</label>
-          <input className={s.catFormInput} value={form.gejala_id} readOnly placeholder="Otomatis terisi..." />
-
-          <label className={s.catFormLabel}>Gejala</label>
-          <textarea className={s.catFormTextarea} value={form.gejala} onChange={e => setForm(f => ({ ...f, gejala: e.target.value }))} placeholder="Deskripsi gejala..." rows={3} />
-
-          <label className={s.catFormLabel}>Pilih SLA Level</label>
-          <select className={s.catFormSelect} value={form.level} onChange={e => setForm(f => ({ ...f, level: e.target.value }))}>
-            <option value="">— pilih SLA —</option>
-            {slaList.map(sl => <option key={sl.kode} value={sl.kode}>{sl.kode} · {sl.max_hours}j — {sl.nama}</option>)}
-          </select>
-
-          {err && <span className={s.catFormErr}>{err}</span>}
-          <button className={s.catFormSubmit} type="submit" disabled={submitting}>{submitting ? 'Menyimpan…' : 'SUBMIT'}</button>
-        </form>
+        <CatalogForm initial={initial} isEdit={false} onSubmit={handleSubmit} submitting={submitting} err={err} />
       </div>
     </div>
   );
 }
 
 function EditCatalogModal({ row, onClose, onSaved }) {
-  const { kategoriList, userList, slaList } = useDropdowns();
-  const [form, setForm] = useState({
-    id:          row.id,
-    kategori_id: row.kategori_id  ?? '',
-    user_id:     row.user_id      ?? '',
-    gejala_id:   row.gejala_id    ?? '',
-    gejala:      row.gejala       ?? '',
-    level:       row.level        ?? '',
-    contoh:      row.contoh       ?? '',
-  });
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState('');
+  const initial = {
+    id:          row.id,
+    kategori_id: String(row.kategori_id ?? ''),
+    user_id:     String(row.user_id ?? ''),
+    gejala_id:   row.gejala_id  ?? '',
+    gejala:      row.gejala     ?? '',
+    level:       String(row.level ?? ''),
+    contoh:      row.contoh     ?? '',
+  };
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function handleSubmit(form) {
     if (!form.kategori_id || !form.user_id || !form.gejala || !form.level) {
       setErr('Field wajib belum diisi'); return;
     }
@@ -153,40 +169,25 @@ function EditCatalogModal({ row, onClose, onSaved }) {
     <div className={s.catModalOverlay}>
       <div className={s.catModal}>
         <div className={s.catModalHead}>
-          <span className={s.catModalTitle}>✏ EDIT CATALOG</span>
-          <button className={s.catModalClose} onClick={onClose}>✕</button>
+          <span className={s.catModalTitle}>✎ EDIT CATALOG</span>
+          <button className={s.catModalClose} type="button" onClick={onClose}>✕</button>
         </div>
-        <form className={s.catModalForm} onSubmit={handleSubmit}>
-          <label className={s.catFormLabel}>Kategori</label>
-          <select className={s.catFormSelect} value={form.kategori_id} onChange={e => setForm(f => ({ ...f, kategori_id: e.target.value }))}>
-            <option value="">— pilih kategori —</option>
-            {kategoriList.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
-          </select>
+        <CatalogForm initial={initial} isEdit={true} onSubmit={handleSubmit} submitting={submitting} err={err} />
+      </div>
+    </div>
+  );
+}
 
-          <label className={s.catFormLabel}>Type</label>
-          <select className={s.catFormSelect} value={form.user_id} onChange={e => setForm(f => ({ ...f, user_id: e.target.value }))}>
-            <option value="">— pilih type —</option>
-            {userList.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
-
-          <label className={s.catFormLabel}>Gejala ID</label>
-          <input className={s.catFormInput} value={form.gejala_id} readOnly />
-
-          <label className={s.catFormLabel}>Gejala</label>
-          <textarea className={s.catFormTextarea} value={form.gejala} onChange={e => setForm(f => ({ ...f, gejala: e.target.value }))} rows={3} />
-
-          <label className={s.catFormLabel}>SLA Level</label>
-          <select className={s.catFormSelect} value={form.level} onChange={e => setForm(f => ({ ...f, level: e.target.value }))}>
-            <option value="">— pilih SLA —</option>
-            {slaList.map(sl => <option key={sl.kode} value={sl.kode}>{sl.kode} · {sl.max_hours}j — {sl.nama}</option>)}
-          </select>
-
-          <label className={s.catFormLabel}>Contoh</label>
-          <textarea className={s.catFormTextarea} value={form.contoh} onChange={e => setForm(f => ({ ...f, contoh: e.target.value }))} rows={2} placeholder="Opsional..." />
-
-          {err && <span className={s.catFormErr}>{err}</span>}
-          <button className={s.catFormSubmit} type="submit" disabled={submitting}>{submitting ? 'Menyimpan…' : 'OK'}</button>
-        </form>
+function DeleteConfirmModal({ row, onClose, onConfirm }) {
+  return (
+    <div className={s.catModalOverlay}>
+      <div className={`${s.catModal} ${s.catModalSm}`}>
+        <div className={s.catDelTitle}>Ingin menghapus catalog ini?</div>
+        <div className={s.catDelSub}>{row.kategori_nama} — {row.gejala_id}</div>
+        <div className={s.catDelBtns}>
+          <button className={`${s.catFormSubmit} ${s.catDelBtn}`} onClick={onConfirm}>DELETE</button>
+          <button className={`${s.catFormSubmit} ${s.catCancelBtn}`} onClick={onClose}>CANCEL</button>
+        </div>
       </div>
     </div>
   );
@@ -202,6 +203,7 @@ export default function PageCatalog() {
   const [q, setQ]                 = useState('');
   const [showAdd, setShowAdd]     = useState(false);
   const [editRow, setEditRow]     = useState(null);
+  const [deleteRow, setDeleteRow] = useState(null);
   const [toast, setToast]         = useState('');
   const lastHash                  = useRef('');
   const timer                     = useRef(null);
@@ -224,15 +226,16 @@ export default function PageCatalog() {
     return () => clearInterval(timer.current);
   }, [fetchData]);
 
-  async function handleDelete(row) {
-    if (!confirm(`Hapus ${row.gejala_id}?`)) return;
+  async function handleDeleteConfirm() {
+    if (!deleteRow) return;
     try {
-      const res = await fetch(`/internal/api/katalog-form?id=${row.id}`, { method: 'DELETE' });
+      const res = await fetch(`/internal/api/katalog-form?id=${deleteRow.id}`, { method: 'DELETE' });
       const data = await res.json();
       if (!res.ok) { alert(`Gagal hapus: ${data.error || ''} (HTTP ${res.status})`); return; }
       lastHash.current = ''; fetchData();
       setToast('Catalog Berhasil Dihapus');
     } catch(e) { alert(`Network error: ${e.message}`); }
+    finally { setDeleteRow(null); }
   }
 
   function onSort(col) {
@@ -296,8 +299,12 @@ export default function PageCatalog() {
             </span>
             <span className={s.catContoh}>{row.contoh || '—'}</span>
             <span className={s.catAction}>
-              <button className={s.catActBtn} title="Edit" onClick={() => setEditRow(row)}>✏</button>
-              <button className={`${s.catActBtn} ${s.catActDel}`} title="Hapus" onClick={() => handleDelete(row)}>🗑</button>
+              <button className={s.catActBtn} title="Edit" onClick={() => setEditRow(row)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button className={`${s.catActBtn} ${s.catActDel}`} title="Hapus" onClick={() => setDeleteRow(row)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
             </span>
           </div>
         ))}
@@ -325,6 +332,14 @@ export default function PageCatalog() {
           row={editRow}
           onClose={() => setEditRow(null)}
           onSaved={() => { lastHash.current = ''; fetchData(); setToast('Catalog Berhasil Diubah'); }}
+        />
+      )}
+
+      {deleteRow && (
+        <DeleteConfirmModal
+          row={deleteRow}
+          onClose={() => setDeleteRow(null)}
+          onConfirm={handleDeleteConfirm}
         />
       )}
 

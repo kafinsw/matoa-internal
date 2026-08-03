@@ -277,6 +277,8 @@ try {
                 SELECT
                     kg.id,
                     kg.gejala_id,
+                    kg.kategori_id,
+                    kg.user_id,
                     kk.nama  AS kategori_nama,
                     u.name   AS user_name,
                     kg.level,
