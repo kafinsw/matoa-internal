@@ -572,7 +572,7 @@
 .catLgRow { grid-template-columns: 40px 150px 80px 90px 1fr 90px 180px 70px !important; }
 
 /* outlet ledger row — 4 cols: NO | NAMA | STATUS | ACTION */
-.outletLgRow { grid-template-columns: 40px 20vw 80px 70px !important; max-width: 500px; }
+.outletLgRow { grid-template-columns: 40px 1fr 80px 70px !important; max-width: 500px; }
 .typActive   { background: #1a2e1a; color: #4ade80; border: 1px solid #2d5a2d; }
 .typInactive { background: #2a1411; color: #e5674f; border: 1px solid #4a2420; }
 .katLgRow { grid-template-columns: 40px 20vw 80px 70px !important; max-width: 500px; }
