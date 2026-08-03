@@ -99,12 +99,13 @@ export default function PageCatalog() {
       <div className={s.ledger}>
         {/* header row — NO col: gejala_id, KATEGORI col: kategori_nama */}
         <div className={`${s.lgRow} ${s.h} ${s.catLgRow}`}>
-          <span>NO</span>
-          <SortHdr label="KATEGORI"  col="kategori_nama" sortCol={sortCol} sortDir={sortDir} onSort={onSort} left />
+          <span className={s.catNo}>NO</span>
+          <SortHdr label="KATEGORI"  col="kategori_nama" sortCol={sortCol} sortDir={sortDir} onSort={onSort} />
           <SortHdr label="TYPE"      col="user_name"     sortCol={sortCol} sortDir={sortDir} onSort={onSort} />
-          <SortHdr label="GEJALA ID" col="gejala_id"     sortCol={sortCol} sortDir={sortDir} onSort={onSort} left />
+          <SortHdr label="GEJALA ID" col="gejala_id"     sortCol={sortCol} sortDir={sortDir} onSort={onSort} />
+          <SortHdr label="GEJALA"    col="gejala"        sortCol={sortCol} sortDir={sortDir} onSort={onSort} left />
           <SortHdr label="SLA"       col="sla_hours"     sortCol={sortCol} sortDir={sortDir} onSort={onSort} />
-          <span className={s.hLeft}>CONTOH</span>
+          <span className={s.catContoh}>CONTOH</span>
         </div>
 
         {loading && <div className={s.empty}>Memuat…</div>}
@@ -115,22 +116,21 @@ export default function PageCatalog() {
 
         {!loading && !error && pageRows.map((row, i) => (
           <div key={row.id} className={`${s.lgRow} ${s.catLgRow}`}>
-            <span className={s.lgRowNo}>{(page - 1) * LIMIT + i + 1}</span>
-            <span className={s.hLeft} style={{ fontWeight: 600 }}>{row.kategori_nama || '—'}</span>
-            <span>
+            <span className={s.catNo}>{(page - 1) * LIMIT + i + 1}</span>
+            <span className={s.catKat}>{row.kategori_nama || '—'}</span>
+            <span className={s.catType}>
               <span className={`${s.typ} ${row.user_name?.toLowerCase().includes('me') ? s.typMe : s.typGa}`}>
                 {row.user_name || '—'}
               </span>
             </span>
-            <span className={s.hLeft} style={{ fontFamily: 'var(--mono)', fontSize: 12 }}>{row.gejala_id || '—'}</span>
-            <span style={{ textAlign: 'center' }}>
+            <span className={s.catId}>{row.gejala_id || '—'}</span>
+            <span className={s.catGejala}>{row.gejala || '—'}</span>
+            <span className={s.catSla}>
               {row.sla_nama
-                ? <span className={s.typ} style={{ background: 'var(--panel2)', color: 'var(--muted)', border: '1px solid var(--border)' }}>
-                    {row.level} · {row.sla_hours}j
-                  </span>
+                ? <span className={`${s.typ} ${s.catSlaBadge}`}>{row.level} · {row.sla_hours}j</span>
                 : '—'}
             </span>
-            <span className={s.hLeft} style={{ fontSize: 12, color: '#d6d6d8' }}>{row.contoh || '—'}</span>
+            <span className={s.catContoh}>{row.contoh || '—'}</span>
           </div>
         ))}
       </div>
