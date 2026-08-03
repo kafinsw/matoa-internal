@@ -2415,7 +2415,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", outletList = [
     scrollToIdRef.current = id;
     for (let p = 1; p <= totalPages; p++) {
       const params = new URLSearchParams({ page: p, limit: LIMIT });
-      const OUTLET_IDS = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
+      const OUTLET_IDS = Object.fromEntries((outletList || []).map(o => [o.nama, String(o.id)]));
       if (outlet) params.append('outlet_id', OUTLET_IDS[outlet] || '');
       if (tim) params.append('user_id', tim);
       try {
@@ -2537,7 +2537,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", outletList = [
     if (reset) setPage(1);
     if (!silent) setTiketLoading(true);
     const params = new URLSearchParams({ page: p, limit: LIMIT });
-    const OUTLET_IDS = { BRACI: "1", OPIUCI: "2", TANATAP: "3" };
+    const OUTLET_IDS = Object.fromEntries((outletList || []).map(o => [o.nama, String(o.id)]));
     if (fOutlet) params.append("outlet_id", OUTLET_IDS[fOutlet] || "");
     if (fUser) params.append("user_id", fUser);
     try {
