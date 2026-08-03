@@ -2370,7 +2370,7 @@ function TabRutin({ pic = "" }) {
 }
 
 /* ── tab perbaikan ── */
-function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
+function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", outletList = [] }) {
   const [gps, setGps] = useState({
     lat: null,
     lon: null,
@@ -2621,9 +2621,9 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "" }) {
                   className={`lp-input${!outlet ? " lp-input--err" : ""}`}
                 >
                   <option value="">— Pilih Outlet —</option>
-                  {["BRACI", "OPIUCI", "TANATAP"].map((o) => (
-                    <option key={o} value={o}>
-                      {o}
+                  {outletList.map((o) => (
+                    <option key={o.id} value={o.nama}>
+                      {o.nama}
                     </option>
                   ))}
                 </select>
@@ -3106,6 +3106,12 @@ export default function LaporanPerbaikan() {
   const [picError, setPicError] = useState("");
   const [petugasList, setPetugasList] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [outletList, setOutletList] = useState([]);
+
+  // Fetch outlets dari DB
+  useEffect(() => {
+    fetch("/php-api/outlets").then(r => r.json()).then(d => setOutletList(Array.isArray(d) ? d : [])).catch(() => {});
+  }, []);
 
   // Fetch daftar petugas saat popup muncul — polling 5s agar aktif realtime
   useEffect(() => {
@@ -3283,6 +3289,7 @@ export default function LaporanPerbaikan() {
             tim={tim}
             setTim={setTim}
             pic={pic}
+            outletList={outletList}
           />
         )}
         {tab === "jadwal" && <TabJadwal />}
