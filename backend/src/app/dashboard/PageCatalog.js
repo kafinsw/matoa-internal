@@ -31,6 +31,107 @@ function SortHdr({ label, col, sortCol, sortDir, onSort, left }) {
   );
 }
 
+function AddCatalogModal({ onClose, onSaved }) {
+  const [kategoriList, setKategoriList] = useState([]);
+  const [userList,     setUserList]     = useState([]);
+  const [slaList,      setSlaList]      = useState([]);
+  const [form, setForm] = useState({
+    kategori_id: '', user_id: '', gejala_id: '', gejala: '', level: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState('');
+
+  // load dropdowns
+  useEffect(() => {
+    fetch('/internal/api/katalog-form?type=kategori').then(r => r.json()).then(setKategoriList);
+    fetch('/internal/api/katalog-form?type=users').then(r => r.json()).then(d =>
+      setUserList(Array.isArray(d) ? d.filter(u => ['ME','GA'].includes(u.name?.toUpperCase())) : d)
+    );
+    fetch('/internal/api/katalog-form?type=sla').then(r => r.json()).then(setSlaList);
+  }, []);
+
+  // auto gejala_id when kategori changes
+  useEffect(() => {
+    if (!form.kategori_id) { setForm(f => ({ ...f, gejala_id: '' })); return; }
+    fetch(`/internal/api/katalog-form?type=next-id&kategori_id=${form.kategori_id}`)
+      .then(r => r.json())
+      .then(d => setForm(f => ({ ...f, gejala_id: d.next_id ?? '' })));
+  }, [form.kategori_id]);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!form.kategori_id || !form.user_id || !form.gejala_id || !form.gejala || !form.level) {
+      setErr('Semua field wajib diisi'); return;
+    }
+    setSubmitting(true); setErr('');
+    const res = await fetch('/internal/api/katalog-form', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kategori_id: parseInt(form.kategori_id),
+        user_id:     parseInt(form.user_id),
+        gejala_id:   form.gejala_id,
+        gejala:      form.gejala,
+        level:       parseInt(form.level),
+      }),
+    });
+    const data = await res.json();
+    setSubmitting(false);
+    if (!res.ok) { setErr(data.error || 'Gagal simpan'); return; }
+    onSaved();
+    onClose();
+  }
+
+  return (
+    <div className={s.catModalOverlay} onClick={onClose}>
+      <div className={s.catModal} onClick={e => e.stopPropagation()}>
+        <div className={s.catModalHead}>
+          <span className={s.catModalTitle}>+ CATALOG</span>
+          <button className={s.catModalClose} onClick={onClose}>✕</button>
+        </div>
+        <form className={s.catModalForm} onSubmit={handleSubmit}>
+          <label className={s.catFormLabel}>Pilih Kategori</label>
+          <select className={s.catFormSelect} value={form.kategori_id}
+            onChange={e => setForm(f => ({ ...f, kategori_id: e.target.value }))}>
+            <option value="">— pilih kategori —</option>
+            {kategoriList.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
+          </select>
+
+          <label className={s.catFormLabel}>Pilih Type</label>
+          <select className={s.catFormSelect} value={form.user_id}
+            onChange={e => setForm(f => ({ ...f, user_id: e.target.value }))}>
+            <option value="">— pilih type —</option>
+            {userList.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>
+
+          <label className={s.catFormLabel}>Gejala ID</label>
+          <input className={s.catFormInput} value={form.gejala_id} readOnly placeholder="Otomatis terisi..." />
+
+          <label className={s.catFormLabel}>Gejala</label>
+          <textarea className={s.catFormTextarea} value={form.gejala}
+            onChange={e => setForm(f => ({ ...f, gejala: e.target.value }))}
+            placeholder="Deskripsi gejala..." rows={3} />
+
+          <label className={s.catFormLabel}>Pilih SLA Level</label>
+          <select className={s.catFormSelect} value={form.level}
+            onChange={e => setForm(f => ({ ...f, level: e.target.value }))}>
+            <option value="">— pilih SLA —</option>
+            {slaList.map(sl => (
+              <option key={sl.kode} value={sl.kode}>{sl.kode} · {sl.max_hours}j — {sl.nama}</option>
+            ))}
+          </select>
+
+          {err && <span className={s.catFormErr}>{err}</span>}
+
+          <button className={s.catFormSubmit} type="submit" disabled={submitting}>
+            {submitting ? 'Menyimpan…' : 'SUBMIT'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function PageCatalog() {
   const [rows, setRows]       = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +140,7 @@ export default function PageCatalog() {
   const [sortDir, setSortDir] = useState('asc');
   const [page, setPage]       = useState(1);
   const [q, setQ]             = useState('');
+  const [showModal, setShowModal] = useState(false);
   const lastHash              = useRef('');
   const timer                 = useRef(null);
 
@@ -48,7 +150,6 @@ export default function PageCatalog() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (!Array.isArray(data)) throw new Error('bad response');
-      // realtime: update only when data changed
       const hash = data.map(r => r.id + ':' + r.updated_at).join('|');
       if (hash !== lastHash.current) {
         lastHash.current = hash;
@@ -78,7 +179,8 @@ export default function PageCatalog() {
     }
   }
 
-  const filtered   = rows.filter(r => !q || [r.kategori_nama, r.gejala_id, r.gejala, r.contoh].some(v => v?.toLowerCase().includes(q.toLowerCase())));
+  const filtered   = rows.filter(r => !q || [r.kategori_nama, r.gejala_id, r.gejala, r.contoh]
+    .some(v => v?.toLowerCase().includes(q.toLowerCase())));
   const sorted     = mkSort(sortCol, sortDir, filtered);
   const total      = sorted.length;
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
@@ -92,12 +194,12 @@ export default function PageCatalog() {
       <div className={s.ledgerHead}>
         <div className={s.catHeadBar}>
           <div className={s.catHeadLeft}>
-            <button className={s.catAddBtn}>+ CATALOG</button>
+            <button className={s.catAddBtn} onClick={() => setShowModal(true)}>+ CATALOG</button>
             <div className={s.searchWrap}>
               <span className={s.searchIco}>⌕</span>
               <input
                 className={s.searchInput}
-                placeholder="Cari gejala, kategori…"
+                placeholder="Search.."
                 value={q}
                 onChange={e => { setQ(e.target.value); setPage(1); }}
               />
@@ -110,7 +212,6 @@ export default function PageCatalog() {
 
       {/* table */}
       <div className={s.ledger}>
-        {/* header row — NO col: gejala_id, KATEGORI col: kategori_nama */}
         <div className={`${s.lgRow} ${s.h} ${s.catLgRow}`}>
           <span className={s.catNo}>NO</span>
           <SortHdr label="KATEGORI"  col="kategori_nama" sortCol={sortCol} sortDir={sortDir} onSort={onSort} />
@@ -122,7 +223,7 @@ export default function PageCatalog() {
         </div>
 
         {loading && <div className={s.empty}>Memuat…</div>}
-        {error   && <div className={s.empty} style={{ color: 'var(--err)' }}>Error: {error}</div>}
+        {error   && <div className={s.empty}>Error: {error}</div>}
         {!loading && !error && pageRows.length === 0 && (
           <div className={s.empty}><b>Tidak ada data</b></div>
         )}
@@ -152,14 +253,19 @@ export default function PageCatalog() {
       {totalPages > 1 && (
         <div className={s.pagination}>
           <button className={s.pgBtn} disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Prev</button>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>
-            {page} / {totalPages}
-          </span>
+          <span className={s.catPageInfo}>{page} / {totalPages}</span>
           <button className={s.pgBtn} disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next →</button>
         </div>
       )}
 
       <div className={s.siteFoot}>Matoa Group · Sistem Internal Maintenance · {new Date().getFullYear()}</div>
+
+      {showModal && (
+        <AddCatalogModal
+          onClose={() => setShowModal(false)}
+          onSaved={() => { lastHash.current = ''; fetchData(); }}
+        />
+      )}
     </div>
   );
 }

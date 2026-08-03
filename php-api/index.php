@@ -219,8 +219,41 @@ try {
             json_response(array_map(fn($r) => ['nama' => $r['nama'], 'is_active' => (bool)$r['is_active']], $rows));
             break;
 
+        // ---- Kategori Kendala ----
+        case '/kategori-kendala':
+            $rows = $pdo->query("SELECT id, nama FROM kategori_kendala ORDER BY nama")->fetchAll(PDO::FETCH_ASSOC);
+            json_response($rows);
+            break;
+
+        // ---- Katalog Gejala next ID ----
+        case '/katalog-gejala/next-id':
+            $kat_id = intval($_GET['kategori_id'] ?? 0);
+            $prefix = $pdo->query("SELECT kode FROM kategori_kendala WHERE id=$kat_id")->fetchColumn();
+            if (!$prefix) { json_response(['error'=>'kategori not found'],404); break; }
+            $last = $pdo->query("SELECT gejala_id FROM katalog_gejala WHERE gejala_id LIKE '$prefix-%' ORDER BY gejala_id DESC LIMIT 1")->fetchColumn();
+            if ($last) {
+                $n = intval(substr($last, strrpos($last,'-')+1)) + 1;
+            } else { $n = 1; }
+            json_response(['next_id' => $prefix . '-' . str_pad($n, 2, '0', STR_PAD_LEFT)]);
+            break;
+
         // ---- Katalog Gejala ----
         case '/katalog-gejala':
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $b = json_decode(file_get_contents('php://input'), true);
+                // validate gejala_id unique
+                $chk = $pdo->prepare("SELECT COUNT(*) FROM katalog_gejala WHERE gejala_id=?");
+                $chk->execute([$b['gejala_id']]);
+                if ($chk->fetchColumn() > 0) {
+                    json_response(['error' => 'gejala_id sudah ada'], 409);
+                    break;
+                }
+                $st = $pdo->prepare("INSERT INTO katalog_gejala (gejala_id, kategori_id, user_id, gejala, level, butuh_barang, contoh)
+                    VALUES (?, ?, ?, ?, ?, 0, NULL)");
+                $st->execute([$b['gejala_id'], $b['kategori_id'], $b['user_id'], $b['gejala'], $b['level']]);
+                json_response(['id' => $pdo->lastInsertId()], 201);
+                break;
+            }
             $rows = $pdo->query("
                 SELECT
                     kg.id,
