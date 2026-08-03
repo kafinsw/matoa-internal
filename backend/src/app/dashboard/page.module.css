@@ -571,7 +571,10 @@
 /* catalog ledger row — 8 cols: NO | KATEGORI | TYPE | GEJALA_ID | GEJALA | SLA | CONTOH | ACTION */
 .catLgRow { grid-template-columns: 40px 150px 80px 90px 1fr 90px 180px 70px !important; }
 
-/* kategori ledger row — 4 cols: NO | NAMA | TYPE | ACTION */
+/* outlet ledger row — 4 cols: NO | NAMA | STATUS | ACTION */
+.outletLgRow { grid-template-columns: 40px 20vw 80px 70px !important; max-width: 500px; }
+.typActive   { background: #1a2e1a; color: #4ade80; border: 1px solid #2d5a2d; }
+.typInactive { background: #2a1411; color: #e5674f; border: 1px solid #4a2420; }
 .katLgRow { grid-template-columns: 40px 20vw 80px 70px !important; max-width: 500px; }
 .katLedger { max-width: 500px; }
 .katWrap   { max-width: 500px; }

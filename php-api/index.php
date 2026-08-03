@@ -123,7 +123,30 @@ try {
 
         // ---- Outlets ----
         case '/outlets':
-            $rows = $pdo->query("SELECT id, kode, nama, status FROM outlets WHERE status='active' ORDER BY kode")->fetchAll(PDO::FETCH_ASSOC);
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $b = json_decode(file_get_contents('php://input'), true);
+                $st = $pdo->prepare("INSERT INTO outlets (nama, status) VALUES (?, ?)");
+                $st->execute([$b['nama'], $b['status'] ?? 'active']);
+                json_response(['id' => $pdo->lastInsertId()], 201);
+                break;
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+                $b = json_decode(file_get_contents('php://input'), true);
+                $id = intval($b['id'] ?? 0);
+                if (!$id) { json_response(['error' => 'id required'], 400); break; }
+                $st = $pdo->prepare("UPDATE outlets SET nama=?, status=? WHERE id=?");
+                $st->execute([$b['nama'], $b['status'], $id]);
+                json_response(['ok' => true]);
+                break;
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+                $id = intval($_GET['id'] ?? 0);
+                if (!$id) { json_response(['error' => 'id required'], 400); break; }
+                $pdo->prepare("DELETE FROM outlets WHERE id=?")->execute([$id]);
+                json_response(['ok' => true]);
+                break;
+            }
+            $rows = $pdo->query("SELECT id, kode, nama, status FROM outlets ORDER BY kode")->fetchAll(PDO::FETCH_ASSOC);
             json_response($rows);
             break;
 
