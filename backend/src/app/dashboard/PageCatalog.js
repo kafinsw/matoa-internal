@@ -322,9 +322,9 @@ export default function PageCatalog() {
         </div>
       )}
 
-      <div className={s.siteFoot}>Matoa Group · Sistem Internal Maintenance · {new Date().getFullYear()}</div>
-
       <PageKategori />
+
+      <div className={s.siteFoot}>Matoa Group · Sistem Internal Maintenance · {new Date().getFullYear()}</div>
 
       {showAdd && (
         <AddCatalogModal
