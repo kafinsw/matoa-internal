@@ -205,7 +205,7 @@ export default function PageOutletList() {
   const pageRows   = sorted.slice((page - 1) * LIMIT, page * LIMIT);
 
   return (
-    <div className={`${s.wrap} ${s.katWrap}`}>
+    <div className={`${s.wrap} ${s.outletWrap}`}>
       <div className={s.eyebrow}><span className={s.n}>01</span> List Outlet</div>
 
       <div className={s.ledgerHead}>
@@ -225,7 +225,7 @@ export default function PageOutletList() {
         </div>
       </div>
 
-      <div className={`${s.ledger} ${s.katLedger}`}>
+      <div className={`${s.ledger} ${s.outletLedger}`}>
         <div className={`${s.lgRow} ${s.h} ${s.outletLgRow}`}>
           <span className={s.catNo}>NO</span>
           <SortHdr label="NAMA" col="nama" sortCol={sortCol} sortDir={sortDir} onSort={onSort} left />

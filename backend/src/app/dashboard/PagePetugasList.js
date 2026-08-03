@@ -189,7 +189,7 @@ export default function PagePetugasList() {
   const pageRows   = sorted.slice((page - 1) * LIMIT, page * LIMIT);
 
   return (
-    <div className={`${s.wrap} ${s.katWrap}`}>
+    <div className={`${s.wrap} ${s.petugasWrap}`}>
       <div className={s.eyebrow}><span className={s.n}>01</span> List Petugas</div>
 
       <div className={s.ledgerHead}>
