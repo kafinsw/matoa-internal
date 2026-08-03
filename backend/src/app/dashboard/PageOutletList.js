@@ -220,8 +220,10 @@ export default function PageOutletList() {
               {q && <button className={s.searchClear} onClick={() => { setQ(''); setPage(1); }}>✕</button>}
             </div>
           </div>
-          <span className={s.catPageInfo}>{total} data · halaman {page}/{totalPages}</span>
-          <button className={s.refreshBtn} onClick={() => { lastHash.current = ''; fetchData(); }}>⟳ Refresh Data</button>
+          <div className={s.catHeadRight}>
+            <span className={s.catPageInfo}>{total} data · halaman {page}/{totalPages}</span>
+            <button className={s.refreshBtn} onClick={() => { lastHash.current = ''; fetchData(); }}>⟳ Refresh Data</button>
+          </div>
         </div>
       </div>
 
