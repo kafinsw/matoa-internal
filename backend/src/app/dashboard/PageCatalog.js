@@ -64,10 +64,13 @@ function CatalogForm({ initial, isEdit, onSubmit, submitting, err }) {
   return (
     <form className={s.catModalForm} onSubmit={e => { e.preventDefault(); onSubmit(form); }}>
       <label className={s.catFormLabel}>Kategori</label>
-      <select className={s.catFormSelect} value={form.kategori_id} onChange={e => set('kategori_id', e.target.value)}>
-        <option value="">— pilih kategori —</option>
-        {kategoriList.map(k => <option key={k.id} value={String(k.id)}>{k.nama}</option>)}
-      </select>
+      {isEdit
+        ? <input className={s.catFormInput} value={kategoriList.find(k => String(k.id) === String(form.kategori_id))?.nama ?? form.kategori_id} readOnly />
+        : <select className={s.catFormSelect} value={form.kategori_id} onChange={e => set('kategori_id', e.target.value)}>
+            <option value="">— pilih kategori —</option>
+            {kategoriList.map(k => <option key={k.id} value={String(k.id)}>{k.nama}</option>)}
+          </select>
+      }
 
       <label className={s.catFormLabel}>Type</label>
       <select className={s.catFormSelect} value={form.user_id} onChange={e => set('user_id', e.target.value)}>
