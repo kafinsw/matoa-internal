@@ -113,7 +113,7 @@ function AddCatalogModal({ onClose, onSaved }) {
     try {
       const res = await fetch('/internal/api/katalog-form', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kategori_id: parseInt(form.kategori_id), user_id: parseInt(form.user_id), gejala_id: form.gejala_id, gejala: form.gejala, level: parseInt(form.level) }),
+        body: JSON.stringify({ kategori_id: parseInt(form.kategori_id), user_id: parseInt(form.user_id), gejala_id: form.gejala_id, gejala: form.gejala, level: parseInt(String(form.level).replace('L','')) }),
       });
       const data = await res.json();
       if (!res.ok) { setErr(`${data.error || 'Gagal simpan'} (HTTP ${res.status})`); return; }
@@ -144,7 +144,7 @@ function EditCatalogModal({ row, onClose, onSaved }) {
     user_id:     String(row.user_id ?? ''),
     gejala_id:   row.gejala_id  ?? '',
     gejala:      row.gejala     ?? '',
-    level:       String(row.level ?? ''),
+    level:       row.level ? `L${row.level}` : '',
     contoh:      row.contoh     ?? '',
   };
 
@@ -156,7 +156,7 @@ function EditCatalogModal({ row, onClose, onSaved }) {
     try {
       const res = await fetch('/internal/api/katalog-form', {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: form.id, kategori_id: parseInt(form.kategori_id), user_id: parseInt(form.user_id), gejala: form.gejala, level: parseInt(form.level), contoh: form.contoh || null }),
+        body: JSON.stringify({ id: form.id, kategori_id: parseInt(form.kategori_id), user_id: parseInt(form.user_id), gejala: form.gejala, level: parseInt(String(form.level).replace('L','')), contoh: form.contoh || null }),
       });
       const data = await res.json();
       if (!res.ok) { setErr(`${data.error || 'Gagal simpan'} (HTTP ${res.status})`); return; }
