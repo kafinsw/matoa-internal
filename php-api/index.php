@@ -221,7 +221,23 @@ try {
 
         // ---- Katalog Gejala ----
         case '/katalog-gejala':
-            $rows = $pdo->query("SELECT kg.gejala_id, kg.kategori, kg.user_id, u.name AS user_name, kg.gejala, kg.level, kg.butuh_barang, kg.contoh FROM katalog_gejala kg LEFT JOIN `user` u ON u.id = kg.user_id ORDER BY kg.kategori, kg.gejala_id")->fetchAll(PDO::FETCH_ASSOC);
+            $rows = $pdo->query("
+                SELECT
+                    kg.id,
+                    kg.gejala_id,
+                    kk.nama  AS kategori_nama,
+                    u.name   AS user_name,
+                    kg.level,
+                    sl.description AS sla_nama,
+                    sl.max_hours   AS sla_hours,
+                    kg.contoh,
+                    kg.updated_at
+                FROM katalog_gejala kg
+                LEFT JOIN kategori_kendala kk ON kk.id  = kg.kategori_id
+                LEFT JOIN `user`          u  ON u.id   = kg.user_id
+                LEFT JOIN sla_levels      sl ON sl.level = kg.level
+                ORDER BY kg.gejala_id ASC
+            ")->fetchAll(PDO::FETCH_ASSOC);
             json_response($rows);
             break;
 
