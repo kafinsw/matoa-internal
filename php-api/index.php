@@ -249,17 +249,28 @@ try {
         case '/katalog-gejala':
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $b = json_decode(file_get_contents('php://input'), true);
-                // validate gejala_id unique
                 $chk = $pdo->prepare("SELECT COUNT(*) FROM katalog_gejala WHERE gejala_id=?");
                 $chk->execute([$b['gejala_id']]);
-                if ($chk->fetchColumn() > 0) {
-                    json_response(['error' => 'gejala_id sudah ada'], 409);
-                    break;
-                }
-                $st = $pdo->prepare("INSERT INTO katalog_gejala (gejala_id, kategori_id, user_id, gejala, level, butuh_barang, contoh)
-                    VALUES (?, ?, ?, ?, ?, 0, NULL)");
+                if ($chk->fetchColumn() > 0) { json_response(['error' => 'gejala_id sudah ada'], 409); break; }
+                $st = $pdo->prepare("INSERT INTO katalog_gejala (gejala_id, kategori_id, user_id, gejala, level, butuh_barang, contoh) VALUES (?, ?, ?, ?, ?, 0, NULL)");
                 $st->execute([$b['gejala_id'], $b['kategori_id'], $b['user_id'], $b['gejala'], $b['level']]);
                 json_response(['id' => $pdo->lastInsertId()], 201);
+                break;
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+                $b = json_decode(file_get_contents('php://input'), true);
+                $id = intval($b['id'] ?? 0);
+                if (!$id) { json_response(['error' => 'id required'], 400); break; }
+                $st = $pdo->prepare("UPDATE katalog_gejala SET kategori_id=?, user_id=?, gejala=?, level=?, contoh=?, updated_at=NOW() WHERE id=?");
+                $st->execute([$b['kategori_id'], $b['user_id'], $b['gejala'], $b['level'], $b['contoh'] ?: null, $id]);
+                json_response(['ok' => true]);
+                break;
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+                $id = intval($_GET['id'] ?? 0);
+                if (!$id) { json_response(['error' => 'id required'], 400); break; }
+                $pdo->prepare("DELETE FROM katalog_gejala WHERE id=?")->execute([$id]);
+                json_response(['ok' => true]);
                 break;
             }
             $rows = $pdo->query("
