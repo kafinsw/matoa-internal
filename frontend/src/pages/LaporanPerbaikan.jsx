@@ -2865,15 +2865,11 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", outletList = [
                     t.status,
                   ),
                 ).length;
-                const aktifCount = tiket.filter(
-                  (t) =>
-                    !["selesai_dikerjakan", "terverifikasi"].includes(t.status),
-                ).length;
                 return (
                   <div className="lp-sticky-bar">
                     <div className="lp-sticky-summary">
                       <span className="lp-sticky-total">
-                        {aktifCount} Tugas Tersedia
+                        {totalCount} Tugas Tersedia
                       </span>
                       {tungguCount > 0 && (
                         <span className="lp-sticky-tunggu">
