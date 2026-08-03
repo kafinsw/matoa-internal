@@ -231,7 +231,7 @@ export default function PagePetugasList() {
                 {parseInt(row.is_active) === 1 ? 'Aktif' : 'Tidak Aktif'}
               </span>
             </span>
-            <span className={s.catGejala} style={{ color: parseInt(row.is_active) !== 1 ? 'var(--grey2)' : undefined }}>{fmtLastSeen(row.last_seen)}</span>
+            <span className={parseInt(row.is_active) !== 1 ? s.catGejalaInactive : s.catGejala}>{fmtLastSeen(row.last_seen)}</span>
             <span className={s.catAction}>
               <button className={s.catActBtn} title="Edit" onClick={() => setEditRow(row)}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>

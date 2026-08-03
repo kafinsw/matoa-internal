@@ -581,12 +581,12 @@
 .typActive   { background: #1a2e1a; color: #4ade80; border: 1px solid #2d5a2d; }
 .typInactive { background: #2a1411; color: #e5674f; border: 1px solid #4a2420; }
 .katLgRow  { grid-template-columns: 40px 1fr 80px 70px !important; }
-/* outlet */
-.outletWrap   { max-width: 750px; }
-.outletLedger { max-width: 750px; }
-
 /* petugas */
-.petugasWrap  { max-width: 900px; }
+.petugasWrap  { max-width: 750px; }
+
+/* outlet */
+.outletWrap   { max-width: 600px; }
+.outletLedger { max-width: 600px; }
 
 /* kategori */
 .katLedger { max-width: 750px; }
@@ -596,7 +596,8 @@
 .catKat     { text-align: center; font-weight: 600; }
 .catType    { text-align: center; }
 .catId      { text-align: center; font-family: var(--mono); font-size: 12px; }
-.catGejala  { text-align: center; }
+.catGejala         { text-align: center; }
+.catGejalaInactive { text-align: center; color: var(--grey2); }
 .catSla     { text-align: center; }
 .catContoh  { text-align: left; font-size: 12px; color: #d6d6d8; }
 .catAction  { text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; }
