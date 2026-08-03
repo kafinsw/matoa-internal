@@ -77,7 +77,7 @@ export default function PageCatalog() {
     }
   }
 
-  const sorted     = mkSort(rows, sortCol, sortDir);
+  const sorted     = mkSort(sortCol, sortDir, rows);
   const total      = sorted.length;
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
   const pageRows   = sorted.slice((page - 1) * LIMIT, page * LIMIT);
