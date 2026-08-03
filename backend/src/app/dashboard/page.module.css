@@ -552,3 +552,18 @@
 .navDropActive { color: #f4f4f5 !important; background: #26272b !important; }
 .dispatchTable tbody tr:nth-child(odd) { background: var(--panel2, #0f1012); }
 .dispatchTable tbody tr:hover { background: rgba(255,255,255,.03); }
+
+/* ── CATALOG TABLE ── */
+.catTable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.catHead tr { border-bottom: 1px solid #26272b; }
+.catTh { font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #8b8d93; padding: 10px 12px; text-align: left; cursor: pointer; white-space: nowrap; user-select: none; }
+.catTh:hover { color: #f4f4f5; }
+.catTd { padding: 10px 12px; color: #f4f4f5; vertical-align: top; border-bottom: 1px solid #1a1b1e; }
+.catRow { background: #141517; }
+.catRowAlt { background: #0f1012; }
+.catRow:hover, .catRowAlt:hover { background: #1a1b1e; }
+.catMono { font-family: var(--mono); font-size: 12px; }
+.catEmpty { padding: 32px; text-align: center; color: #8b8d93; font-size: 13px; }
+.slaTag { font-family: var(--mono); font-size: 11px; font-weight: 700; color: #f4f4f5; background: #26272b; border-radius: 5px; padding: 2px 7px; white-space: nowrap; }
+.sortChev { color: #5e6066; font-size: 10px; margin-left: 4px; }
+.sortChevActive { color: #f4f4f5; font-size: 10px; margin-left: 4px; }
