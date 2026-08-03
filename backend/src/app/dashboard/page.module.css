@@ -589,7 +589,7 @@
 
 /* catalog add modal */
 .catModalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 999; display: flex; align-items: center; justify-content: center; }
-.catModal        { background: var(--card); border: 1px solid var(--border2); border-radius: 14px; width: 100%; max-width: 420px; padding: 24px; display: flex; flex-direction: column; gap: 0; }
+.catModal        { background: #141517; border: 1px solid #26272b; border-radius: 14px; width: 100%; max-width: 420px; padding: 24px; display: flex; flex-direction: column; gap: 0; }
 .catModalHead    { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
 .catModalTitle   { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: .04em; }
 .catModalClose   { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
@@ -602,7 +602,7 @@
 .catFormTextarea { background: var(--readout); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-size: 13px; padding: 9px 12px; outline: none; resize: vertical; font-family: inherit; }
 .catFormTextarea:focus { border-color: #6b6d75; }
 .catFormErr      { font-size: 12px; color: var(--err); }
-.catFormSubmit   { font-family: var(--mono); font-size: 12px; font-weight: 700; background: #fff; color: #111; border: none; border-radius: 8px; padding: 10px; cursor: pointer; margin-top: 4px; }
+.catFormSubmit   { font-family: var(--mono); font-size: 12px; font-weight: 700; background: #fff; color: #111; border: none; border-radius: 8px; padding: 10px; cursor: pointer; margin-top: 4px; width: 150px; align-self: center; }
 .catFormSubmit:hover:not(:disabled) { background: #e8e8e8; }
 .catFormSubmit:disabled { opacity: .4; cursor: default; }
 .catToast    { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1a2e1a; border: 1px solid #2d5a2d; color: #7ec97e; font-family: var(--mono); font-size: 12px; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 8px; z-index: 1000; white-space: nowrap; }
