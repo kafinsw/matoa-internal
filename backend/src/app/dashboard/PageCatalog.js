@@ -1,4 +1,5 @@
 'use client';
+import PageKategori from './PageKategori';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import s from './page.module.css';
 
@@ -322,6 +323,8 @@ export default function PageCatalog() {
       )}
 
       <div className={s.siteFoot}>Matoa Group · Sistem Internal Maintenance · {new Date().getFullYear()}</div>
+
+      <PageKategori />
 
       {showAdd && (
         <AddCatalogModal
