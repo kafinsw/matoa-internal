@@ -537,5 +537,18 @@
 .dtLv { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
 .dtKet { font-size: 11px; color: var(--ink, #f4f4f5); line-height: 1.4; }
 .dtEmpty { color: var(--muted); font-size: 11px; }
+
+/* ── NAV BAR ── */
+.navBar { background: #111214; border-bottom: 1px solid #26272b; position: sticky; top: 0; z-index: 50; }
+.navWrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 2px; }
+.navItem { background: none; border: none; color: #8b8d93; font-size: 13px; font-weight: 500; padding: 12px 14px; cursor: pointer; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; white-space: nowrap; }
+.navItem:hover { color: #f4f4f5; }
+.navActive { color: #f4f4f5 !important; border-bottom-color: #f4f4f5 !important; }
+.navChev { font-size: 9px; margin-left: 4px; }
+.navDropWrap { position: relative; }
+.navDropMenu { position: absolute; top: calc(100% + 2px); left: 0; background: #1a1b1e; border: 1px solid #26272b; border-radius: 8px; min-width: 150px; padding: 4px; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.navDropItem { display: block; width: 100%; background: none; border: none; color: #8b8d93; font-size: 13px; padding: 8px 12px; text-align: left; cursor: pointer; border-radius: 6px; transition: background .1s, color .1s; }
+.navDropItem:hover { background: #26272b; color: #f4f4f5; }
+.navDropActive { color: #f4f4f5 !important; background: #26272b !important; }
 .dispatchTable tbody tr:nth-child(odd) { background: var(--panel2, #0f1012); }
 .dispatchTable tbody tr:hover { background: rgba(255,255,255,.03); }
