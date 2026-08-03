@@ -38,6 +38,7 @@ export default function PageCatalog() {
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
   const [page, setPage]       = useState(1);
+  const [q, setQ]             = useState('');
   const lastHash              = useRef('');
   const timer                 = useRef(null);
 
@@ -77,7 +78,8 @@ export default function PageCatalog() {
     }
   }
 
-  const sorted     = mkSort(sortCol, sortDir, rows);
+  const filtered   = rows.filter(r => !q || [r.kategori_nama, r.gejala_id, r.gejala, r.contoh].some(v => v?.toLowerCase().includes(q.toLowerCase())));
+  const sorted     = mkSort(sortCol, sortDir, filtered);
   const total      = sorted.length;
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
   const pageRows   = sorted.slice((page - 1) * LIMIT, page * LIMIT);
@@ -88,10 +90,21 @@ export default function PageCatalog() {
 
       {/* ledger head */}
       <div className={s.ledgerHead}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>
-            {total} data · halaman {page}/{totalPages}
-          </span>
+        <div className={s.catHeadBar}>
+          <div className={s.catHeadLeft}>
+            <button className={s.catAddBtn}>+ CATALOG</button>
+            <div className={s.searchWrap}>
+              <span className={s.searchIco}>⌕</span>
+              <input
+                className={s.searchInput}
+                placeholder="Cari gejala, kategori…"
+                value={q}
+                onChange={e => { setQ(e.target.value); setPage(1); }}
+              />
+              {q && <button className={s.searchClear} onClick={() => { setQ(''); setPage(1); }}>✕</button>}
+            </div>
+          </div>
+          <span className={s.catPageInfo}>{total} data · halaman {page}/{totalPages}</span>
         </div>
       </div>
 
@@ -127,7 +140,7 @@ export default function PageCatalog() {
             <span className={s.catGejala}>{row.gejala || '—'}</span>
             <span className={s.catSla}>
               {row.sla_nama
-                ? <span className={`${s.typ} ${s.catSlaBadge}`}>{row.level} · {row.sla_hours}j</span>
+                ? <span className={`${s.typ} ${s.catSlaBadge}`}>L{row.level} · {row.sla_hours}j</span>
                 : '—'}
             </span>
             <span className={s.catContoh}>{row.contoh || '—'}</span>
