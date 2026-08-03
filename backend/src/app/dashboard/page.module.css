@@ -597,7 +597,7 @@
 .catType    { text-align: center; }
 .catId      { text-align: center; font-family: var(--mono); font-size: 12px; }
 .catGejala         { text-align: center; }
-.catGejalaInactive { text-align: center; color: var(--grey2); }
+.catGejalaInactive { text-align: center; color: #5e6066; }
 .catSla     { text-align: center; }
 .catContoh  { text-align: left; font-size: 12px; color: #d6d6d8; }
 .catAction  { text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; }
