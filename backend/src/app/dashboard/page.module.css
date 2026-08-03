@@ -567,3 +567,6 @@
 .slaTag { font-family: var(--mono); font-size: 11px; font-weight: 700; color: #f4f4f5; background: #26272b; border-radius: 5px; padding: 2px 7px; white-space: nowrap; }
 .sortChev { color: #5e6066; font-size: 10px; margin-left: 4px; }
 .sortChevActive { color: #f4f4f5; font-size: 10px; margin-left: 4px; }
+
+/* catalog ledger row — override grid columns */
+.catLgRow { grid-template-columns: 40px 160px 80px 100px 80px 1fr !important; }

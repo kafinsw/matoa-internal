@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import s from './page.module.css';
 
-const SORT_COLS = ['no', 'kategori', 'type', 'gejala_id', 'sla', 'contoh'];
+const LIMIT = 10;
 
-function sortData(rows, col, dir) {
+function mkSort(col, dir, rows) {
   if (!col || !dir) return rows;
   return [...rows].sort((a, b) => {
     let av = a[col] ?? '', bv = b[col] ?? '';
@@ -16,25 +16,42 @@ function sortData(rows, col, dir) {
   });
 }
 
+function SortHdr({ label, col, sortCol, sortDir, onSort, left }) {
+  const active = sortCol === col;
+  return (
+    <span
+      className={`${s.sortCol}${left ? ' ' + s.hLeft : ''}`}
+      onClick={() => onSort(col)}
+    >
+      {label}
+      <span className={s.sortArrow} style={{ opacity: active ? 1 : 0.3 }}>
+        {active && sortDir === 'desc' ? '▼' : '▲'}
+      </span>
+    </span>
+  );
+}
+
 export default function PageCatalog() {
   const [rows, setRows]       = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
-  const [sortCol, setSortCol] = useState('gejala_id');
+  const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
-  const lastUpdated           = useRef(null);
-  const timerRef              = useRef(null);
+  const [page, setPage]       = useState(1);
+  const lastHash              = useRef('');
+  const timer                 = useRef(null);
 
   const fetchData = useCallback(async (silent = false) => {
     try {
       const res = await fetch('/internal/api/catalog', { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      // realtime: hanya update jika ada data baru (cek updated_at terbaru)
-      const newest = data.reduce((mx, r) => r.updated_at > mx ? r.updated_at : mx, '');
-      if (newest !== lastUpdated.current) {
-        lastUpdated.current = newest;
+      // realtime: update only when data changed
+      const hash = data.map(r => r.id + ':' + r.updated_at).join('|');
+      if (hash !== lastHash.current) {
+        lastHash.current = hash;
         setRows(data);
+        if (!silent) setPage(1);
       }
       if (!silent) setLoading(false);
     } catch (e) {
@@ -45,67 +62,86 @@ export default function PageCatalog() {
 
   useEffect(() => {
     fetchData();
-    timerRef.current = setInterval(() => fetchData(true), 5000);
-    return () => clearInterval(timerRef.current);
+    timer.current = setInterval(() => fetchData(true), 5000);
+    return () => clearInterval(timer.current);
   }, [fetchData]);
 
-  function handleSort(col) {
+  function onSort(col) {
     if (sortCol === col) {
       if (sortDir === 'asc') setSortDir('desc');
-      else if (sortDir === 'desc') { setSortCol(null); setSortDir(null); }
+      else { setSortCol(null); setSortDir('asc'); }
     } else {
       setSortCol(col);
       setSortDir('asc');
     }
   }
 
-  function chevron(col) {
-    if (sortCol !== col) return <span className={s.sortChev}>⇅</span>;
-    return <span className={s.sortChevActive}>{sortDir === 'asc' ? '▲' : '▼'}</span>;
-  }
-
-  const sorted = sortData(rows, sortCol, sortDir);
+  const sorted     = mkSort(rows, sortCol, sortDir);
+  const total      = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(total / LIMIT));
+  const pageRows   = sorted.slice((page - 1) * LIMIT, page * LIMIT);
 
   return (
     <div className={s.wrap}>
       <div className={s.eyebrow}><span className={s.n}>01</span> List Kendala</div>
 
-      {loading && <div className={s.nodata}>Memuat…</div>}
-      {error   && <div className={s.nodata} style={{color:'var(--err)'}}>Error: {error}</div>}
+      {/* ledger head */}
+      <div className={s.ledgerHead}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>
+            {total} data · halaman {page}/{totalPages}
+          </span>
+        </div>
+      </div>
 
-      {!loading && !error && (
-        <div className={s.dtTableWrap}>
-          <table className={s.catTable}>
-            <thead>
-              <tr className={s.catHead}>
-                <th className={s.catTh} onClick={()=>handleSort('no')}>NO {chevron('no')}</th>
-                <th className={s.catTh} onClick={()=>handleSort('kategori')}>KATEGORI {chevron('kategori')}</th>
-                <th className={s.catTh} onClick={()=>handleSort('type')}>TYPE {chevron('type')}</th>
-                <th className={s.catTh} onClick={()=>handleSort('gejala_id')}>GEJALA ID {chevron('gejala_id')}</th>
-                <th className={s.catTh} onClick={()=>handleSort('sla')}>SLA {chevron('sla')}</th>
-                <th className={s.catTh}>CONTOH</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((row, i) => (
-                <tr key={row.id} className={i % 2 === 0 ? s.catRow : s.catRowAlt}>
-                  <td className={s.catTd}>{i + 1}</td>
-                  <td className={s.catTd}>{row.kategori_nama || '—'}</td>
-                  <td className={s.catTd}>{row.user_name || '—'}</td>
-                  <td className={`${s.catTd} ${s.catMono}`}>{row.gejala_id || '—'}</td>
-                  <td className={s.catTd}>
-                    {row.sla_nama
-                      ? <span className={s.slaTag}>{row.sla_nama} ({row.sla_hours}h)</span>
-                      : '—'}
-                  </td>
-                  <td className={s.catTd}>{row.contoh || '—'}</td>
-                </tr>
-              ))}
-              {sorted.length === 0 && (
-                <tr><td colSpan={6} className={s.catEmpty}>Tidak ada data.</td></tr>
-              )}
-            </tbody>
-          </table>
+      {/* table */}
+      <div className={s.ledger}>
+        {/* header row — NO col: gejala_id, KATEGORI col: kategori_nama */}
+        <div className={`${s.lgRow} ${s.h} ${s.catLgRow}`}>
+          <span>NO</span>
+          <SortHdr label="KATEGORI"  col="kategori_nama" sortCol={sortCol} sortDir={sortDir} onSort={onSort} left />
+          <SortHdr label="TYPE"      col="user_name"     sortCol={sortCol} sortDir={sortDir} onSort={onSort} />
+          <SortHdr label="GEJALA ID" col="gejala_id"     sortCol={sortCol} sortDir={sortDir} onSort={onSort} left />
+          <SortHdr label="SLA"       col="sla_hours"     sortCol={sortCol} sortDir={sortDir} onSort={onSort} />
+          <span className={s.hLeft}>CONTOH</span>
+        </div>
+
+        {loading && <div className={s.empty}>Memuat…</div>}
+        {error   && <div className={s.empty} style={{ color: 'var(--err)' }}>Error: {error}</div>}
+        {!loading && !error && pageRows.length === 0 && (
+          <div className={s.empty}><b>Tidak ada data</b></div>
+        )}
+
+        {!loading && !error && pageRows.map((row, i) => (
+          <div key={row.id} className={`${s.lgRow} ${s.catLgRow}`}>
+            <span className={s.lgRowNo}>{(page - 1) * LIMIT + i + 1}</span>
+            <span className={s.hLeft} style={{ fontWeight: 600 }}>{row.kategori_nama || '—'}</span>
+            <span>
+              <span className={`${s.typ} ${row.user_name?.toLowerCase().includes('me') ? s.typMe : s.typGa}`}>
+                {row.user_name || '—'}
+              </span>
+            </span>
+            <span className={s.hLeft} style={{ fontFamily: 'var(--mono)', fontSize: 12 }}>{row.gejala_id || '—'}</span>
+            <span style={{ textAlign: 'center' }}>
+              {row.sla_nama
+                ? <span className={s.typ} style={{ background: 'var(--panel2)', color: 'var(--muted)', border: '1px solid var(--border)' }}>
+                    {row.level} · {row.sla_hours}j
+                  </span>
+                : '—'}
+            </span>
+            <span className={s.hLeft} style={{ fontSize: 12, color: '#d6d6d8' }}>{row.contoh || '—'}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* pagination */}
+      {totalPages > 1 && (
+        <div className={s.pagination}>
+          <button className={s.pgBtn} disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Prev</button>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>
+            {page} / {totalPages}
+          </span>
+          <button className={s.pgBtn} disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next →</button>
         </div>
       )}
 
