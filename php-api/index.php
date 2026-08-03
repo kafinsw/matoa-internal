@@ -252,8 +252,8 @@ try {
                 $chk = $pdo->prepare("SELECT COUNT(*) FROM katalog_gejala WHERE gejala_id=?");
                 $chk->execute([$b['gejala_id']]);
                 if ($chk->fetchColumn() > 0) { json_response(['error' => 'gejala_id sudah ada'], 409); break; }
-                $st = $pdo->prepare("INSERT INTO katalog_gejala (gejala_id, kategori_id, user_id, gejala, level, butuh_barang, contoh) VALUES (?, ?, ?, ?, ?, 0, NULL)");
-                $st->execute([$b['gejala_id'], $b['kategori_id'], $b['user_id'], $b['gejala'], $b['level']]);
+                $st = $pdo->prepare("INSERT INTO katalog_gejala (gejala_id, kategori, kategori_id, user_id, gejala, level, butuh_barang, contoh) VALUES (?, ?, ?, ?, ?, ?, 0, NULL)");
+                $st->execute([$b['gejala_id'], $b['kategori_id'], $b['kategori_id'], $b['user_id'], $b['gejala'], $b['level']]);
                 json_response(['id' => $pdo->lastInsertId()], 201);
                 break;
             }
