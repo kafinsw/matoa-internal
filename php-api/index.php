@@ -125,8 +125,9 @@ try {
         case '/outlets':
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $b = json_decode(file_get_contents('php://input'), true);
-                $st = $pdo->prepare("INSERT INTO outlets (nama, status) VALUES (?, ?)");
-                $st->execute([$b['nama'], $b['status'] ?? 'active']);
+                $kode = strtoupper(trim($b['nama']));
+                $st = $pdo->prepare("INSERT INTO outlets (kode, nama, status) VALUES (?, ?, ?)");
+                $st->execute([$kode, $b['nama'], $b['status'] ?? 'active']);
                 json_response(['id' => $pdo->lastInsertId()], 201);
                 break;
             }
