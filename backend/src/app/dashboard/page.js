@@ -539,31 +539,11 @@ export default function LaporanDashboard() {
         <div className={s.navWrap}>
           <button className={`${s.navItem}${activePage==='dashboard'?` ${s.navActive}`:''}`} onClick={()=>{setActivePage('dashboard');setOpenMenu(null);}}>Dashboard</button>
 
-          <div className={s.navDropWrap}>
-            <button className={`${s.navItem}${activePage.startsWith('catalog')?` ${s.navActive}`:''}`} onClick={()=>setOpenMenu(o=>o==='catalog'?null:'catalog')}>
-              Catalog <span className={s.navChev}>{openMenu==='catalog'?'▴':'▾'}</span>
-            </button>
-            {openMenu==='catalog' && (
-              <div className={s.navDropMenu}>
-                <button className={`${s.navDropItem}${activePage==='catalog-kendala'?` ${s.navDropActive}`:''}`} onClick={()=>{setActivePage('catalog-kendala');setOpenMenu(null);}}>List Kendala</button>
-                <button className={`${s.navDropItem}${activePage==='catalog-kategori'?` ${s.navDropActive}`:''}`} onClick={()=>{setActivePage('catalog-kategori');setOpenMenu(null);}}>List Kategori</button>
-              </div>
-            )}
-          </div>
+          <button className={`${s.navItem}${activePage==='catalog'?` ${s.navActive}`:''}`} onClick={()=>setActivePage('catalog')}>Catalog</button>
 
-          <button className={`${s.navItem}${activePage==='outlet'?` ${s.navActive}`:''}`} onClick={()=>{setActivePage('outlet');setOpenMenu(null);}}>Outlet</button>
+          <button className={`${s.navItem}${activePage==='outlet'?` ${s.navActive}`:''}`} onClick={()=>setActivePage('outlet')}>Outlet</button>
 
-          <div className={s.navDropWrap}>
-            <button className={`${s.navItem}${activePage.startsWith('user')?` ${s.navActive}`:''}`} onClick={()=>setOpenMenu(o=>o==='user'?null:'user')}>
-              User <span className={s.navChev}>{openMenu==='user'?'▴':'▾'}</span>
-            </button>
-            {openMenu==='user' && (
-              <div className={s.navDropMenu}>
-                <button className={`${s.navDropItem}${activePage==='user-list'?` ${s.navDropActive}`:''}`} onClick={()=>{setActivePage('user-list');setOpenMenu(null);}}>List User</button>
-                <button className={`${s.navDropItem}${activePage==='user-petugas'?` ${s.navDropActive}`:''}`} onClick={()=>{setActivePage('user-petugas');setOpenMenu(null);}}>List Petugas</button>
-              </div>
-            )}
-          </div>
+          <button className={`${s.navItem}${activePage==='user'?` ${s.navActive}`:''}`} onClick={()=>setActivePage('user')}>User</button>
         </div>
       </div>
 
@@ -909,9 +889,9 @@ export default function LaporanDashboard() {
         <div className={s.siteFoot}>Matoa Group · Sistem Internal Maintenance · {new Date().getFullYear()}</div>
       </div>}
 
-      {activePage.startsWith('catalog') && <PageCatalog sub={activePage} />}
+      {activePage === 'catalog' && <PageCatalog sub={activePage} />}
       {activePage === 'outlet' && <PageOutlet />}
-      {activePage.startsWith('user') && <PageUser sub={activePage} />}
+      {activePage === 'user' && <PageUser sub={activePage} />}
 
       {/* ── MODAL stub ── */}
       {modal&&(
