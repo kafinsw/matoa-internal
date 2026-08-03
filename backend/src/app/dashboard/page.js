@@ -1,6 +1,9 @@
 ﻿'use client';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import s from './page.module.css';
+import PageCatalog from './PageCatalog';
+import PageOutlet from './PageOutlet';
+import PageUser from './PageUser';
 
 function PhotoViewer({ src, onClose }) {
   const [scale, setScale] = useState(1);
@@ -564,7 +567,8 @@ export default function LaporanDashboard() {
         </div>
       </div>
 
-      <div className={s.wrap}>
+      {/* ── PAGE CONTENT ── */}
+      {activePage === 'dashboard' && <div className={s.wrap}>
         {/* ── STREAMS ── */}
         <div className={s.eyebrow}><span className={s.n}>01</span> Ringkasan Stream</div>
         <div className={s.streams}>
@@ -903,7 +907,11 @@ export default function LaporanDashboard() {
         )}
 
         <div className={s.siteFoot}>Matoa Group · Sistem Internal Maintenance · {new Date().getFullYear()}</div>
-      </div>
+      </div>}
+
+      {activePage.startsWith('catalog') && <PageCatalog sub={activePage} />}
+      {activePage === 'outlet' && <PageOutlet />}
+      {activePage.startsWith('user') && <PageUser sub={activePage} />}
 
       {/* ── MODAL stub ── */}
       {modal&&(

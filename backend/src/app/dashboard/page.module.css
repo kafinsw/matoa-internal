@@ -540,7 +540,7 @@
 
 /* ── NAV BAR ── */
 .navBar { background: #111214; border-bottom: 1px solid #26272b; position: sticky; top: 0; z-index: 50; }
-.navWrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 2px; }
+.navWrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 2px; justify-content: center; }
 .navItem { background: none; border: none; color: #8b8d93; font-size: 13px; font-weight: 500; padding: 12px 14px; cursor: pointer; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; white-space: nowrap; }
 .navItem:hover { color: #f4f4f5; }
 .navActive { color: #f4f4f5 !important; border-bottom-color: #f4f4f5 !important; }
