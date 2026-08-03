@@ -890,7 +890,7 @@ export default function LaporanDashboard() {
         <div className={s.siteFoot}>Matoa Group · Sistem Internal Maintenance · {new Date().getFullYear()}</div>
       </div>}
 
-      {activePage === 'catalog' && <><PageCatalog sub={activePage} /><PageKategori /></>}
+      {activePage === 'catalog' && <PageCatalog sub={activePage} />}
 
       {activePage === 'outlet' && <PageOutlet />}
       {activePage === 'user' && <PageUser sub={activePage} />}

@@ -202,7 +202,7 @@ export default function PageKategori() {
   const pageRows   = sorted.slice((page - 1) * LIMIT, page * LIMIT);
 
   return (
-    <div className={s.wrap}>
+    <div className={`${s.wrap} ${s.katWrap}`}>
       <div className={s.eyebrow}><span className={s.n}>02</span> List Kategori</div>
 
       <div className={s.ledgerHead}>
@@ -219,7 +219,7 @@ export default function PageKategori() {
         </div>
       </div>
 
-      <div className={s.ledger}>
+      <div className={`${s.ledger} ${s.katLedger}`}>
         <div className={`${s.lgRow} ${s.h} ${s.katLgRow}`}>
           <span className={s.catNo}>NO</span>
           <SortHdr label="NAMA" col="nama" sortCol={sortCol} sortDir={sortDir} onSort={onSort} left />
