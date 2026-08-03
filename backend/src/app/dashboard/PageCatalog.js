@@ -46,6 +46,7 @@ export default function PageCatalog() {
       const res = await fetch('/internal/api/catalog', { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      if (!Array.isArray(data)) throw new Error('bad response');
       // realtime: update only when data changed
       const hash = data.map(r => r.id + ':' + r.updated_at).join('|');
       if (hash !== lastHash.current) {
