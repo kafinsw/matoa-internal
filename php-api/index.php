@@ -230,6 +230,7 @@ try {
                     kg.level,
                     sl.description AS sla_nama,
                     sl.max_hours   AS sla_hours,
+                    kg.gejala,
                     kg.contoh,
                     kg.updated_at
                 FROM katalog_gejala kg
