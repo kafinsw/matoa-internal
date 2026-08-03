@@ -27,7 +27,7 @@ export default function PageCatalog() {
 
   const fetchData = useCallback(async (silent = false) => {
     try {
-      const res = await fetch('/api/catalog', { cache: 'no-store' });
+      const res = await fetch('/internal/api/catalog', { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       // realtime: hanya update jika ada data baru (cek updated_at terbaru)
