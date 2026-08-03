@@ -263,7 +263,6 @@ export default function PageKategori() {
       {editRow && <EditKategoriModal row={editRow} onClose={() => setEditRow(null)} onSaved={() => { lastHash.current = ''; fetchData(); setToast('Kategori Berhasil Diubah'); }} />}
       {deleteRow && <DeleteKategoriModal row={deleteRow} onClose={() => setDeleteRow(null)} onConfirm={handleDeleteConfirm} />}
       {toast && <Toast msg={toast} onDone={() => setToast('')} />}
-      <div className={s.siteFoot}>Matoa Group · Sistem Internal Maintenance · {new Date().getFullYear()}</div>
     </div>
   );
 }
