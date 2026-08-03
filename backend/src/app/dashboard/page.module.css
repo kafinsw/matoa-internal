@@ -577,9 +577,9 @@
 .outletLgRow { grid-template-columns: 40px 1fr 80px 70px !important; max-width: 500px; }
 .typActive   { background: #1a2e1a; color: #4ade80; border: 1px solid #2d5a2d; }
 .typInactive { background: #2a1411; color: #e5674f; border: 1px solid #4a2420; }
-.katLgRow { grid-template-columns: 40px 1fr 80px 70px !important; max-width: 500px; }
-.katLedger { max-width: 500px; }
-.katWrap   { max-width: 500px; }
+.katLgRow  { grid-template-columns: 40px 1fr 80px 70px !important; }
+.katLedger { max-width: 600px; }
+.katWrap   { max-width: 600px; }
 
 .catNo      { text-align: center; }
 .catKat     { text-align: center; font-weight: 600; }

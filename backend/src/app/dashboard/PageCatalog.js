@@ -270,8 +270,8 @@ export default function PageCatalog() {
             </div>
           </div>
           <div className={s.catHeadRight}>
-            <span className={s.catPageInfo}>{total} data · halaman {page}/{totalPages}</span>
             <button className={s.refreshBtn} onClick={() => { lastHash.current = ''; fetchData(); }}>⟳ Refresh Data</button>
+            <span className={s.catPageInfo}>{total} data · halaman {page}/{totalPages}</span>
           </div>
         </div>
       </div>
