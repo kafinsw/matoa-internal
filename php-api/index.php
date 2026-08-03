@@ -228,8 +228,10 @@ try {
         // ---- Katalog Gejala next ID ----
         case '/katalog-gejala/next-id':
             $kat_id = intval($_GET['kategori_id'] ?? 0);
-            $prefix = $pdo->query("SELECT kode FROM kategori_kendala WHERE id=$kat_id")->fetchColumn();
-            if (!$prefix) { json_response(['error'=>'kategori not found'],404); break; }
+            // derive prefix from nama: take uppercase initials e.g. "AC Ruangan" -> "ACR"
+            $nama = $pdo->query("SELECT nama FROM kategori_kendala WHERE id=$kat_id")->fetchColumn();
+            if (!$nama) { json_response(['error'=>'kategori not found'],404); break; }
+            $prefix = implode('', array_map(fn($w) => strtoupper($w[0]), explode(' ', trim($nama))));
             $last = $pdo->query("SELECT gejala_id FROM katalog_gejala WHERE gejala_id LIKE '$prefix-%' ORDER BY gejala_id DESC LIMIT 1")->fetchColumn();
             if ($last) {
                 $n = intval(substr($last, strrpos($last,'-')+1)) + 1;

@@ -31,6 +31,14 @@ function SortHdr({ label, col, sortCol, sortDir, onSort, left }) {
   );
 }
 
+function Toast({ msg, onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3000);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return <div className={s.catToast}><span className={s.catToastIco}>✓</span>{msg}</div>;
+}
+
 function AddCatalogModal({ onClose, onSaved }) {
   const [kategoriList, setKategoriList] = useState([]);
   const [userList,     setUserList]     = useState([]);
@@ -41,16 +49,14 @@ function AddCatalogModal({ onClose, onSaved }) {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState('');
 
-  // load dropdowns
   useEffect(() => {
-    fetch('/internal/api/katalog-form?type=kategori').then(r => r.json()).then(setKategoriList);
+    fetch('/internal/api/katalog-form?type=kategori').then(r => r.json()).then(d => setKategoriList(Array.isArray(d) ? d : []));
     fetch('/internal/api/katalog-form?type=users').then(r => r.json()).then(d =>
-      setUserList(Array.isArray(d) ? d.filter(u => ['ME','GA'].includes(u.name?.toUpperCase())) : d)
+      setUserList(Array.isArray(d) ? d.filter(u => ['ME','GA'].includes(u.name?.toUpperCase())) : [])
     );
-    fetch('/internal/api/katalog-form?type=sla').then(r => r.json()).then(setSlaList);
+    fetch('/internal/api/katalog-form?type=sla').then(r => r.json()).then(d => setSlaList(Array.isArray(d) ? d : []));
   }, []);
 
-  // auto gejala_id when kategori changes
   useEffect(() => {
     if (!form.kategori_id) { setForm(f => ({ ...f, gejala_id: '' })); return; }
     fetch(`/internal/api/katalog-form?type=next-id&kategori_id=${form.kategori_id}`)
@@ -133,16 +139,17 @@ function AddCatalogModal({ onClose, onSaved }) {
 }
 
 export default function PageCatalog() {
-  const [rows, setRows]       = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
-  const [sortCol, setSortCol] = useState(null);
-  const [sortDir, setSortDir] = useState('asc');
-  const [page, setPage]       = useState(1);
-  const [q, setQ]             = useState('');
+  const [rows, setRows]           = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
+  const [sortCol, setSortCol]     = useState(null);
+  const [sortDir, setSortDir]     = useState('asc');
+  const [page, setPage]           = useState(1);
+  const [q, setQ]                 = useState('');
   const [showModal, setShowModal] = useState(false);
-  const lastHash              = useRef('');
-  const timer                 = useRef(null);
+  const [toast, setToast]         = useState('');
+  const lastHash                  = useRef('');
+  const timer                     = useRef(null);
 
   const fetchData = useCallback(async (silent = false) => {
     try {
@@ -190,7 +197,6 @@ export default function PageCatalog() {
     <div className={s.wrap}>
       <div className={s.eyebrow}><span className={s.n}>01</span> List Kendala</div>
 
-      {/* ledger head */}
       <div className={s.ledgerHead}>
         <div className={s.catHeadBar}>
           <div className={s.catHeadLeft}>
@@ -210,7 +216,6 @@ export default function PageCatalog() {
         </div>
       </div>
 
-      {/* table */}
       <div className={s.ledger}>
         <div className={`${s.lgRow} ${s.h} ${s.catLgRow}`}>
           <span className={s.catNo}>NO</span>
@@ -249,7 +254,6 @@ export default function PageCatalog() {
         ))}
       </div>
 
-      {/* pagination */}
       {totalPages > 1 && (
         <div className={s.pagination}>
           <button className={s.pgBtn} disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Prev</button>
@@ -263,9 +267,15 @@ export default function PageCatalog() {
       {showModal && (
         <AddCatalogModal
           onClose={() => setShowModal(false)}
-          onSaved={() => { lastHash.current = ''; fetchData(); }}
+          onSaved={() => {
+            lastHash.current = '';
+            fetchData();
+            setToast('Catalog Berhasil Ditambahkan');
+          }}
         />
       )}
+
+      {toast && <Toast msg={toast} onDone={() => setToast('')} />}
     </div>
   );
 }
