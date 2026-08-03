@@ -575,7 +575,7 @@
 
 /* petugas ledger row — 5 cols: NO | NAMA | STATUS | LAST SEEN | ACTION */
 .petugasLgRow  { grid-template-columns: 40px 1fr 90px 160px 70px !important; }
-.petugasLedger { max-width: 700px; }
+.petugasLedger { max-width: 900px; }
 
 .outletLgRow { grid-template-columns: 40px 1fr 80px 70px !important; max-width: 500px; }
 .typActive   { background: #1a2e1a; color: #4ade80; border: 1px solid #2d5a2d; }
