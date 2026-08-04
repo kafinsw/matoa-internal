@@ -2364,16 +2364,8 @@ function TabRutin({ pic = "", outletList = [] }) {
         </div>
       </div>
 
-      {/* progress */}
-      {allTasks.length > 0 && (
-        <div className="lp-progress-wrap">
-          <div className="lp-progress-row">
-            <span className="lp-progress-label">PROGRESS</span>
-            <span className="lp-progress-count">{doneCount}/{allTasks.length}</span>
-          </div>
-          <div className="lp-progress-bar"><div className="lp-progress-fill" style={{width:`${Math.round(doneCount/allTasks.length*100)}%`}}/></div>
-        </div>
-      )}
+
+
 
       {/* tasks — grouped by frekuensi, accordion like dc-acc */}
       {outlets.length === 0 && outletId && tim && (
@@ -2442,11 +2434,13 @@ function TabRutin({ pic = "", outletList = [] }) {
                         <div className="dc-seg" style={{marginTop:10,display:"flex",gap:8}}>
                           <button
                             className={`dc-st-btn${ck.done===true?" dc-st-btn--ok":""}`}
+                            disabled={submitted}
                             onClick={()=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:true,skip:false}}))}>
                             ✓ Selesai
                           </button>
                           <button
                             className={`dc-st-btn${ck.skip===true?" dc-st-btn--skip":""}`}
+                            disabled={submitted}
                             onClick={()=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:false,skip:true}}))}>
                             ✕ Tidak Dikerjakan
                           </button>
