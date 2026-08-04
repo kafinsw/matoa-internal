@@ -654,9 +654,9 @@ export default function LaporanKendala() {
                     setKategoriSelected(g);
                     setKategoriOpen(false);
                   }}>
-                    <span className="combo-id">{g.gejala_id}</span>
+                    <span className="combo-header"><span className="combo-id">{g.gejala_id}</span><span className="combo-sep"> · </span><span className="combo-kategori">{g.kategori}</span></span>
                     <span className="combo-gejala">{g.gejala}</span>
-                    <span className="combo-meta">{g.kategori} · L{g.level} · <span className={`combo-tag ${g.user_id == 4 ? 'combo-tag-ga' : 'combo-tag-me'}`}>{g.user_name ?? (g.user_id == 4 ? 'GA' : 'ME')}</span></span>
+                    <span className="combo-meta">L{g.level} · <span className={`combo-tag ${g.user_id == 4 ? 'combo-tag-ga' : 'combo-tag-me'}`}>{g.user_name ?? (g.user_id == 4 ? 'GA' : 'ME')}</span></span>
                   </li>
                 ))}
                 {(kategoriQuery.length >= 2 && katalogGejala.filter(g =>

@@ -675,12 +675,26 @@ input[readonly]:focus { box-shadow: none; border-color: var(--line); }
 }
 .combo-item:hover { background: #1e1f23; }
 
+.combo-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 .combo-id {
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: .12em;
   color: var(--grey);
   text-transform: uppercase;
+}
+.combo-sep {
+  font-size: 10px;
+  color: var(--grey2);
+}
+.combo-kategori {
+  font-size: 10px;
+  color: var(--grey3);
+  font-weight: 500;
 }
 .combo-tag {
   font-family: var(--mono);
