@@ -2420,9 +2420,12 @@ function TabRutin({ pic = "", outletList = [] }) {
                           <div className="dc-item-mid">
                             <div className="dc-item-nama">{task.nama}</div>
                             <div className="dc-item-tags">
-                              {task.hari && <span className="dc-tag-foto">SETIAP {task.hari.toUpperCase()}</span>}
-                              {frek === "Harian" && <span className="dc-tag-foto">SETIAP HARI</span>}
-                              {task.min_foto > 0 && <span className="dc-tag-foto">MIN. {task.min_foto} FOTO</span>}
+                              {(task.hari || frek === "Harian") && (
+                                              <span className="dc-tag-foto">
+                                                SETIAP {task.hari ? task.hari.toUpperCase() : "HARI"}
+                                              </span>
+                                            )}
+                                              {task.min_foto > 0 && <span className="dc-tag-foto">MIN. {task.min_foto} FOTO</span>}
                             </div>
                           </div>
                           <span className={`dc-item-dot${complete?" dc-item-dot--ok":""}`}/>
