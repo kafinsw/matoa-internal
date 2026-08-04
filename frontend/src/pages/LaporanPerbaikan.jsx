@@ -2511,11 +2511,21 @@ function TabRutin({ pic = "", outletList = [] }) {
 
       {/* camera modal */}
       {showCam && (
-        <div className="lp-cam-modal">
-          <video ref={videoRef} className="lp-cam-video" playsInline/>
-          <div className="lp-cam-actions">
-            <button className="lp-cam-capture" onClick={capturePhoto}>📷 Ambil Foto</button>
-            <button className="lp-cam-cancel" onClick={() => { setShowCam(false); stopStream(); }}>Batal</button>
+        <div className="cam-view">
+          <div className="cam-container">
+            <video ref={videoRef} autoPlay playsInline muted className="cam-video"/>
+          </div>
+          <div className="cam-controls">
+            <button className="cam-btn capture" onClick={capturePhoto}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor"/>
+              </svg>
+            </button>
+            <button className="cam-btn cancel" onClick={() => { setShowCam(false); stopStream(); }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
           </div>
         </div>
       )}
