@@ -2287,16 +2287,6 @@ function TabRutin({ pic = "", outletList = [] }) {
     } catch (e) { alert("Error: " + e.message); } finally { setSubmitting(false); }
   }
 
-  if (submitted) return (
-    <div className="lp-daily-wrap">
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"60px 24px",gap:12}}>
-        <div style={{width:56,height:56,borderRadius:99,background:"#1F8A5B",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>✓</div>
-        <div style={{fontSize:16,fontWeight:700,color:"#141414"}}>Tugas Rutin Terkirim</div>
-        <div style={{fontSize:12,color:"#8A857C",fontFamily:"'IBM Plex Mono',monospace"}}>{getToday()}</div>
-      </div>
-    </div>
-  );
-
   const today    = getToday();
   const dowNames = ["","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
   const dowNow   = devMode && devDay ? parseInt(devDay) : (new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"})).getDay()||7);
