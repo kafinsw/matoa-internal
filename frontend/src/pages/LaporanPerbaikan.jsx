@@ -2435,13 +2435,13 @@ function TabRutin({ pic = "", outletList = [] }) {
                           <button
                             className={`dc-st-btn${ck.done===true?" dc-st-btn--ok":""}`}
                             disabled={submitted}
-                            onClick={()=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:true,skip:false}}))}>
+                            onClick={()=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:prev[task.kode]?.done===true?false:true,skip:false}}))}>
                             ✓ Selesai
                           </button>
                           <button
                             className={`dc-st-btn${ck.skip===true?" dc-st-btn--skip":""}`}
                             disabled={submitted}
-                            onClick={()=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:false,skip:true}}))}>
+                            onClick={()=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:false,skip:prev[task.kode]?.skip===true?false:true}}))}>
                             ✕ Tidak Dikerjakan
                           </button>
                         </div>
