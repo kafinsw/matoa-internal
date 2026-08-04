@@ -205,9 +205,9 @@ try {
 
         // ---- Tugasrutin Jadwal ----
         case '/tugasrutin-jadwal':
-            $rotasi  = $pdo->query("SELECT r.id, r.hari_text AS nama, r.outlet_ids, r.sort_order FROM tugasrutin_rotasi r ORDER BY r.sort_order")->fetchAll(PDO::FETCH_ASSOC);
-            $harian  = $pdo->query("SELECT h.id, h.nama, h.outlet_ids, h.sort_order FROM tugasrutin_harian h ORDER BY h.sort_order")->fetchAll(PDO::FETCH_ASSOC);
-            $jadwal  = $pdo->query("SELECT j.type, j.nama, j.outlet_ids, j.hari, j.frekuensi FROM tugasrutin_jadwal j ORDER BY j.hari, j.sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $rotasi  = $pdo->query("SELECT r.id, r.hari_text AS nama, r.outlet_ids, r.sort_order FROM jadwal_rotasi r ORDER BY r.sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $harian  = $pdo->query("SELECT h.id, h.nama, h.outlet_ids, h.sort_order FROM jadwal_harian h ORDER BY h.sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $jadwal  = $pdo->query("SELECT j.type, j.nama, j.outlet_ids, j.hari, j.frekuensi FROM jadwal_all j ORDER BY j.hari, j.sort_order")->fetchAll(PDO::FETCH_ASSOC);
             // load outlets map
             $outletMap = [];
             foreach ($pdo->query("SELECT id, nama FROM outlets")->fetchAll(PDO::FETCH_ASSOC) as $o) $outletMap[$o['id']] = $o['nama'];
