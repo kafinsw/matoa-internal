@@ -2195,10 +2195,11 @@ function TabRutin({ pic = "" }) {
   ];
 
   function loadJadwal(dayOverride) {
-    const q = new URLSearchParams();
-    if (dayOverride) q.set("day", dayOverride);
-    if (outletId)    q.set("outlet_id", outletId);
-    fetch(`/php-api/tugasrutin-jadwal-harian?${q}`)
+      const q = new URLSearchParams();
+      if (dayOverride) q.set("day", dayOverride);
+      if (outletId)    q.set("outlet_id", outletId);
+      if (tim)         q.set("user_id", tim);
+      fetch(`/php-api/tugasrutin-jadwal-harian?${q}`)
       .then(r => r.json()).then(d => {
         if (!Array.isArray(d)) return;
         setOutlets(d);
@@ -2214,7 +2215,7 @@ function TabRutin({ pic = "" }) {
     const ms  = (24*3600 - wib.getHours()*3600 - wib.getMinutes()*60 - wib.getSeconds()) * 1000 + 1000;
     const t   = setTimeout(() => { setSubmitted(false); loadJadwal(); }, ms);
     return () => clearTimeout(t);
-  }, [outletId]);
+  }, [outletId, tim]);
 
   // GPS
   async function reverseGeocode(lat, lon) {
