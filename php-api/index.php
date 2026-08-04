@@ -303,6 +303,70 @@ try {
             }
             break;
 
+        // ---- Tugasrutin Laporan List ----
+        case '/tugasrutin-laporan-list':
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                // outlets_only
+                if (isset($_GET['outlets_only'])) {
+                    $rows = $pdo->query("SELECT DISTINCT o.id, o.nama FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id WHERE o.id IS NOT NULL ORDER BY o.nama")->fetchAll(PDO::FETCH_ASSOC);
+                    json_response($rows);
+                }
+                // detail by id
+                if (!empty($_GET['id'])) {
+                    $stmt = $pdo->prepare("SELECT tl.id, tl.created_at, tl.outlet_id, tl.user_id, tl.tasks, tl.address, o.nama AS outlet_nama, u.name AS user_name, u.type AS user_type FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN user u ON u.id=tl.user_id WHERE tl.id=?");
+                    $stmt->execute([intval($_GET['id'])]);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if (!$row) { http_response_code(404); json_response(['error'=>'not found']); break; }
+                    $tasks = json_decode($row['tasks'], true) ?? [];
+                    // inject nama from tugasrutin_task
+                    if (!empty($tasks)) {
+                        $kodes = array_keys($tasks);
+                        $ph = implode(',', array_fill(0, count($kodes), '?'));
+                        $ns = $pdo->prepare("SELECT kode_task, nama FROM tugasrutin_task WHERE kode_task IN ($ph)");
+                        $ns->execute($kodes);
+                        $namaMap = $ns->fetchAll(PDO::FETCH_KEY_PAIR);
+                        foreach ($tasks as $kode => &$t) {
+                            $t['nama'] = $namaMap[$kode] ?? null;
+                        }
+                        unset($t);
+                    }
+                    $row['tasks'] = $tasks;
+                    json_response($row);
+                }
+                // list
+                $page  = max(1, intval($_GET['page']  ?? 1));
+                $limit = max(1, min(100, intval($_GET['limit'] ?? 10)));
+                $offset = ($page - 1) * $limit;
+                $where = ['1=1'];
+                $params = [];
+                if (!empty($_GET['outlet_id'])) { $where[] = 'tl.outlet_id = ?'; $params[] = intval($_GET['outlet_id']); }
+                if (!empty($_GET['user_name']))  { $where[] = 'u.name = ?';       $params[] = trim($_GET['user_name']); }
+                if (!empty($_GET['search']))     {
+                    $where[] = '(o.nama LIKE ? OR u.name LIKE ?)';
+                    $s = '%'.trim($_GET['search']).'%';
+                    $params[] = $s; $params[] = $s;
+                }
+                $w = implode(' AND ', $where);
+                $joins = "FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN user u ON u.id=tl.user_id";
+                $cntStmt = $pdo->prepare("SELECT COUNT(*) $joins WHERE $w");
+                $cntStmt->execute($params);
+                $total = (int)$cntStmt->fetchColumn();
+                $stmt = $pdo->prepare("SELECT tl.id, tl.created_at, o.nama AS outlet_nama, u.name AS user_name, u.type AS user_type, tl.tasks $joins WHERE $w ORDER BY tl.created_at DESC LIMIT $limit OFFSET $offset");
+                $stmt->execute($params);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($rows as &$r) {
+                    $tasks = json_decode($r['tasks'], true) ?? [];
+                    $r['total_items'] = count($tasks);
+                    $r['done_count']  = count(array_filter($tasks, fn($t) => ($t['done'] ?? false) === true));
+                    $r['skip_count']  = count(array_filter($tasks, fn($t) => ($t['skip'] ?? false) === true));
+                    $r['foto_count']  = array_sum(array_map(fn($t) => count($t['photos'] ?? []), $tasks));
+                    unset($r['tasks']);
+                }
+                unset($r);
+                json_response(['data' => $rows, 'pagination' => ['total' => $total, 'page' => $page, 'pages' => max(1, ceil($total/$limit))]]);
+            }
+            break;
+
         // ---- Tugasrutin Jadwal ----
         case '/tugasrutin-jadwal':
             $rotasi  = $pdo->query("SELECT r.id, r.hari_text AS nama, r.outlet_ids, r.sort_order FROM jadwal_rotasi r ORDER BY r.sort_order")->fetchAll(PDO::FETCH_ASSOC);

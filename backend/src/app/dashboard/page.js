@@ -6,6 +6,7 @@ import PageKategori from './PageKategori';
 import PageOutlet from './PageOutlet';
 import PageUser from './PageUser';
 import DailyCheckTab from './DailyCheckTab';
+import TugasRutinTab from './TugasRutinTab';
 
 function PhotoViewer({ src, onClose }) {
   const [scale, setScale] = useState(1);
@@ -672,7 +673,7 @@ export default function LaporanDashboard() {
           <button className={`${s.tabBtn}${mainTab==='rutin'?' '+s.tabActive:''}`} onClick={()=>setMainTab('rutin')}>TUGAS RUTIN</button>
         </div>
         {mainTab==='daily'&&<DailyCheckTab outletList={outletList} />}
-        {mainTab==='rutin'&&<div style={{padding:'32px 0',textAlign:'center',color:'var(--muted)'}}>Tugas Rutin — coming soon</div>}
+        {mainTab==='rutin'&&<TugasRutinTab />}
         {mainTab==='laporan'&&<><div className={s.ledgerHead}>
           <div className={s.filtRow}>
             <div className={s.filtLine1}>
