@@ -243,8 +243,8 @@ export default function TugasRutinTab() {
               <button onClick={() => setDetailId(row.id)} className={s.outletBtn}>{row.outlet_nama}</button>
             </span>
             <span className={s.dcCell}>{row.petugas_nama ?? '—'}</span>
-            <span className={`${s.dcCell} ${row.done_count > 0 ? s.dcNormal : ''}`}>{row.done_count}</span>
-            <span className={`${s.dcCell} ${row.skip_count > 0 ? s.dcSkip  : ''}`}>{row.skip_count}</span>
+            <span className={`${s.dcCell} ${row.done_count > 0 ? s.dcNormal : s.dcZero}`}>{row.done_count}</span>
+            <span className={`${s.dcCell} ${row.skip_count > 0 ? s.dcTdkDikerjakan : s.dcZero}`}>{row.skip_count}</span>
             <span className={s.dcCell}>{row.total_items}</span>
             <span className={s.dcCell}>{fmtWib(row.created_at)}</span>
           </div>
