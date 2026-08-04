@@ -156,6 +156,43 @@ try {
             json_response($rows);
             break;
 
+        // ---- Daily Laporan list ----
+        case '/daily-laporan':
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                $page  = max(1, intval($_GET['page']  ?? 1));
+                $limit = max(1, min(100, intval($_GET['limit'] ?? 10)));
+                $offset = ($page - 1) * $limit;
+                $where = ['1=1'];
+                $params = [];
+                if (!empty($_GET['outlet_id'])) { $where[] = 'dl.outlet_id = ?'; $params[] = intval($_GET['outlet_id']); }
+                if (!empty($_GET['search']))    { $where[] = 'p.nama LIKE ?';    $params[] = '%'.trim($_GET['search']).'%'; }
+                if (!empty($_GET['date_from'])) { $where[] = 'dl.created_at >= ?'; $params[] = $_GET['date_from'].' 00:00:00'; }
+                if (!empty($_GET['date_to']))   { $where[] = 'dl.created_at <= ?'; $params[] = $_GET['date_to'].' 23:59:59'; }
+                $w = implode(' AND ', $where);
+                $total = (int)$pdo->prepare("SELECT COUNT(*) FROM daily_laporan dl LEFT JOIN petugas p ON p.id=dl.petugas_id WHERE $w")->execute($params) ? $pdo->prepare("SELECT COUNT(*) FROM daily_laporan dl LEFT JOIN petugas p ON p.id=dl.petugas_id WHERE $w")->execute($params) : 0;
+                $cntStmt = $pdo->prepare("SELECT COUNT(*) FROM daily_laporan dl LEFT JOIN petugas p ON p.id=dl.petugas_id WHERE $w");
+                $cntStmt->execute($params);
+                $total = (int)$cntStmt->fetchColumn();
+                $stmt = $pdo->prepare("SELECT dl.id, dl.created_at, dl.updated_at, dl.tasks, dl.lat, dl.lon, dl.address,
+                    o.nama AS outlet_nama, p.nama AS petugas_nama
+                    FROM daily_laporan dl
+                    LEFT JOIN outlets o ON o.id = dl.outlet_id
+                    LEFT JOIN petugas p ON p.id = dl.petugas_id
+                    WHERE $w ORDER BY dl.created_at DESC LIMIT $limit OFFSET $offset");
+                $stmt->execute($params);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($rows as &$r) {
+                    $tasks = json_decode($r['tasks'], true) ?? [];
+                    $r['total_items']    = count($tasks);
+                    $r['normal_count']   = count(array_filter($tasks, fn($t) => ($t['status']??'') === 'Normal'));
+                    $r['masalah_count']  = count(array_filter($tasks, fn($t) => ($t['status']??'') === 'Bermasalah'));
+                    $r['proses_count']   = count(array_filter($tasks, fn($t) => ($t['status']??'') === 'Dalam Proses'));
+                    unset($r['tasks']);
+                }
+                json_response(['data' => $rows, 'pagination' => ['total' => $total, 'page' => $page, 'pages' => max(1, ceil($total/$limit))]]);
+            }
+            break;
+
         // ---- Petugas session ----
         case '/petugas-list':
             $pdo->exec("CREATE TABLE IF NOT EXISTS petugas (

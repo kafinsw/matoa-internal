@@ -5,6 +5,7 @@ import PageCatalog from './PageCatalog';
 import PageKategori from './PageKategori';
 import PageOutlet from './PageOutlet';
 import PageUser from './PageUser';
+import DailyCheckTab from './DailyCheckTab';
 
 function PhotoViewer({ src, onClose }) {
   const [scale, setScale] = useState(1);
@@ -393,10 +394,12 @@ const EMPTY = {
 
 export default function LaporanDashboard() {
   const [stats, setStats]   = useState(EMPTY);
-  const [feed, setFeed]     = useState([]);
-  const [total, setTotal]   = useState(0);
-  const [page, setPage]     = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [feed, setFeed]         = useState([]);
+  const [total, setTotal]       = useState(0);
+  const [page, setPage]         = useState(1);
+  const [loading, setLoading]   = useState(true);
+  const [outletList, setOutletList] = useState([]);
+
   const [range, setRange]   = useState(0);
   const [filt, setFilt]     = useState('semua');
   const [modal, setModal]   = useState(false);
@@ -458,6 +461,11 @@ export default function LaporanDashboard() {
 
   // reset page when filter/range changes
   useEffect(() => { setPage(1); }, [filt, range, statusFilter]);
+
+  // load outlets for DailyCheckTab
+  useEffect(() => {
+    fetch('/internal/api/outlet-list').then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setOutletList(d); }).catch(()=>{});
+  }, []);
 
   // load stats
   useEffect(() => {
@@ -663,7 +671,7 @@ export default function LaporanDashboard() {
           <button className={`${s.tabBtn}${mainTab==='daily'?' '+s.tabActive:''}`} onClick={()=>setMainTab('daily')}>DAILY CHECK</button>
           <button className={`${s.tabBtn}${mainTab==='rutin'?' '+s.tabActive:''}`} onClick={()=>setMainTab('rutin')}>TUGAS RUTIN</button>
         </div>
-        {mainTab==='daily'&&<div style={{padding:'32px 0',textAlign:'center',color:'var(--muted)'}}>Daily Check — coming soon</div>}
+        {mainTab==='daily'&&<DailyCheckTab outletList={outletList} />}
         {mainTab==='rutin'&&<div style={{padding:'32px 0',textAlign:'center',color:'var(--muted)'}}>Tugas Rutin — coming soon</div>}
         {mainTab==='laporan'&&<><div className={s.ledgerHead}>
           <div className={s.filtRow}>
