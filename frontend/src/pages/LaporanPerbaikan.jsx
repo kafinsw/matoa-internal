@@ -2265,10 +2265,12 @@ function TabRutin({ pic = "", outletList = [] }) {
   }
 
   function isTaskComplete(task, ck) {
-    if (!ck || !ck.done) return false;
-    if (task.min_foto > 0 && (ck.photos||[]).length < task.min_foto) return false;
-    return true;
-  }
+      if (!ck) return false;
+      if (ck.skip) return true;
+      if (!ck.done) return false;
+      if (task.min_foto > 0 && (ck.photos||[]).length < task.min_foto) return false;
+      return true;
+    }
 
   const allTasks  = outlets.flatMap(o => o.tasks);
   const doneCount = allTasks.filter(t => isTaskComplete(t, checks[t.kode])).length;
@@ -2429,23 +2431,28 @@ function TabRutin({ pic = "", outletList = [] }) {
                                               {task.min_foto > 0 && <span className="dc-tag-foto">MIN. {task.min_foto} FOTO</span>}
                             </div>
                           </div>
-                          <span className={`dc-item-dot${complete?" dc-item-dot--ok":""}`}/>
+                          <span className={`dc-item-dot${ck.done===true?" dc-item-dot--ok":ck.skip===true?" dc-item-dot--skip":""}`}/>
                         </div>
                         {task.keterangan?.length > 0 && (
                           <ul className="dc-poin-list">
                             {task.keterangan.map((p,i) => <li key={i} className="dc-poin-item">{p}</li>)}
                           </ul>
                         )}
-                        {/* checkbox done */}
-                        <div className="dc-seg" style={{marginTop:10}}>
-                          <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,fontWeight:600,color: ck.done?"#1F8A5B":"#141414"}}>
-                            <input type="checkbox" checked={ck.done} style={{accentColor:"#1F8A5B",width:16,height:16}}
-                              onChange={e => setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:e.target.checked}}))} />
-                            {ck.done ? "Selesai dikerjakan" : "Tandai selesai"}
-                          </label>
+                        {/* status buttons */}
+                        <div className="dc-seg" style={{marginTop:10,display:"flex",gap:8}}>
+                          <button
+                            className={`dc-st-btn${ck.done===true?" dc-st-btn--ok":""}`}
+                            onClick={()=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:true,skip:false}}))}>
+                            ✓ Selesai
+                          </button>
+                          <button
+                            className={`dc-st-btn${ck.skip===true?" dc-st-btn--skip":""}`}
+                            onClick={()=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:false,skip:true}}))}>
+                            ✕ Tidak Dikerjakan
+                          </button>
                         </div>
-                        {/* foto */}
-                        {task.min_foto > 0 && (
+                        {/* foto — hanya jika selesai */}
+                        {ck.done && task.min_foto > 0 && (
                           <div className="dc-photo-wrap">
                             <div className="dc-photo-row">
                               <span className="dc-photo-label">Foto bukti</span>
@@ -2472,6 +2479,18 @@ function TabRutin({ pic = "", outletList = [] }) {
                               atau upload dari galeri
                             </label>
                           </div>
+                        )}
+                        {/* catatan */}
+                        {ck.done && (
+                          <textarea className="dc-note" placeholder="Catatan (opsional)…" rows={2}
+                            value={ck.note||""} onChange={e=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],note:e.target.value}}))
+                          }/>
+                        )}
+                        {/* alasan tidak dikerjakan */}
+                        {ck.skip && (
+                          <textarea className="dc-note" placeholder="Alasan/kendala (opsional)…" rows={2}
+                            value={ck.note||""} onChange={e=>setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],note:e.target.value}}))
+                          }/>
                         )}
                       </div>
                     );
