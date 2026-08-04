@@ -133,7 +133,7 @@ export default function DailyCheckTab({ outletList = [] }) {
           <div key={row.id} className={`${s.lgRow} ${s.dcLgRow}`}>
             <span className={s.lgRowNo}>{total - ((page-1)*LIMIT) - idx}</span>
             <div className={s.colTyp}>
-              <span className={`${s.typ} ${s.typMe}`}>ME</span>
+              <span className={`${s.typ} ${row.user_name === 'GA' ? s.typGa : s.typMe}`}>{row.user_name || '—'}</span>
             </div>
             <span className={s.dcCell}>{row.outlet_nama || '—'}</span>
             <span className={s.dcCell}>{row.petugas_nama || '—'}</span>

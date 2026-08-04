@@ -174,10 +174,12 @@ try {
                 $cntStmt->execute($params);
                 $total = (int)$cntStmt->fetchColumn();
                 $stmt = $pdo->prepare("SELECT dl.id, dl.created_at, dl.updated_at, dl.tasks, dl.lat, dl.lon, dl.address,
-                    o.nama AS outlet_nama, p.nama AS petugas_nama
+                    o.nama AS outlet_nama, p.nama AS petugas_nama,
+                    u.name AS user_name, u.type AS user_type
                     FROM daily_laporan dl
                     LEFT JOIN outlets o ON o.id = dl.outlet_id
                     LEFT JOIN petugas p ON p.id = dl.petugas_id
+                    LEFT JOIN user u ON u.id = dl.user_id
                     WHERE $w ORDER BY dl.created_at DESC LIMIT $limit OFFSET $offset");
                 $stmt->execute($params);
                 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
