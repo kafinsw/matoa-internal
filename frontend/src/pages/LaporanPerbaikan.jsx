@@ -2514,6 +2514,7 @@ function TabRutin({ pic = "", outletList = [] }) {
         <div className="cam-view">
           <div className="cam-container">
             <video ref={videoRef} autoPlay playsInline muted className="cam-video"/>
+            <GpsOverlay gps={gps} outlet={rtOutlets.find(o => o.id === Number(outletId))?.nama || ""} />
           </div>
           <div className="cam-controls">
             <button className="cam-btn capture" onClick={capturePhoto}>
