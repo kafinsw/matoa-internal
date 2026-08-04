@@ -654,8 +654,8 @@
 .dcLgRow    { grid-template-columns: 40px 60px 1fr 1fr 70px 80px 70px 60px 160px !important; }
 .trLgRow    { grid-template-columns: 40px 60px 1fr 1fr 70px 120px 50px 160px !important; }
 .typeBadge  { display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; border-radius:6px; padding:3px 8px; border:1px solid; }
-.typeGA     { background:#f4f4f5; color:#0b0b0c; border-color:#f4f4f5; }
-.typeME     { background:#0b0b0c; color:#f4f4f5; border-color:#3a3b3f; }
+.typeGA     { background:#0b0b0c; color:#f4f4f5; border-color:#3a3b3f; }
+.typeME     { background:#f4f4f5; color:#0b0b0c; border-color:#f4f4f5; }
 .outletBtn  { background:none; border:none; padding:0; color:#4caf7d; cursor:pointer; font-size:inherit; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
 .dcSkip     { color:#f5a623; font-weight:600; }
 .dcTdkDikerjakan { color:#f97316 !important; font-weight:600; }
