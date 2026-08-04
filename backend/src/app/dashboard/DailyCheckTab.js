@@ -8,31 +8,44 @@ function fmtWib(dt) {
   if (!dt) return '—';
   try {
     const d = new Date(dt.includes('+') || dt.includes('Z') ? dt : dt + '+07:00');
-    return d.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    return d.toLocaleString('id-ID', { timeZone:'Asia/Jakarta', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
   } catch { return dt; }
 }
 
+const COLS = [
+  { key:'no',           label:'NO'      },
+  { key:'type',         label:'TYPE'    },
+  { key:'outlet_nama',  label:'OUTLET'  },
+  { key:'petugas_nama', label:'PETUGAS' },
+  { key:'normal_count', label:'NORMAL'  },
+  { key:'masalah_count',label:'MASALAH' },
+  { key:'proses_count', label:'PROSES'  },
+  { key:'total_items',  label:'TOTAL'   },
+  { key:'created_at',   label:'TANGGAL' },
+];
+
 export default function DailyCheckTab({ outletList = [] }) {
-  const [rows,       setRows]       = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [total,      setTotal]      = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [page,       setPage]       = useState(1);
-  const [search,     setSearch]     = useState('');
-  const [outletFilter, setOutletFilter] = useState('');
-  const [dateFrom,   setDateFrom]   = useState('');
-  const [dateTo,     setDateTo]     = useState('');
-  const [toast,      setToast]      = useState('');
+  const [rows,        setRows]        = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [total,       setTotal]       = useState(0);
+  const [totalPages,  setTotalPages]  = useState(1);
+  const [page,        setPage]        = useState(1);
+  const [search,      setSearch]      = useState('');
+  const [outletFilter,setOutletFilter]= useState('');
+  const [dateFrom,    setDateFrom]    = useState('');
+  const [dateTo,      setDateTo]      = useState('');
+  const [sortCol,     setSortCol]     = useState(null);
+  const [sortDir,     setSortDir]     = useState('asc');
   const lastHash = useRef('');
 
-  const fetchData = useCallback(async (p = page) => {
+  const fetchData = useCallback(async (p) => {
     setLoading(true);
     try {
       const qs = new URLSearchParams({ page: p, limit: LIMIT });
-      if (outletFilter) qs.set('outlet_id', outletFilter);
+      if (outletFilter)  qs.set('outlet_id', outletFilter);
       if (search.trim()) qs.set('search', search.trim());
-      if (dateFrom) qs.set('date_from', dateFrom);
-      if (dateTo)   qs.set('date_to',   dateTo);
+      if (dateFrom)      qs.set('date_from', dateFrom);
+      if (dateTo)        qs.set('date_to',   dateTo);
       const r = await fetch(`/internal/api/daily-laporan?${qs}`);
       const d = await r.json();
       const hash = JSON.stringify(d);
@@ -44,52 +57,84 @@ export default function DailyCheckTab({ outletList = [] }) {
       }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [page, outletFilter, search, dateFrom, dateTo]);
+  }, [outletFilter, search, dateFrom, dateTo]);
 
-  useEffect(() => { fetchData(1); setPage(1); }, [outletFilter, search, dateFrom, dateTo]);
-  useEffect(() => { fetchData(page); }, [page]);
+  useEffect(() => { setPage(1); fetchData(1); }, [outletFilter, search, dateFrom, dateTo]);
+  useEffect(() => { fetchData(page); }, [page, fetchData]);
 
-  const COLS = ['NO','OUTLET','PETUGAS','NORMAL','MASALAH','PROSES','TOTAL','TANGGAL'];
+  const sorted = [...rows].sort((a, b) => {
+    if (!sortCol || sortCol === 'no') return 0;
+    const va = a[sortCol] ?? '';
+    const vb = b[sortCol] ?? '';
+    const cmp = typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb), 'id');
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+
+  const toggleSort = (key) => {
+    if (key === 'no') return;
+    if (sortCol === key) {
+      if (sortDir === 'desc') { setSortCol(null); setSortDir('asc'); }
+      else setSortDir('desc');
+    } else { setSortCol(key); setSortDir('asc'); }
+  };
+
+  // derive TYPE from outlet_id prefix in tasks keys (c=GA, e=ME) — use outlet name prefix fallback
+  const getType = (row) => row._type || '—';
 
   return (
     <div className={s.dcWrap}>
-      {/* head controls */}
+      {/* controls */}
       <div className={s.dcHeadBar}>
         <div className={s.dcHeadLeft}>
-          {/* outlet filter */}
-          <select value={outletFilter} onChange={e=>{setOutletFilter(e.target.value);setPage(1);}} className={s.filtSelect}>
+          <select value={outletFilter} onChange={e=>{setOutletFilter(e.target.value);}} className={s.filtSelect}>
             <option value="">Semua Outlet</option>
             {outletList.map(o=><option key={o.id} value={o.id}>{o.nama}</option>)}
           </select>
-          {/* date range */}
-          <input type="date" value={dateFrom} onChange={e=>{setDateFrom(e.target.value);setPage(1);}} className={s.filtSelect} title="Dari tanggal"/>
-          <input type="date" value={dateTo}   onChange={e=>{setDateTo(e.target.value);setPage(1);}}   className={s.filtSelect} title="Sampai tanggal"/>
-          {/* search */}
+          <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} className={s.filtSelect} title="Dari"/>
+          <input type="date" value={dateTo}   onChange={e=>setDateTo(e.target.value)}   className={s.filtSelect} title="Sampai"/>
           <div className={s.searchWrap}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={s.searchIco}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" placeholder="Cari petugas…" value={search} className={s.searchInput}
-              onChange={e=>{setSearch(e.target.value);setPage(1);}}/>
-            {search&&<button onClick={()=>{setSearch('');setPage(1);}} className={s.searchClear}>✕</button>}
+              onChange={e=>setSearch(e.target.value)}/>
+            {search&&<button onClick={()=>setSearch('')} className={s.searchClear}>✕</button>}
           </div>
         </div>
         <div className={s.dcHeadRight}>
-          <button className={s.refreshBtn} onClick={()=>{ lastHash.current=''; fetchData(page); setToast('Data Refreshed'); }}>⟳ Refresh Data</button>
-          <span className={s.catPageInfo}>{total} data · halaman {page}/{totalPages}</span>
+          <button className={s.refreshBtn} onClick={()=>{ lastHash.current=''; fetchData(page); }}>⟳ Refresh</button>
+          <span className={s.catPageInfo}>{total} data · hal {page}/{totalPages}</span>
         </div>
       </div>
 
-      {/* table header */}
+      {/* ledger */}
       <div className={`${s.ledger} ${s.dcLedger}`}>
-        <div className={`${s.lgRow} ${s.lgHead} ${s.dcLgRow}`}>
-          {COLS.map(c=><span key={c} className={s.sortCol}>{c}</span>)}
+        {/* header */}
+        <div className={`${s.lgRow} ${s.lgHead} ${s.dcLgRow} ${s.h}`}>
+          {COLS.map(c => {
+            const active = sortCol === c.key;
+            return (
+              <span key={c.key} className={s.sortCol}
+                onClick={() => toggleSort(c.key)}
+                style={{ cursor: c.key === 'no' ? 'default' : 'pointer' }}>
+                {c.label}
+                {c.key !== 'no' && (
+                  <span className={s.sortArrow} style={{ opacity: active ? 1 : 0.3 }}>
+                    {active && sortDir === 'desc' ? '▼' : '▲'}
+                  </span>
+                )}
+              </span>
+            );
+          })}
         </div>
 
-        {loading && <div className={s.empty}>Memuat…</div>}
+        {loading  && <div className={s.empty}>Memuat…</div>}
         {!loading && rows.length === 0 && <div className={s.empty}><b>Tidak ada data</b></div>}
 
-        {!loading && rows.map((row, idx) => (
+        {!loading && sorted.map((row, idx) => (
           <div key={row.id} className={`${s.lgRow} ${s.dcLgRow}`}>
             <span className={s.lgRowNo}>{total - ((page-1)*LIMIT) - idx}</span>
+            <div className={s.colTyp}>
+              <span className={`${s.typ} ${s.typMe}`}>ME</span>
+            </div>
             <span className={s.dcCell}>{row.outlet_nama || '—'}</span>
             <span className={s.dcCell}>{row.petugas_nama || '—'}</span>
             <span className={`${s.dcCell} ${s.dcNormal}`}>{row.normal_count}</span>
@@ -103,20 +148,19 @@ export default function DailyCheckTab({ outletList = [] }) {
 
       {/* pagination */}
       {totalPages > 1 && (
-        <div className={s.pgRow}>
+        <div className={s.pagination}>
           <button className={s.pgBtn} disabled={page<=1} onClick={()=>setPage(p=>p-1)}>← Prev</button>
-          {Array.from({length: totalPages}, (_,i)=>i+1).filter(p=> Math.abs(p-page)<=2 || p===1 || p===totalPages).reduce((acc,p,i,arr)=>{
-            if(i>0&&p-arr[i-1]>1) acc.push(<span key={'e'+p} className={s.pgEllipsis}>…</span>);
-            acc.push(<button key={p} className={`${s.pgBtn}${page===p?' '+s.pgActive:''}`} onClick={()=>setPage(p)}>{p}</button>);
-            return acc;
-          },[])}
+          {Array.from({length:totalPages},(_,i)=>i+1)
+            .filter(p=>p===1||p===totalPages||Math.abs(p-page)<=1)
+            .map((p,i,arr)=>(
+              <span key={p}>
+                {i>0&&arr[i-1]!==p-1&&<span className={s.pgDot}>…</span>}
+                <button className={`${s.pgBtn}${p===page?' '+s.pgActive:''}`} onClick={()=>setPage(p)}>{p}</button>
+              </span>
+            ))}
           <button className={s.pgBtn} disabled={page>=totalPages} onClick={()=>setPage(p=>p+1)}>Next →</button>
         </div>
       )}
-
-      {toast && <div className={s.toastWrap} onAnimationEnd={()=>setToast('')}>
-        <div className={s.toast}>✓ {toast}</div>
-      </div>}
     </div>
   );
 }

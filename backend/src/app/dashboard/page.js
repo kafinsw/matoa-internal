@@ -881,8 +881,8 @@ export default function LaporanDashboard() {
         </div>
         </>}
 
-        {/* ── PAGINATION ── */}
-        {totalPages>1&&(
+        {/* ── PAGINATION — laporan only ── */}
+        {mainTab==='laporan'&&totalPages>1&&(
           <div className={s.pagination}>
             <button className={s.pgBtn} disabled={page<=1} onClick={()=>setPage(p=>p-1)}>← Prev</button>
             {Array.from({length:totalPages},(_,i)=>i+1).filter(p=>p===1||p===totalPages||Math.abs(p-page)<=1).map((p,i,arr)=>(
