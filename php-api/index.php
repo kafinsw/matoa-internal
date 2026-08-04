@@ -260,8 +260,23 @@ try {
                 json_response(['data'=>$stmt->fetchAll(PDO::FETCH_ASSOC),'pagination'=>['total'=>$total,'page'=>$page,'pages'=>max(1,ceil($total/$limit))]]);
             } elseif ($_SERVER['REQUEST_METHOD']==='POST') {
                 $b=json_decode(file_get_contents('php://input'),true);
+                // convert base64 photos → file paths
+                $tasks = $b['tasks'] ?? [];
+                $dateStr = date('dmy'); // e.g. 040826
+                foreach ($tasks as $kode => &$ck) {
+                    if (!empty($ck['photos']) && is_array($ck['photos'])) {
+                        foreach ($ck['photos'] as &$photo) {
+                            if (str_starts_with($photo, 'data:')) {
+                                $path = saveFotoBase64($photo, "tugas_rutin_{$dateStr}", "tr_{$kode}", null);
+                                if ($path) $photo = $path;
+                            }
+                        }
+                        unset($photo);
+                    }
+                }
+                unset($ck);
                 $stmt=$pdo->prepare("INSERT INTO tugasrutin_laporan (outlet_id,user_id,tasks,lat,lon,address,device) VALUES (?,?,?,?,?,?,?)");
-                $stmt->execute([$b['outlet_id'],$b['user_id'],json_encode($b['tasks']),$b['lat']??null,$b['lon']??null,$b['address']??null,$b['device']??null]);
+                $stmt->execute([$b['outlet_id'],$b['user_id'],json_encode($tasks),$b['lat']??null,$b['lon']??null,$b['address']??null,$b['device']??null]);
                 json_response(['ok'=>true,'id'=>$pdo->lastInsertId()]);
             }
             break;
