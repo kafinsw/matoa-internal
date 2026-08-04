@@ -35,7 +35,13 @@ export default function DailyCheckTab({ outletList = [] }) {
   const [userFilter,  setUserFilter]  = useState(''); // '' | 'ME' | 'GA'
   const [sortCol,     setSortCol]     = useState(null);
   const [sortDir,     setSortDir]     = useState('asc');
+  const [dcOutletList, setDcOutletList] = useState([]);
   const lastHash = useRef('');
+
+  useEffect(() => {
+    fetch('/internal/api/daily-laporan?outlets_only=1')
+      .then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setDcOutletList(d); }).catch(()=>{});
+  }, []);
 
   const fetchData = useCallback(async (p) => {
     setLoading(true);
@@ -84,10 +90,6 @@ export default function DailyCheckTab({ outletList = [] }) {
       {/* controls */}
       <div className={s.dcHeadBar}>
         <div className={s.dcHeadLeft}>
-          <select value={outletFilter} onChange={e=>{setOutletFilter(e.target.value);}} className={s.filtSelect}>
-            <option value="">Semua Outlet</option>
-            {outletList.map(o=><option key={o.id} value={o.id}>{o.nama}</option>)}
-          </select>
           <div className={s.filt}>
             {['','ME','GA'].map(v=>(
               <button key={v} className={`${s.chip}${userFilter===v?' '+s.on:''}`} onClick={()=>{setUserFilter(v);setPage(1);}}>
@@ -95,6 +97,10 @@ export default function DailyCheckTab({ outletList = [] }) {
               </button>
             ))}
           </div>
+          <select value={outletFilter} onChange={e=>{setOutletFilter(e.target.value);setPage(1);}} className={s.filtSelect}>
+            <option value="">Semua Outlet</option>
+            {dcOutletList.map(o=><option key={o.id} value={o.id}>{o.nama}</option>)}
+          </select>
           <div className={s.searchWrap}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={s.searchIco}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" placeholder="Cari outlet / petugas / user…" value={search} className={s.searchInput}

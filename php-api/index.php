@@ -159,6 +159,11 @@ try {
         // ---- Daily Laporan list ----
         case '/daily-laporan':
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                // outlet list from daily_laporan only
+                if (isset($_GET['outlets_only'])) {
+                    $rows = $pdo->query("SELECT DISTINCT o.id, o.nama FROM daily_laporan dl LEFT JOIN outlets o ON o.id=dl.outlet_id WHERE o.id IS NOT NULL ORDER BY o.nama")->fetchAll(PDO::FETCH_ASSOC);
+                    json_response($rows);
+                }
                 $page  = max(1, intval($_GET['page']  ?? 1));
                 $limit = max(1, min(100, intval($_GET['limit'] ?? 10)));
                 $offset = ($page - 1) * $limit;
@@ -166,30 +171,32 @@ try {
                 $params = [];
                 if (!empty($_GET['outlet_id'])) { $where[] = 'dl.outlet_id = ?'; $params[] = intval($_GET['outlet_id']); }
                 if (!empty($_GET['user_name'])) { $where[] = 'u.name = ?';       $params[] = trim($_GET['user_name']); }
-                if (!empty($_GET['search']))    { $where[] = '(p.nama LIKE ? OR o.nama LIKE ? OR u.name LIKE ?)'; $params[] = '%'.trim($_GET['search']).'%'; $params[] = '%'.trim($_GET['search']).'%'; $params[] = '%'.trim($_GET['search']).'%'; }
-                if (!empty($_GET['date_from'])) { $where[] = 'dl.created_at >= ?'; $params[] = $_GET['date_from'].' 00:00:00'; }
-                if (!empty($_GET['date_to']))   { $where[] = 'dl.created_at <= ?'; $params[] = $_GET['date_to'].' 23:59:59'; }
+                if (!empty($_GET['search']))    {
+                    $where[] = '(p.nama LIKE ? OR o.nama LIKE ? OR u.name LIKE ?)';
+                    $s = '%'.trim($_GET['search']).'%';
+                    $params[] = $s; $params[] = $s; $params[] = $s;
+                }
                 $w = implode(' AND ', $where);
-                $total = (int)$pdo->prepare("SELECT COUNT(*) FROM daily_laporan dl LEFT JOIN petugas p ON p.id=dl.petugas_id WHERE $w")->execute($params) ? $pdo->prepare("SELECT COUNT(*) FROM daily_laporan dl LEFT JOIN petugas p ON p.id=dl.petugas_id WHERE $w")->execute($params) : 0;
-                $cntStmt = $pdo->prepare("SELECT COUNT(*) FROM daily_laporan dl LEFT JOIN petugas p ON p.id=dl.petugas_id WHERE $w");
-                $cntStmt->execute($params);
-                $total = (int)$cntStmt->fetchColumn();
-                $stmt = $pdo->prepare("SELECT dl.id, dl.created_at, dl.updated_at, dl.tasks, dl.lat, dl.lon, dl.address,
-                    o.nama AS outlet_nama, p.nama AS petugas_nama,
-                    u.name AS user_name, u.type AS user_type
-                    FROM daily_laporan dl
+                $joins = "FROM daily_laporan dl
                     LEFT JOIN outlets o ON o.id = dl.outlet_id
                     LEFT JOIN petugas p ON p.id = dl.petugas_id
-                    LEFT JOIN user u ON u.id = dl.user_id
-                    WHERE $w ORDER BY dl.created_at DESC LIMIT $limit OFFSET $offset");
+                    LEFT JOIN user u ON u.id = dl.user_id";
+                $cntStmt = $pdo->prepare("SELECT COUNT(*) $joins WHERE $w");
+                $cntStmt->execute($params);
+                $total = (int)$cntStmt->fetchColumn();
+                $stmt = $pdo->prepare("SELECT dl.id, dl.created_at, dl.updated_at,
+                    o.nama AS outlet_nama, p.nama AS petugas_nama,
+                    u.name AS user_name, u.type AS user_type,
+                    dl.tasks
+                    $joins WHERE $w ORDER BY dl.created_at DESC LIMIT $limit OFFSET $offset");
                 $stmt->execute($params);
                 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($rows as &$r) {
                     $tasks = json_decode($r['tasks'], true) ?? [];
-                    $r['total_items']    = count($tasks);
-                    $r['normal_count']   = count(array_filter($tasks, fn($t) => ($t['status']??'') === 'Normal'));
-                    $r['masalah_count']  = count(array_filter($tasks, fn($t) => ($t['status']??'') === 'Bermasalah'));
-                    $r['proses_count']   = count(array_filter($tasks, fn($t) => ($t['status']??'') === 'Dalam Proses'));
+                    $r['total_items']   = count($tasks);
+                    $r['normal_count']  = count(array_filter($tasks, fn($t) => ($t['status']??'') === 'Normal'));
+                    $r['masalah_count'] = count(array_filter($tasks, fn($t) => ($t['status']??'') === 'Bermasalah'));
+                    $r['proses_count']  = count(array_filter($tasks, fn($t) => ($t['status']??'') === 'Dalam Proses'));
                     unset($r['tasks']);
                 }
                 json_response(['data' => $rows, 'pagination' => ['total' => $total, 'page' => $page, 'pages' => max(1, ceil($total/$limit))]]);
