@@ -164,6 +164,15 @@ try {
                     $rows = $pdo->query("SELECT DISTINCT o.id, o.nama FROM daily_laporan dl LEFT JOIN outlets o ON o.id=dl.outlet_id WHERE o.id IS NOT NULL ORDER BY o.nama")->fetchAll(PDO::FETCH_ASSOC);
                     json_response($rows);
                 }
+                // detail by id — return tasks raw
+                if (!empty($_GET['id'])) {
+                    $stmt = $pdo->prepare("SELECT dl.id, dl.created_at, dl.outlet_id, dl.petugas_id, dl.user_id, dl.tasks, o.nama AS outlet_nama, p.nama AS petugas_nama, u.name AS user_name, u.type AS user_type FROM daily_laporan dl LEFT JOIN outlets o ON o.id=dl.outlet_id LEFT JOIN petugas p ON p.id=dl.petugas_id LEFT JOIN user u ON u.id=dl.user_id WHERE dl.id=?");
+                    $stmt->execute([intval($_GET['id'])]);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if (!$row) { http_response_code(404); json_response(['error'=>'not found']); break; }
+                    $row['tasks'] = json_decode($row['tasks'], true) ?? [];
+                    json_response($row);
+                }
                 $page  = max(1, intval($_GET['page']  ?? 1));
                 $limit = max(1, min(100, intval($_GET['limit'] ?? 10)));
                 $offset = ($page - 1) * $limit;

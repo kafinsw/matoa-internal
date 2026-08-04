@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import s from './page.module.css';
 
 const LIMIT = 10;
+const PHP_BASE = '/internal/api/daily-laporan';
 
 function fmtWib(dt) {
   if (!dt) return '—';
@@ -10,6 +11,115 @@ function fmtWib(dt) {
     const d = new Date(dt.includes('+') || dt.includes('Z') ? dt : dt + '+07:00');
     return d.toLocaleString('id-ID', { timeZone:'Asia/Jakarta', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
   } catch { return dt; }
+}
+
+const STATUS_COLOR = { Normal:'#4caf7d', Bermasalah:'#e5674f', 'Dalam Proses':'#f5a623' };
+
+function DcDetailModal({ id, onClose }) {
+  const [data, setData] = useState(null);
+  const [err,  setErr]  = useState(null);
+  const [zoom, setZoom] = useState(null); // zoomed photo src
+
+  useEffect(() => {
+    fetch(`${PHP_BASE}?id=${id}`)
+      .then(r => r.json())
+      .then(d => { if (d.error) setErr(d.error); else setData(d); })
+      .catch(e => setErr(e.message));
+  }, [id]);
+
+  const tasks = data?.tasks ?? {};
+  const taskEntries = Object.entries(tasks);
+
+  return (
+    <>
+      {/* overlay */}
+      <div onClick={onClose} style={{
+        position:'fixed',inset:0,background:'rgba(0,0,0,.72)',zIndex:1000,
+      }}/>
+      {/* panel */}
+      <div style={{
+        position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
+        background:'#141517',border:'1px solid #26272b',borderRadius:16,
+        width:'min(92vw,680px)',maxHeight:'85vh',overflowY:'auto',
+        zIndex:1001,padding:'24px 20px',display:'flex',flexDirection:'column',gap:16,
+      }}>
+        {/* header */}
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div>
+            <div style={{fontSize:16,fontWeight:700,color:'#f4f4f5'}}>{data?.outlet_nama ?? '...'}</div>
+            <div style={{fontSize:11,color:'#8b8d93',marginTop:2,fontFamily:'monospace',textTransform:'uppercase',letterSpacing:1}}>
+              {data?.user_type} · {data?.user_name} · {fmtWib(data?.created_at)}
+            </div>
+          </div>
+          <button onClick={onClose} style={{background:'none',border:'none',color:'#8b8d93',fontSize:20,cursor:'pointer',lineHeight:1}}>✕</button>
+        </div>
+
+        {/* summary bar */}
+        {data && (
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            {[
+              { label:'Normal',    val: taskEntries.filter(([,t])=>t.status==='Normal').length,       color:'#4caf7d' },
+              { label:'Masalah',   val: taskEntries.filter(([,t])=>t.status==='Bermasalah').length,   color:'#e5674f' },
+              { label:'Proses',    val: taskEntries.filter(([,t])=>t.status==='Dalam Proses').length, color:'#f5a623' },
+              { label:'Total',     val: taskEntries.length,                                            color:'#8b8d93' },
+            ].map(({ label, val, color }) => (
+              <div key={label} style={{background:'#0f1012',border:'1px solid #26272b',borderRadius:8,padding:'6px 12px',textAlign:'center'}}>
+                <div style={{fontSize:18,fontWeight:700,color}}>{val}</div>
+                <div style={{fontSize:10,color:'#8b8d93',textTransform:'uppercase',letterSpacing:1}}>{label}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {err && <div style={{color:'#e5674f',fontSize:13}}>{err}</div>}
+        {!data && !err && <div style={{color:'#8b8d93',fontSize:13}}>Memuat...</div>}
+
+        {/* task cards */}
+        {taskEntries.map(([kode, task]) => (
+          <div key={kode} style={{
+            background:'#0f1012',border:`1px solid #26272b`,borderRadius:12,
+            borderLeft:`3px solid ${STATUS_COLOR[task.status] ?? '#26272b'}`,
+            padding:'12px 14px',display:'flex',flexDirection:'column',gap:8,
+          }}>
+            {/* task header */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div style={{fontSize:13,fontWeight:600,color:'#f4f4f5'}}>{kode}</div>
+              <div style={{
+                fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:6,
+                background: task.status==='Normal' ? '#0f2a1a' : task.status==='Bermasalah' ? '#2a1411' : '#2a1f0a',
+                color: STATUS_COLOR[task.status] ?? '#8b8d93',
+              }}>{task.status ?? '—'}</div>
+            </div>
+            {/* note */}
+            {task.note && <div style={{fontSize:12,color:'#a9abb0'}}>{task.note}</div>}
+            {/* photos */}
+            {(task.photos?.length > 0) && (
+              <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:4}}>
+                {task.photos.map((src, i) => {
+                  const imgSrc = src.startsWith('data:') || src.startsWith('http') ? src : `/internal/uploads/${src}`;
+                  return (
+                    <img key={i} src={imgSrc} alt="" onClick={() => setZoom(imgSrc)}
+                      style={{width:72,height:72,objectFit:'cover',borderRadius:8,cursor:'zoom-in',border:'1px solid #26272b'}}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* zoom overlay */}
+      {zoom && (
+        <div onClick={() => setZoom(null)} style={{
+          position:'fixed',inset:0,background:'rgba(0,0,0,.92)',zIndex:1100,
+          display:'flex',alignItems:'center',justifyContent:'center',cursor:'zoom-out',
+        }}>
+          <img src={zoom} alt="" style={{maxWidth:'95vw',maxHeight:'90vh',objectFit:'contain',borderRadius:8}}/>
+        </div>
+      )}
+    </>
+  );
 }
 
 const COLS = [
@@ -32,14 +142,15 @@ export default function DailyCheckTab({ outletList = [] }) {
   const [page,        setPage]        = useState(1);
   const [search,      setSearch]      = useState('');
   const [outletFilter,setOutletFilter]= useState('');
-  const [userFilter,  setUserFilter]  = useState(''); // '' | 'ME' | 'GA'
+  const [userFilter,  setUserFilter]  = useState('');
   const [sortCol,     setSortCol]     = useState(null);
   const [sortDir,     setSortDir]     = useState('asc');
-  const [dcOutletList, setDcOutletList] = useState([]);
+  const [dcOutletList,setDcOutletList]= useState([]);
+  const [detailId,    setDetailId]    = useState(null);
   const lastHash = useRef('');
 
   useEffect(() => {
-    fetch('/internal/api/daily-laporan?outlets_only=1')
+    fetch(`${PHP_BASE}?outlets_only=1`)
       .then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setDcOutletList(d); }).catch(()=>{});
   }, []);
 
@@ -50,7 +161,7 @@ export default function DailyCheckTab({ outletList = [] }) {
       if (outletFilter)  qs.set('outlet_id', outletFilter);
       if (userFilter)    qs.set('user_name', userFilter);
       if (search.trim()) qs.set('search', search.trim());
-      const r = await fetch(`/internal/api/daily-laporan?${qs}`);
+      const r = await fetch(`${PHP_BASE}?${qs}`);
       const d = await r.json();
       const hash = JSON.stringify(d);
       if (hash !== lastHash.current) {
@@ -81,9 +192,6 @@ export default function DailyCheckTab({ outletList = [] }) {
       else setSortDir('desc');
     } else { setSortCol(key); setSortDir('asc'); }
   };
-
-  // derive TYPE from outlet_id prefix in tasks keys (c=GA, e=ME) — use outlet name prefix fallback
-  const getType = (row) => row._type || '—';
 
   return (
     <div className={s.dcWrap}>
@@ -134,21 +242,23 @@ export default function DailyCheckTab({ outletList = [] }) {
             );
           })}
         </div>
-
-        {loading  && <div className={s.empty}>Memuat…</div>}
-        {!loading && rows.length === 0 && <div className={s.empty}><b>Tidak ada data</b></div>}
-
+        {/* rows */}
+        {loading && <div className={s.dcCell} style={{padding:'16px',color:'#8b8d93'}}>Memuat...</div>}
         {!loading && sorted.map((row, idx) => (
           <div key={row.id} className={`${s.lgRow} ${s.dcLgRow}`}>
-            <span className={s.lgRowNo}>{total - ((page-1)*LIMIT) - idx}</span>
-            <div className={s.colTyp}>
-              <span className={`${s.typ} ${row.user_name === 'GA' ? s.typGa : s.typMe}`}>{row.user_name || '—'}</span>
-            </div>
-            <span className={s.dcCell}>{row.outlet_nama || '—'}</span>
-            <span className={s.dcCell}>{row.petugas_nama || '—'}</span>
-            <span className={`${s.dcCell} ${row.normal_count  > 0 ? s.dcNormal  : s.dcZero}`}>{row.normal_count}</span>
-            <span className={`${s.dcCell} ${row.masalah_count > 0 ? s.dcMasalah : s.dcZero}`}>{row.masalah_count}</span>
-            <span className={`${s.dcCell} ${row.proses_count  > 0 ? s.dcProses  : s.dcZero}`}>{row.proses_count}</span>
+            <span className={s.dcCell}>{(page-1)*LIMIT+idx+1}</span>
+            <span className={s.dcCell}>{row.user_type ?? '—'}</span>
+            <span className={s.dcCell}>
+              <button onClick={() => setDetailId(row.id)} style={{
+                background:'none',border:'none',padding:0,
+                color:'#4caf7d',cursor:'pointer',fontSize:'inherit',
+                fontWeight:600,textDecoration:'underline',textUnderlineOffset:3,
+              }}>{row.outlet_nama}</button>
+            </span>
+            <span className={s.dcCell}>{row.petugas_nama}</span>
+            <span className={s.dcCell} style={{color:'#4caf7d'}}>{row.normal_count}</span>
+            <span className={s.dcCell} style={{color:'#e5674f'}}>{row.masalah_count}</span>
+            <span className={s.dcCell} style={{color:'#f5a623'}}>{row.proses_count}</span>
             <span className={s.dcCell}>{row.total_items}</span>
             <span className={s.dcCell}>{fmtWib(row.created_at)}</span>
           </div>
@@ -170,6 +280,9 @@ export default function DailyCheckTab({ outletList = [] }) {
           <button className={s.pgBtn} disabled={page>=totalPages} onClick={()=>setPage(p=>p+1)}>Next →</button>
         </div>
       )}
+
+      {/* detail modal */}
+      {detailId && <DcDetailModal id={detailId} onClose={() => setDetailId(null)} />}
     </div>
   );
 }
