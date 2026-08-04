@@ -57,7 +57,6 @@ function TrDetailModal({ id, onClose }) {
             {[
               { label:'Selesai',         val: doneCount, color:'#4caf7d' },
               { label:'Tdk Dikerjakan',  val: skipCount, color:'#f5a623' },
-              { label:'Foto',            val: fotoCount, color:'#8b8d93' },
               { label:'Total',           val: taskEntries.length, color:'#8b8d93' },
             ].map(({ label, val, color }) => (
               <div key={label} style={{background:'#0f1012',border:'1px solid #26272b',borderRadius:8,padding:'6px 12px',textAlign:'center'}}>
@@ -216,7 +215,7 @@ export default function TugasRutinTab() {
       </div>
 
       <div className={`${s.ledger} ${s.dcLedger}`}>
-        <div className={`${s.lgRow} ${s.lgHead} ${s.dcLgRow} ${s.h}`}>
+        <div className={`${s.lgRow} ${s.lgHead} ${s.trLgRow} ${s.h}`}>
           {COLS.map(c => {
             const active = sortCol === c.key;
             return (
@@ -234,7 +233,7 @@ export default function TugasRutinTab() {
         </div>
         {loading && <div className={s.dcCell} style={{padding:'16px',color:'#8b8d93'}}>Memuat...</div>}
         {!loading && sorted.map((row, idx) => (
-          <div key={row.id} className={`${s.lgRow} ${s.dcLgRow}`}>
+          <div key={row.id} className={`${s.lgRow} ${s.trLgRow}`}>
             <span className={s.dcCell}>{(page-1)*LIMIT+idx+1}</span>
             <span className={s.dcCell}>{row.user_name ?? '—'}</span>
             <span className={s.dcCell}>
