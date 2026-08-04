@@ -216,6 +216,8 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 .dc-item { position:relative; overflow:hidden; background:#fff; border:1.5px solid #E8E5DE; border-radius:15px; padding:14px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
 .dc-item--ok { border-color:#C7EDD9; }
 .dc-item--ok::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:#1F8A5B; }
+.dc-item--skip { border-color:#D9D5CD; background:#F7F6F3; }
+.dc-item--skip::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:#B4AFA6; }
 .dc-item--issue { border-color:#F0C4BA; }
 .dc-item--issue::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:#D04040; }
 .dc-item--process { border-color:#F0DFC0; }

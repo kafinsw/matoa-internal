@@ -2418,7 +2418,7 @@ function TabRutin({ pic = "", outletList = [] }) {
                     const ck = checks[task.kode] || { done:false, photos:[] };
                     const complete = isTaskComplete(task, ck);
                     return (
-                      <div key={task.kode} className={`dc-item${complete?" dc-item--ok":""}`}>
+                      <div key={task.kode} className={`dc-item${ck.done===true?" dc-item--ok":ck.skip===true?" dc-item--skip":""}`}>
                         <div className="dc-item-head">
                           <div className="dc-item-mid">
                             <div className="dc-item-nama">{task.nama}</div>
