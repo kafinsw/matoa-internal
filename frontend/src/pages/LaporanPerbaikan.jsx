@@ -2161,139 +2161,254 @@ function TabDaily({ pic = "" }) {
 
 /* ── tab tugas rutin ── */
 function TabRutin({ pic = "" }) {
-  const [tim, setTim] = useState(() => sessionStorage.getItem("rt_tim") || "");
   const [gps, setGps] = useState({ status: "loading" });
   const _gpsWatchRef = useRef(null);
   const _gpsHardStopRef = useRef(null);
+  const [outlets, setOutlets] = useState([]); // [{outlet_id, outlet_nama, tasks:[]}]
+  const [checks, setChecks] = useState({});   // {kode_task: {done:bool, photos:[], note:""}}
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [pvSrc, setPvSrc] = useState(null);
+  const [camTarget, setCamTarget] = useState(null);
+  const [showCam, setShowCam] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
 
-  const [dbJadwal, setDbJadwal] = useState({});
+  // dev mode
   const [devTap, setDevTap] = useState(0);
   const [devMode, setDevMode] = useState(false);
-  const [devDate, setDevDate] = useState("");
+  const [devDay, setDevDay] = useState("");
   function handleDateTap() {
-    const next = devTap + 1;
-    if (next >= 5) {
-      setDevTap(0);
-      if (devMode) { setDevMode(false); setDevDate(""); alert("Mode developer non-aktif."); }
-      else { setDevMode(true); setDevDate(getToday()); alert("Mode developer aktif."); }
-    } else { setDevTap(next); }
+    const n = devTap + 1;
+    if (n >= 5) { setDevTap(0); if (devMode) { setDevMode(false); setDevDay(""); alert("Mode developer non-aktif."); } else { setDevMode(true); alert("Mode developer aktif."); } }
+    else setDevTap(n);
   }
-  const activeDate = devMode && devDate ? devDate : getTodayISO();
+
+  // fetch tasks hari ini
+  function loadJadwal(dayOverride) {
+    const q = dayOverride ? `?day=${dayOverride}` : "";
+    fetch(`/php-api/tugasrutin-jadwal-harian${q}`)
+      .then(r => r.json()).then(d => {
+        if (!Array.isArray(d)) return;
+        setOutlets(d);
+        // init checks
+        const m = {};
+        d.forEach(o => o.tasks.forEach(t => {
+          m[t.kode] = { done: false, photos: [], note: "" };
+        }));
+        setChecks(m);
+      }).catch(() => {});
+  }
 
   useEffect(() => {
-    fetch("/php-api/daily/config").then(r => r.json()).then(d => {
-      if (d.ok) setDbJadwal(d.jadwal || {});
-    }).catch(() => {});
+    loadJadwal();
+    // clear midnight
+    const now = new Date();
+    const wib = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+    const ms = (24*3600 - wib.getHours()*3600 - wib.getMinutes()*60 - wib.getSeconds()) * 1000 + 1000;
+    const t = setTimeout(() => { setSubmitted(false); loadJadwal(); }, ms);
+    return () => clearTimeout(t);
   }, []);
-
-  const userId = tim ? Number(tim) : null;
-  const schedule = userId ? getScheduleToday(userId, activeDate, dbJadwal) : null;
-  const outletLabel = schedule ? schedule.outlet : "";
 
   // GPS
   async function reverseGeocode(lat, lon) {
-    try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`, { headers: { "Accept-Language": "id" } });
-      const d = await r.json(); return d.display_name || "";
-    } catch { return ""; }
+    try { const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`, { headers: { "Accept-Language": "id" } }); const d = await r.json(); return d.display_name || ""; } catch { return ""; }
   }
   function fetchGps() {
     if (!navigator.geolocation) { setGps({ status: "error", message: "GPS tidak tersedia" }); return; }
     setGps({ status: "loading" });
     let bestAcc = Infinity;
-    async function commit(lat, lon, acc) {
-      const addr = await reverseGeocode(lat, lon);
-      setGps({ status: "ok", lat, lon, accuracy: acc, addr });
-    }
+    async function commit(lat, lon, acc) { const addr = await reverseGeocode(lat, lon); setGps({ status: "ok", lat, lon, accuracy: acc, addr }); }
     _gpsWatchRef.current = navigator.geolocation.watchPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lon, accuracy: acc } = pos.coords;
-        if (acc < bestAcc) { bestAcc = acc; await commit(lat, lon, acc); }
-        if (acc <= 20) { navigator.geolocation.clearWatch(_gpsWatchRef.current); clearTimeout(_gpsHardStopRef.current); }
-      },
+      async (pos) => { const { latitude: lat, longitude: lon, accuracy: acc } = pos.coords; if (acc < bestAcc) { bestAcc = acc; await commit(lat, lon, acc); } if (acc <= 20) { navigator.geolocation.clearWatch(_gpsWatchRef.current); clearTimeout(_gpsHardStopRef.current); } },
       (err) => setGps({ status: "error", message: err.message }),
       { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     );
     _gpsHardStopRef.current = setTimeout(() => navigator.geolocation.clearWatch(_gpsWatchRef.current), 30000);
   }
-  useEffect(() => {
-    fetchGps();
-    return () => { navigator.geolocation.clearWatch(_gpsWatchRef.current); clearTimeout(_gpsHardStopRef.current); };
-  }, []);
+  useEffect(() => { fetchGps(); return () => { navigator.geolocation.clearWatch(_gpsWatchRef.current); clearTimeout(_gpsHardStopRef.current); }; }, []);
 
   const gpsOk = gps.status === "ok";
   const gpsBoxCls = gpsOk ? "lp-gps-box lp-gps-box--ok" : gps.status === "error" ? "lp-gps-box lp-gps-box--err" : "lp-gps-box lp-gps-box--loading";
 
+  // camera
+  function stopStream() { streamRef.current?.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+  async function openCamera(kode) {
+    setCamTarget(kode);
+    try {
+      let ms; try { ms = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false }); } catch { ms = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); }
+      streamRef.current = ms; setShowCam(true);
+      requestAnimationFrame(() => { const v = videoRef.current; if (v) { v.srcObject = ms; v.play().catch(() => {}); } });
+    } catch (err) { alert(err.name === "NotAllowedError" ? "Izin kamera ditolak." : "Gagal akses kamera."); }
+  }
+  async function capturePhoto() {
+    const v = videoRef.current; if (!v) return;
+    const cv = document.createElement("canvas"); cv.width = v.videoWidth; cv.height = v.videoHeight;
+    cv.getContext("2d").drawImage(v, 0, 0);
+    const stamped = await stampGpsOnImage(cv.toDataURL("image/webp", 0.8), gps, "");
+    setChecks(prev => ({ ...prev, [camTarget]: { ...prev[camTarget], photos: [...(prev[camTarget]?.photos||[]), stamped] } }));
+    setShowCam(false); stopStream();
+  }
+  function handlePhoto(kode, file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async e => { const stamped = await stampGpsOnImage(e.target.result, gps, ""); setChecks(prev => ({ ...prev, [kode]: { ...prev[kode], photos: [...(prev[kode]?.photos||[]), stamped] } })); };
+    reader.readAsDataURL(file);
+  }
+
+  function isTaskComplete(task, ck) {
+    if (!ck || !ck.done) return false;
+    if (task.min_foto > 0 && (ck.photos||[]).length < task.min_foto) return false;
+    return true;
+  }
+
+  const allTasks = outlets.flatMap(o => o.tasks);
+  const doneCount = allTasks.filter(t => isTaskComplete(t, checks[t.kode])).length;
+  const canSubmit = allTasks.length > 0 && doneCount === allTasks.length && gpsOk;
+
+  async function handleSubmit() {
+    if (!canSubmit || submitting) return;
+    setSubmitting(true);
+    try {
+      const payload = { user_id: 4, outlet_id: outlets[0]?.outlet_id, tasks: checks, lat: gps.lat, lon: gps.lon, address: gps.addr, device: navigator.userAgent };
+      const r = await fetch("/php-api/tugasrutin-laporan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const d = await r.json();
+      if (d.ok) setSubmitted(true); else alert("Gagal kirim: " + JSON.stringify(d));
+    } catch (e) { alert("Error: " + e.message); } finally { setSubmitting(false); }
+  }
+
+  if (submitted) return (
+    <div className="lp-daily-wrap">
+      <div className="lp-submit-success">
+        <div className="lp-success-icon">✓</div>
+        <div className="lp-success-title">Tugas Rutin Terkirim</div>
+        <div className="lp-success-sub">{getToday()}</div>
+      </div>
+    </div>
+  );
+
+  const today = getToday();
+  const dowNames = ["","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+  const dowNow = devMode && devDay ? parseInt(devDay) : (new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"})).getDay()||7);
+  const hariLabel = dowNames[dowNow] || today;
+
   return (
     <div className="lp-daily-wrap">
+      {/* header form */}
       <div className="lp-form-card">
         <div className="lp-form-grid">
-          <label className="lp-label">
-            TYPE
-            <select
-              value={tim}
-              onChange={(e) => { sessionStorage.setItem("rt_tim", e.target.value); setTim(e.target.value); }}
-              className={`lp-input${!tim ? " lp-input--err" : ""}`}
-            >
-              <option value="">— Pilih Type —</option>
-              {USERS_DAILY.map((u) => (
-                <option key={u.id} value={u.id}>{u.name}</option>
-              ))}
-            </select>
-            {!tim && <span className="lp-field-warn">⚠ Pilih type</span>}
-          </label>
-          <div>
-            <span className="lp-label">OUTLET</span>
-            <div className={`lp-input-read${outletLabel === "LIBUR" ? " lp-input-read--libur" : ""}`}>
-              {outletLabel || "—"}
-            </div>
-          </div>
           <div>
             <span className="lp-label" onClick={handleDateTap}>TANGGAL (OTOMATIS)</span>
             {devMode
-              ? <input type="date" className="lp-input" value={devDate} onChange={e => setDevDate(e.target.value)} />
-              : <div className="lp-input-read">{getToday()}</div>
+              ? <select className="lp-input" value={devDay} onChange={e => { setDevDay(e.target.value); loadJadwal(e.target.value); }}>
+                  {dowNames.slice(1).map((d,i) => <option key={i+1} value={i+1}>{d}</option>)}
+                </select>
+              : <div className="lp-input-read">{today} — {hariLabel}</div>
             }
           </div>
+          <div>
+            <span className="lp-label">NAMA PETUGAS</span>
+            <div className="lp-input-read">{pic || "—"}</div>
+          </div>
         </div>
-        <label className="lp-form-label-mt lp-label">
-          NAMA PETUGAS
-          <div className="lp-input-read">{pic || "—"}</div>
-        </label>
         <div className={gpsBoxCls}>
           <div className="lp-gps-top">
-            <div className="lp-gps-ic">
-              {gpsOk ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
-              ) : gps.status === "error" ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /></svg>
-              )}
-            </div>
-            <div>
-              <div className="lp-gps-ttl">Lokasi GPS</div>
-              <div className="lp-gps-st">
-                {gpsOk
-                  ? `Terdeteksi · akurasi ±${Math.round(gps.accuracy)} m`
-                  : gps.status === "error"
-                    ? gps.message
-                    : "Mendeteksi lokasi..."}
-              </div>
-            </div>
+            <div className="lp-gps-dot" />
+            <span className="lp-gps-label">{gpsOk ? "GPS Terkunci" : gps.status === "error" ? "GPS Error" : "Mengambil GPS…"}</span>
+            {gps.status !== "ok" && <button className="lp-gps-retry" onClick={fetchGps}>Retry</button>}
           </div>
           {gpsOk && (
-            <div className="lp-coord">
-              <div>
-                <span className="lp-coord-k">LAT</span>{"  "}{gps.lat?.toFixed(6)}{"  "}
-                <span className="lp-coord-k">LON</span>{"  "}{gps.lon?.toFixed(6)}
-              </div>
+            <div className="lp-gps-detail">
+              <div><span className="lp-coord-k">LAT</span>{"  "}{gps.lat?.toFixed(6)}{"  "}<span className="lp-coord-k">LON</span>{"  "}{gps.lon?.toFixed(6)}</div>
               {gps.addr && <div className="lp-coord-addr">{gps.addr}</div>}
             </div>
           )}
         </div>
       </div>
-      <div className="rt-empty">Tugas Rutin Belum Tersedia</div>
+
+      {/* progress */}
+      {allTasks.length > 0 && (
+        <div className="lp-progress-bar-wrap">
+          <div className="lp-progress-bar" style={{width: `${Math.round(doneCount/allTasks.length*100)}%`}} />
+          <span className="lp-progress-label">{doneCount}/{allTasks.length} selesai</span>
+        </div>
+      )}
+
+      {/* tasks per outlet */}
+      {outlets.length === 0 && <div className="lp-empty">Tidak ada tugas hari ini ({hariLabel})</div>}
+      {outlets.map(o => (
+        <div key={o.outlet_id} className="lp-dc-section">
+          <div className="lp-dc-section-head">
+            <Pill className="pill-pink">{o.outlet_nama}</Pill>
+          </div>
+          {o.tasks.map(task => {
+            const ck = checks[task.kode] || { done: false, photos: [], note: "" };
+            const complete = isTaskComplete(task, ck);
+            return (
+              <div key={task.kode} className={`lp-dc-item${complete ? " lp-dc-item--done" : ""}`}>
+                <div className="lp-dc-item-head">
+                  <label className="lp-dc-check-label">
+                    <input type="checkbox" checked={ck.done} onChange={e => setChecks(prev => ({ ...prev, [task.kode]: { ...prev[task.kode], done: e.target.checked } }))} />
+                    <span className="lp-dc-task-name">{task.nama}</span>
+                  </label>
+                  <span className="lp-dc-freq">{task.frekuensi}</span>
+                </div>
+                {task.keterangan?.length > 0 && (
+                  <ul className="lp-dc-poin">
+                    {task.keterangan.map((p,i) => <li key={i}>{p}</li>)}
+                  </ul>
+                )}
+                {task.min_foto > 0 && (
+                  <div className="lp-dc-photos">
+                    <div className="lp-dc-photo-row">
+                      {ck.photos.map((src,i) => (
+                        <div key={i} className="lp-dc-photo-thumb" onClick={() => setPvSrc(src)}>
+                          <img src={src} alt="" />
+                          <button className="lp-dc-photo-del" onClick={e => { e.stopPropagation(); setChecks(prev => ({ ...prev, [task.kode]: { ...prev[task.kode], photos: prev[task.kode].photos.filter((_,j) => j!==i) } })); }}>×</button>
+                        </div>
+                      ))}
+                      {ck.photos.length < task.min_foto && (
+                        <button className="lp-dc-add-photo" onClick={() => openCamera(task.kode)}>
+                          <span>+</span><span className="lp-dc-min-foto">{ck.photos.length}/{task.min_foto} foto</span>
+                        </button>
+                      )}
+                    </div>
+                    <label className="lp-dc-upload-label">
+                      <input type="file" accept="image/*" style={{display:"none"}} onChange={e => handlePhoto(task.kode, e.target.files[0])} />
+                      Upload foto
+                    </label>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+
+      {/* submit */}
+      {allTasks.length > 0 && (
+        <button className={`lp-submit-btn${canSubmit ? "" : " lp-submit-btn--disabled"}`} onClick={handleSubmit} disabled={!canSubmit || submitting}>
+          {submitting ? "Mengirim…" : canSubmit ? "Kirim Laporan Tugas Rutin" : `Selesaikan semua tugas (${doneCount}/${allTasks.length})`}
+        </button>
+      )}
+
+      {/* camera modal */}
+      {showCam && (
+        <div className="lp-cam-modal">
+          <video ref={videoRef} className="lp-cam-video" playsInline />
+          <div className="lp-cam-actions">
+            <button className="lp-cam-capture" onClick={capturePhoto}>📷 Ambil Foto</button>
+            <button className="lp-cam-cancel" onClick={() => { setShowCam(false); stopStream(); }}>Batal</button>
+          </div>
+        </div>
+      )}
+
+      {/* preview modal */}
+      {pvSrc && (
+        <div className="lp-pv-modal" onClick={() => setPvSrc(null)}>
+          <img src={pvSrc} className="lp-pv-img" alt="" />
+        </div>
+      )}
     </div>
   );
 }
