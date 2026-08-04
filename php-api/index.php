@@ -205,10 +205,12 @@ try {
 
         // ---- Tugasrutin Jadwal ----
         case '/tugasrutin-jadwal':
-            $rows = $pdo->query("SELECT type, nama, outlet, hari, frekuensi, sort_order FROM tugasrutin_jadwal ORDER BY type, hari, sort_order")->fetchAll(PDO::FETCH_ASSOC);
-            $out = ['rotasi'=>[], 'harian'=>[], 'per_hari'=>[], 'vendor'=>[]];
-            foreach ($rows as $r) $out[$r['type']][] = $r;
-            json_response($out);
+            $rotasi  = $pdo->query("SELECT id, outlet, hari_text AS nama FROM tugasrutin_rotasi ORDER BY sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $harian  = $pdo->query("SELECT id, nama, outlet FROM tugasrutin_harian ORDER BY sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $jadwal  = $pdo->query("SELECT type, nama, outlet, hari, frekuensi FROM tugasrutin_jadwal ORDER BY hari, sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $per_hari = array_values(array_filter($jadwal, fn($r) => $r['type']==='per_hari'));
+            $vendor   = array_values(array_filter($jadwal, fn($r) => $r['type']==='vendor'));
+            json_response(compact('rotasi','harian','per_hari','vendor'));
             break;
 
         // ---- Petugas session ----
