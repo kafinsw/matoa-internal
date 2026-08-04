@@ -2166,7 +2166,7 @@ function TabRutin({ pic = "", outletList = [] }) {
   const [gps, setGps]         = useState({ status: "loading" });
   const _gpsWatchRef  = useRef(null);
   const _gpsHardStopRef = useRef(null);
-  const [outlets, setOutlets] = useState([]);   // [{outlet_id, outlet_nama, tasks:[]}]
+  const [outlets, setOutlets] = useState([]);
   const [checks, setChecks]   = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted,  setSubmitted]  = useState(false);
@@ -2175,6 +2175,7 @@ function TabRutin({ pic = "", outletList = [] }) {
   const [showCam,  setShowCam]  = useState(false);
   const [openGrps, setOpenGrps] = useState(new Set());
   const [rtOutlets, setRtOutlets] = useState([]);
+  const [toast,    setToast]    = useState(null);
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
 
@@ -2300,8 +2301,9 @@ function TabRutin({ pic = "", outletList = [] }) {
       const payload = { user_id: Number(tim), outlet_id: Number(outletId), tasks: checks, lat: gps.lat, lon: gps.lon, address: gps.addr, device: navigator.userAgent };
       const r = await fetch("/php-api/tugasrutin-laporan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const d = await r.json();
-      if (d.ok) setSubmitted(true); else alert("Gagal kirim: " + JSON.stringify(d));
-    } catch (e) { alert("Error: " + e.message); } finally { setSubmitting(false); }
+      if (d.ok) { setSubmitted(true); setToast({ msg: "Tugas rutin berhasil dikirim!", type: "ok" }); setTimeout(() => setToast(null), 3000); }
+      else { setToast({ msg: "Gagal kirim: " + (d.error || JSON.stringify(d)), type: "err" }); setTimeout(() => setToast(null), 5000); }
+    } catch (e) { setToast({ msg: "Error: " + e.message, type: "err" }); setTimeout(() => setToast(null), 5000); } finally { setSubmitting(false); }
   }
 
   const today    = getToday();
@@ -2546,6 +2548,7 @@ function TabRutin({ pic = "", outletList = [] }) {
           </div>
         </div>
       )}
+      {toast && <div className={`lp-toast${toast.type==="err"?" lp-toast--err":""}`}>{toast.msg}</div>}
       {pvSrc && <PhotoViewer src={pvSrc} onClose={() => setPvSrc(null)} />}
     </div>
   );

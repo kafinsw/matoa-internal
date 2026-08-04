@@ -407,6 +407,7 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 .lp-page-btn:disabled { opacity:0.3; cursor:default; }
 .lp-page-info       { font-size:13px; color:#8b8d93; min-width:48px; text-align:center; }
 .lp-toast           { position:fixed; bottom:calc(env(safe-area-inset-bottom) + 84px); left:50%; transform:translateX(-50%); background:#0f1f14; color:#f4f4f5; font-size:13px; font-weight:500; padding:10px 18px; border-radius:10px; border:1.5px solid #2d7a4f; z-index:9999; white-space:nowrap; pointer-events:none; }
+.lp-toast--err      { background:#2a1411; border-color:#e5674f; }
 .lp-toast::first-letter { color:#4ade80; }
 
 /* ── modal overlay ── */
