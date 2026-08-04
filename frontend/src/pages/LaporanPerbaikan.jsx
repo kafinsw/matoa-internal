@@ -2526,11 +2526,7 @@ function TabRutin({ pic = "", outletList = [] }) {
           </div>
         </div>
       )}
-      {pvSrc && (
-        <div className="lp-pv-modal" onClick={() => setPvSrc(null)}>
-          <img src={pvSrc} className="lp-pv-img" alt=""/>
-        </div>
-      )}
+      {pvSrc && <PhotoViewer src={pvSrc} onClose={() => setPvSrc(null)} />}
     </div>
   );
 }
