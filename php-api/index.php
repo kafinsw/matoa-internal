@@ -206,6 +206,7 @@ try {
         // ---- Tugasrutin (GA) ----
         case '/tugasrutin-jadwal-harian':
             $dow = intval($_GET['day'] ?? date('N')); // 1=Mon..7=Sun
+            $outletFilter = !empty($_GET['outlet_id']) ? intval($_GET['outlet_id']) : 0;
             $rows = $pdo->query("
                 SELECT tj.outlet_id, tj.tasks,
                        tt.kode_task, tt.nama, tt.min_foto, tt.keterangan, tt.frekuensi, tt.hari,
@@ -213,7 +214,7 @@ try {
                 FROM tugasrutin_jadwal tj
                 JOIN outlets o ON o.id = tj.outlet_id
                 LEFT JOIN tugasrutin_task tt ON JSON_CONTAINS(tj.tasks, JSON_QUOTE(tt.kode_task))
-                WHERE tj.day_of_week = $dow AND tj.user_id = 4
+                WHERE tj.day_of_week = $dow AND tj.user_id = 4" . ($outletFilter ? " AND tj.outlet_id = $outletFilter" : "") . "
                 ORDER BY tj.outlet_id, tt.sort_order
             ")->fetchAll(PDO::FETCH_ASSOC);
             // group by outlet
