@@ -2174,6 +2174,7 @@ function TabRutin({ pic = "", outletList = [] }) {
   const [camTarget,setCamTarget] = useState(null);
   const [showCam,  setShowCam]  = useState(false);
   const [openGrps, setOpenGrps] = useState(new Set());
+  const [rtOutlets, setRtOutlets] = useState([]);
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
 
@@ -2206,12 +2207,14 @@ function TabRutin({ pic = "", outletList = [] }) {
   }
 
   useEffect(() => {
-    loadJadwal();
-    const wib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
-    const ms  = (24*3600 - wib.getHours()*3600 - wib.getMinutes()*60 - wib.getSeconds()) * 1000 + 1000;
-    const t   = setTimeout(() => { setSubmitted(false); loadJadwal(); }, ms);
-    return () => clearTimeout(t);
-  }, [outletId, tim]);
+      loadJadwal();
+      if (tim) fetch(`/php-api/tugasrutin-outlets?user_id=${tim}`)
+        .then(r => r.json()).then(d => { if (Array.isArray(d)) setRtOutlets(d); }).catch(() => {});
+      const wib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+      const ms  = (24*3600 - wib.getHours()*3600 - wib.getMinutes()*60 - wib.getSeconds()) * 1000 + 1000;
+      const t   = setTimeout(() => { setSubmitted(false); loadJadwal(); }, ms);
+      return () => clearTimeout(t);
+    }, [outletId, tim]);
 
   // GPS
   async function reverseGeocode(lat, lon) {
@@ -2248,14 +2251,14 @@ function TabRutin({ pic = "", outletList = [] }) {
     const v = videoRef.current; if (!v) return;
     const cv = document.createElement("canvas"); cv.width = v.videoWidth; cv.height = v.videoHeight;
     cv.getContext("2d").drawImage(v, 0, 0);
-    const outletNama = outletList.find(o => o.id === Number(outletId))?.nama || "";
+    const outletNama = rtOutlets.find(o => o.id === Number(outletId))?.nama || "";
     const stamped = await stampGpsOnImage(cv.toDataURL("image/webp", 0.8), gps, outletNama);
     setChecks(prev => ({ ...prev, [camTarget]: { ...prev[camTarget], photos: [...(prev[camTarget]?.photos||[]), stamped] } }));
     setShowCam(false); stopStream();
   }
   function handlePhoto(kode, file) {
     if (!file) return;
-    const outletNama = outletList.find(o => o.id === Number(outletId))?.nama || "";
+    const outletNama = rtOutlets.find(o => o.id === Number(outletId))?.nama || "";
     const reader = new FileReader();
     reader.onload = async e => { const stamped = await stampGpsOnImage(e.target.result, gps, outletNama); setChecks(prev => ({ ...prev, [kode]: { ...prev[kode], photos: [...(prev[kode]?.photos||[]), stamped] } })); };
     reader.readAsDataURL(file);
@@ -2314,7 +2317,7 @@ function TabRutin({ pic = "", outletList = [] }) {
             <select className={`lp-input${!outletId ? " lp-input--err" : ""}`}
               value={outletId} onChange={e => { sessionStorage.setItem("rt_outlet", e.target.value); setOutletId(e.target.value); }}>
               <option value="">— Pilih Outlet —</option>
-              {outletList.map(o => <option key={o.id} value={o.id}>{o.nama}</option>)}
+              {rtOutlets.map(o => <option key={o.id} value={o.id}>{o.nama}</option>)}
             </select>
             {!outletId && <span className="lp-field-warn">⚠ Pilih outlet</span>}
           </label>

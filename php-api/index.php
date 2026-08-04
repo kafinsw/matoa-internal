@@ -204,6 +204,18 @@ try {
             break;
 
         // ---- Tugasrutin (GA) ----
+        case '/tugasrutin-outlets':
+            $uid = !empty($_GET['user_id']) ? intval($_GET['user_id']) : 4;
+            $rows = $pdo->query("
+                SELECT DISTINCT o.id, o.nama
+                FROM tugasrutin_jadwal tj
+                JOIN outlets o ON o.id = tj.outlet_id
+                WHERE tj.user_id = $uid
+                ORDER BY o.id
+            ")->fetchAll(PDO::FETCH_ASSOC);
+            json_response($rows);
+            break;
+
         case '/tugasrutin-jadwal-harian':
             $dow = intval($_GET['day'] ?? date('N')); // 1=Mon..7=Sun
             $outletFilter = !empty($_GET['outlet_id']) ? intval($_GET['outlet_id']) : 0;
