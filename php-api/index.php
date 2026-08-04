@@ -349,9 +349,9 @@ try {
                 if (!empty($_GET['outlet_id'])) { $where[] = 'tl.outlet_id = ?'; $params[] = intval($_GET['outlet_id']); }
                 if (!empty($_GET['user_name']))  { $where[] = 'u.name = ?';       $params[] = trim($_GET['user_name']); }
                 if (!empty($_GET['search']))     {
-                    $where[] = '(o.nama LIKE ? OR u.name LIKE ?)';
+                    $where[] = '(o.nama LIKE ? OR u.name LIKE ? OR p.nama LIKE ?)';
                     $s = '%'.trim($_GET['search']).'%';
-                    $params[] = $s; $params[] = $s;
+                    $params[] = $s; $params[] = $s; $params[] = $s;
                 }
                 $w = implode(' AND ', $where);
                 $joins = "FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN user u ON u.id=tl.user_id LEFT JOIN petugas p ON p.id=tl.petugas_id";
