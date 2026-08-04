@@ -277,7 +277,7 @@ try {
                 if (!empty($_GET['search']))    { $where[]='(SELECT nama FROM outlets WHERE id=tl.outlet_id) LIKE ?'; $params[]='%'.$_GET['search'].'%'; }
                 $w = $where ? 'WHERE '.implode(' AND ',$where) : '';
                 $total = $pdo->prepare("SELECT COUNT(*) FROM tugasrutin_laporan tl $w"); $total->execute($params); $total=intval($total->fetchColumn());
-                $stmt  = $pdo->prepare("SELECT tl.*, o.nama AS outlet_nama FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN user u ON u.id=tl.user_id $w ORDER BY tl.created_at DESC LIMIT ? OFFSET ?");
+                $stmt  = $pdo->prepare("SELECT tl.*, o.nama AS outlet_nama, u.name AS user_name, u.type AS user_type, p.nama AS petugas_nama FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN user u ON u.id=tl.user_id LEFT JOIN petugas p ON p.id=tl.petugas_id $w ORDER BY tl.created_at DESC LIMIT ? OFFSET ?");
                 $stmt->execute(array_merge($params,[$limit,($page-1)*$limit]));
                 json_response(['data'=>$stmt->fetchAll(PDO::FETCH_ASSOC),'pagination'=>['total'=>$total,'page'=>$page,'pages'=>max(1,ceil($total/$limit))]]);
             } elseif ($_SERVER['REQUEST_METHOD']==='POST') {
@@ -297,8 +297,15 @@ try {
                     }
                 }
                 unset($ck);
-                $stmt=$pdo->prepare("INSERT INTO tugasrutin_laporan (outlet_id,user_id,tasks,lat,lon,address,device) VALUES (?,?,?,?,?,?,?)");
-                $stmt->execute([$b['outlet_id'],$b['user_id'],json_encode($tasks),$b['lat']??null,$b['lon']??null,$b['address']??null,$b['device']??null]);
+                // lookup petugas_id dari nama
+                $petugas_id = null;
+                if (!empty($b['petugas_nama'])) {
+                    $ps = $pdo->prepare('SELECT id FROM petugas WHERE nama = ? LIMIT 1');
+                    $ps->execute([$b['petugas_nama']]);
+                    $petugas_id = ($ps->fetchColumn() ?: null);
+                }
+                $stmt=$pdo->prepare("INSERT INTO tugasrutin_laporan (outlet_id,user_id,petugas_id,tasks,lat,lon,address,device) VALUES (?,?,?,?,?,?,?,?)");
+                $stmt->execute([$b['outlet_id'],$b['user_id'],$petugas_id,json_encode($tasks),$b['lat']??null,$b['lon']??null,$b['address']??null,$b['device']??null]);
                 json_response(['ok'=>true,'id'=>$pdo->lastInsertId()]);
             }
             break;

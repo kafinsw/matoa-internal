@@ -2298,7 +2298,7 @@ function TabRutin({ pic = "", outletList = [] }) {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
     try {
-      const payload = { user_id: Number(tim), outlet_id: Number(outletId), tasks: checks, lat: gps.lat, lon: gps.lon, address: gps.addr, device: navigator.userAgent };
+      const payload = { user_id: Number(tim), outlet_id: Number(outletId), petugas_nama: pic, tasks: checks, lat: gps.lat, lon: gps.lon, address: gps.addr, device: navigator.userAgent };
       const r = await fetch("/php-api/tugasrutin-laporan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const d = await r.json();
       if (d.ok) { setSubmitted(true); setToast({ msg: "Tugas rutin berhasil dikirim!", type: "ok" }); setTimeout(() => setToast(null), 3000); }
