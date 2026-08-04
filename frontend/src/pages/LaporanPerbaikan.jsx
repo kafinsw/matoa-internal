@@ -2500,9 +2500,28 @@ function TabRutin({ pic = "", outletList = [] }) {
 
       {/* submit */}
       {allTasks.length > 0 && (
-        <button className={`lp-submit-btn${canSubmit ? " ready" : " disabled"}`} onClick={handleSubmit} disabled={!canSubmit||submitting}>
-          {submitting ? "Mengirim…" : canSubmit ? "Kirim Laporan Tugas Rutin" : `Selesaikan semua tugas (${doneCount}/${allTasks.length})`}
-        </button>
+        <div className="dc-sticky-bar">
+          <div className="dc-sticky-row">
+            <span className="dc-sticky-label">Progress tugas rutin</span>
+            <span className="dc-sticky-count mono">{doneCount}<span className="dc-sticky-total">/{allTasks.length}</span></span>
+          </div>
+          <div className="dc-sticky-track">
+            <div className="dc-sticky-fill" style={{width: allTasks.length ? `${(doneCount/allTasks.length)*100}%` : "0%"}}/>
+          </div>
+          <div className="dc-sticky-legend">
+            <span className="dc-sticky-ok">● {allTasks.filter(t=>checks[t.kode]?.done===true).length} Selesai</span>
+            <span className="dc-sticky-err">● {allTasks.filter(t=>checks[t.kode]?.skip===true).length} Tidak Dikerjakan</span>
+            <span className="dc-sticky-belum">○ {allTasks.filter(t=>!checks[t.kode]?.done&&!checks[t.kode]?.skip).length} Belum</span>
+          </div>
+          {canSubmit && !submitted && (
+            <button className="dc-kirim-btn" onClick={handleSubmit} disabled={submitting}>
+              {submitting ? "Mengirim…" : "KIRIM"}
+            </button>
+          )}
+          {submitted && (
+            <button className="dc-kirim-btn dc-kirim-btn--done" disabled>SELESAI</button>
+          )}
+        </div>
       )}
 
       {/* camera modal */}
