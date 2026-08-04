@@ -205,9 +205,22 @@ try {
 
         // ---- Tugasrutin Jadwal ----
         case '/tugasrutin-jadwal':
-            $rotasi  = $pdo->query("SELECT id, outlet, hari_text AS nama FROM tugasrutin_rotasi ORDER BY sort_order")->fetchAll(PDO::FETCH_ASSOC);
-            $harian  = $pdo->query("SELECT id, nama, outlet FROM tugasrutin_harian ORDER BY sort_order")->fetchAll(PDO::FETCH_ASSOC);
-            $jadwal  = $pdo->query("SELECT type, nama, outlet, hari, frekuensi FROM tugasrutin_jadwal ORDER BY hari, sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $rotasi  = $pdo->query("SELECT r.id, r.hari_text AS nama, r.outlet_ids, r.sort_order FROM tugasrutin_rotasi r ORDER BY r.sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $harian  = $pdo->query("SELECT h.id, h.nama, h.outlet_ids, h.sort_order FROM tugasrutin_harian h ORDER BY h.sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $jadwal  = $pdo->query("SELECT j.type, j.nama, j.outlet_ids, j.hari, j.frekuensi FROM tugasrutin_jadwal j ORDER BY j.hari, j.sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            // load outlets map
+            $outletMap = [];
+            foreach ($pdo->query("SELECT id, nama FROM outlets")->fetchAll(PDO::FETCH_ASSOC) as $o) $outletMap[$o['id']] = $o['nama'];
+            // helper: decode outlet_ids → outlet string
+            $resolveOutlet = function($row) use ($outletMap) {
+                $ids = json_decode($row['outlet_ids'] ?? 'null', true);
+                if ($ids === null) return ['outlet_ids' => null, 'outlet' => 'Semua outlet'];
+                $names = array_map(fn($id) => $outletMap[$id] ?? $id, $ids);
+                return ['outlet_ids' => $ids, 'outlet' => implode(' · ', $names)];
+            };
+            foreach ($rotasi  as &$r) { $r = array_merge($r, $resolveOutlet($r)); }
+            foreach ($harian  as &$r) { $r = array_merge($r, $resolveOutlet($r)); }
+            foreach ($jadwal  as &$r) { $r = array_merge($r, $resolveOutlet($r)); }
             $per_hari = array_values(array_filter($jadwal, fn($r) => $r['type']==='per_hari'));
             $vendor   = array_values(array_filter($jadwal, fn($r) => $r['type']==='vendor'));
             json_response(compact('rotasi','harian','per_hari','vendor'));
