@@ -55,10 +55,10 @@ function TrDetailModal({ id, onClose }) {
         {data && (
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
             {[
-              { label:'Done',  val: doneCount, color:'#4caf7d' },
-              { label:'Skip',  val: skipCount, color:'#f5a623' },
-              { label:'Foto',  val: fotoCount, color:'#8b8d93' },
-              { label:'Total', val: taskEntries.length, color:'#8b8d93' },
+              { label:'Selesai',         val: doneCount, color:'#4caf7d' },
+              { label:'Tdk Dikerjakan',  val: skipCount, color:'#f5a623' },
+              { label:'Foto',            val: fotoCount, color:'#8b8d93' },
+              { label:'Total',           val: taskEntries.length, color:'#8b8d93' },
             ].map(({ label, val, color }) => (
               <div key={label} style={{background:'#0f1012',border:'1px solid #26272b',borderRadius:8,padding:'6px 12px',textAlign:'center'}}>
                 <div style={{fontSize:18,fontWeight:700,color}}>{val}</div>
@@ -86,7 +86,7 @@ function TrDetailModal({ id, onClose }) {
                 fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:6,
                 background: task.skip ? '#2a1f0a' : task.done ? '#0f2a1a' : '#2a1411',
                 color:      task.skip ? '#f5a623' : task.done ? '#4caf7d' : '#e5674f',
-              }}>{task.skip ? 'Skip' : task.done ? 'Done' : 'Belum'}</div>
+              }}>{task.skip ? 'Tidak Dikerjakan' : task.done ? 'Selesai' : 'Belum'}</div>
             </div>
             <div style={{fontSize:12,color: task.note ? '#a9abb0' : '#5e6066'}}>
               <span style={{color:'#8b8d93',fontFamily:'monospace',fontSize:10,textTransform:'uppercase',letterSpacing:1}}>Note: </span>
@@ -124,9 +124,8 @@ const COLS = [
   { key:'no',          label:'NO'      },
   { key:'user_name',   label:'TYPE'    },
   { key:'outlet_nama', label:'OUTLET'  },
-  { key:'done_count',  label:'DONE'    },
-  { key:'skip_count',  label:'SKIP'    },
-  { key:'foto_count',  label:'FOTO'    },
+  { key:'done_count',  label:'SELESAI' },
+  { key:'skip_count',  label:'TDK DIKERJAKAN' },
   { key:'total_items', label:'TOTAL'   },
   { key:'created_at',  label:'TANGGAL' },
 ];
@@ -247,9 +246,8 @@ export default function TugasRutinTab() {
             </span>
             <span className={s.dcCell} style={{color: row.done_count > 0 ? '#4caf7d' : '#5e6066'}}>{row.done_count}</span>
             <span className={s.dcCell} style={{color: row.skip_count > 0 ? '#f5a623' : '#5e6066'}}>{row.skip_count}</span>
-            <span className={s.dcCell} style={{color: row.foto_count > 0 ? '#8b8d93' : '#5e6066'}}>{row.foto_count}</span>
             <span className={s.dcCell}>{row.total_items}</span>
-            <span className={s.dcCell}>{fmtWib(row.created_at)}</span>
+            <span className={s.dcCell} style={{whiteSpace:'nowrap'}}>{fmtWib(row.created_at)}</span>
           </div>
         ))}
       </div>
