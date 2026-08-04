@@ -2596,7 +2596,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", outletList = [
           setPicInput("");
         }
       } catch { /* network error — biarkan, coba lagi 1 menit */ }
-    }, 60 * 1000);
+    }, 10 * 1000);
     return () => clearInterval(id);
   }, [pic]);
 
