@@ -2293,22 +2293,22 @@ function TabRutin({ pic = "" }) {
   const hariLabel = dowNames[dowNow] || today;
 
   return (
-    <div className="lp-daily-wrap">
+    <div className="rt-wrap">
       {/* header form */}
-      <div className="lp-form-card">
-        <div className="lp-form-grid">
+      <div className="rt-form-card">
+        <div className="rt-form-grid">
           <div>
-            <span className="lp-label" onClick={handleDateTap}>TANGGAL (OTOMATIS)</span>
+            <span className="rt-label" onClick={handleDateTap}>TANGGAL (OTOMATIS)</span>
             {devMode
               ? <select className="lp-input" value={devDay} onChange={e => { setDevDay(e.target.value); loadJadwal(e.target.value); }}>
                   {dowNames.slice(1).map((d,i) => <option key={i+1} value={i+1}>{d}</option>)}
                 </select>
-              : <div className="lp-input-read">{today} — {hariLabel}</div>
+              : <div className="rt-input-read">{today} — {hariLabel}</div>
             }
           </div>
           <div>
-            <span className="lp-label">NAMA PETUGAS</span>
-            <div className="lp-input-read">{pic || "—"}</div>
+            <span className="rt-label">NAMA PETUGAS</span>
+            <div className="rt-input-read">{pic || "—"}</div>
           </div>
         </div>
         <div className={gpsBoxCls}>
@@ -2328,52 +2328,54 @@ function TabRutin({ pic = "" }) {
 
       {/* progress */}
       {allTasks.length > 0 && (
-        <div className="lp-progress-bar-wrap">
-          <div className="lp-progress-bar" style={{width: `${Math.round(doneCount/allTasks.length*100)}%`}} />
-          <span className="lp-progress-label">{doneCount}/{allTasks.length} selesai</span>
+        <div className="rt-progress-wrap">
+          <div className="rt-progress-bar-wrap">
+            <div className="rt-progress-bar" style={{width:`${Math.round(doneCount/allTasks.length*100)}%`}} />
+          </div>
+          <span className="rt-progress-label">{doneCount}/{allTasks.length} selesai</span>
         </div>
       )}
 
       {/* tasks per outlet */}
-      {outlets.length === 0 && <div className="lp-empty">Tidak ada tugas hari ini ({hariLabel})</div>}
+      {outlets.length === 0 && <div className="rt-empty">Tidak ada tugas hari ini ({hariLabel})</div>}
       {outlets.map(o => (
-        <div key={o.outlet_id} className="lp-dc-section">
-          <div className="lp-dc-section-head">
+        <div key={o.outlet_id} className="rt-section">
+          <div className="rt-section-head">
             <Pill className="pill-pink">{o.outlet_nama}</Pill>
           </div>
           {o.tasks.map(task => {
             const ck = checks[task.kode] || { done: false, photos: [], note: "" };
             const complete = isTaskComplete(task, ck);
             return (
-              <div key={task.kode} className={`lp-dc-item${complete ? " lp-dc-item--done" : ""}`}>
-                <div className="lp-dc-item-head">
-                  <label className="lp-dc-check-label">
+              <div key={task.kode} className={`rt-item${complete ? " rt-item--done" : ""}`}>
+                <div className="rt-item-head">
+                  <label className="rt-check-label">
                     <input type="checkbox" checked={ck.done} onChange={e => setChecks(prev => ({ ...prev, [task.kode]: { ...prev[task.kode], done: e.target.checked } }))} />
-                    <span className="lp-dc-task-name">{task.nama}</span>
+                    <span className="rt-task-name">{task.nama}</span>
                   </label>
-                  <span className="lp-dc-freq">{task.frekuensi}</span>
+                  <span className="rt-freq">{task.frekuensi}</span>
                 </div>
                 {task.keterangan?.length > 0 && (
-                  <ul className="lp-dc-poin">
+                  <ul className="rt-poin">
                     {task.keterangan.map((p,i) => <li key={i}>{p}</li>)}
                   </ul>
                 )}
                 {task.min_foto > 0 && (
-                  <div className="lp-dc-photos">
-                    <div className="lp-dc-photo-row">
+                  <div className="rt-photos">
+                    <div className="rt-photo-row">
                       {ck.photos.map((src,i) => (
-                        <div key={i} className="lp-dc-photo-thumb" onClick={() => setPvSrc(src)}>
+                        <div key={i} className="rt-photo-thumb" onClick={() => setPvSrc(src)}>
                           <img src={src} alt="" />
-                          <button className="lp-dc-photo-del" onClick={e => { e.stopPropagation(); setChecks(prev => ({ ...prev, [task.kode]: { ...prev[task.kode], photos: prev[task.kode].photos.filter((_,j) => j!==i) } })); }}>×</button>
+                          <button className="rt-photo-del" onClick={e => { e.stopPropagation(); setChecks(prev => ({ ...prev, [task.kode]: { ...prev[task.kode], photos: prev[task.kode].photos.filter((_,j) => j!==i) } })); }}>×</button>
                         </div>
                       ))}
                       {ck.photos.length < task.min_foto && (
-                        <button className="lp-dc-add-photo" onClick={() => openCamera(task.kode)}>
-                          <span>+</span><span className="lp-dc-min-foto">{ck.photos.length}/{task.min_foto} foto</span>
+                        <button className="rt-add-photo" onClick={() => openCamera(task.kode)}>
+                          <span>+</span><span className="rt-min-foto">{ck.photos.length}/{task.min_foto} foto</span>
                         </button>
                       )}
                     </div>
-                    <label className="lp-dc-upload-label">
+                    <label className="rt-upload-label">
                       <input type="file" accept="image/*" style={{display:"none"}} onChange={e => handlePhoto(task.kode, e.target.files[0])} />
                       Upload foto
                     </label>
@@ -2387,7 +2389,7 @@ function TabRutin({ pic = "" }) {
 
       {/* submit */}
       {allTasks.length > 0 && (
-        <button className={`lp-submit-btn${canSubmit ? "" : " lp-submit-btn--disabled"}`} onClick={handleSubmit} disabled={!canSubmit || submitting}>
+        <button className={`rt-submit-btn${canSubmit ? " rt-submit-btn--ready" : " rt-submit-btn--disabled"}`} onClick={handleSubmit} disabled={!canSubmit || submitting}>
           {submitting ? "Mengirim…" : canSubmit ? "Kirim Laporan Tugas Rutin" : `Selesaikan semua tugas (${doneCount}/${allTasks.length})`}
         </button>
       )}
