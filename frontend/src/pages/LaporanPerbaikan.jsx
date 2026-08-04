@@ -2160,7 +2160,7 @@ function TabDaily({ pic = "" }) {
 }
 
 /* ── tab tugas rutin (GA) ── */
-function TabRutin({ pic = "" }) {
+function TabRutin({ pic = "", outletList = [] }) {
   const [tim, setTim]         = useState(() => sessionStorage.getItem("rt_tim") || "");
   const [outletId, setOutletId] = useState(() => sessionStorage.getItem("rt_outlet") || "");
   const [gps, setGps]         = useState({ status: "loading" });
@@ -2187,12 +2187,8 @@ function TabRutin({ pic = "" }) {
     else setDevTap(n);
   }
 
-  // USERS + OUTLETS list
-  const USERS_RT   = [{ id: 3, name: "ME" }, { id: 4, name: "GA" }];
-  const OUTLETS_RT = [
-    { id: 1, nama: "BRACI" }, { id: 2, nama: "OPIUCI" },
-    { id: 3, nama: "TANATAP" }, { id: 4, nama: "RICI" }, { id: 5, nama: "HO" },
-  ];
+  // USERS list
+    const USERS_RT   = [{ id: 3, name: "ME" }, { id: 4, name: "GA" }];
 
   function loadJadwal(dayOverride) {
       const q = new URLSearchParams();
@@ -2252,14 +2248,14 @@ function TabRutin({ pic = "" }) {
     const v = videoRef.current; if (!v) return;
     const cv = document.createElement("canvas"); cv.width = v.videoWidth; cv.height = v.videoHeight;
     cv.getContext("2d").drawImage(v, 0, 0);
-    const outletNama = OUTLETS_RT.find(o => o.id === Number(outletId))?.nama || "";
+    const outletNama = outletList.find(o => o.id === Number(outletId))?.nama || "";
     const stamped = await stampGpsOnImage(cv.toDataURL("image/webp", 0.8), gps, outletNama);
     setChecks(prev => ({ ...prev, [camTarget]: { ...prev[camTarget], photos: [...(prev[camTarget]?.photos||[]), stamped] } }));
     setShowCam(false); stopStream();
   }
   function handlePhoto(kode, file) {
     if (!file) return;
-    const outletNama = OUTLETS_RT.find(o => o.id === Number(outletId))?.nama || "";
+    const outletNama = outletList.find(o => o.id === Number(outletId))?.nama || "";
     const reader = new FileReader();
     reader.onload = async e => { const stamped = await stampGpsOnImage(e.target.result, gps, outletNama); setChecks(prev => ({ ...prev, [kode]: { ...prev[kode], photos: [...(prev[kode]?.photos||[]), stamped] } })); };
     reader.readAsDataURL(file);
@@ -2318,7 +2314,7 @@ function TabRutin({ pic = "" }) {
             <select className={`lp-input${!outletId ? " lp-input--err" : ""}`}
               value={outletId} onChange={e => { sessionStorage.setItem("rt_outlet", e.target.value); setOutletId(e.target.value); }}>
               <option value="">— Pilih Outlet —</option>
-              {OUTLETS_RT.map(o => <option key={o.id} value={o.id}>{o.nama}</option>)}
+              {outletList.map(o => <option key={o.id} value={o.id}>{o.nama}</option>)}
             </select>
             {!outletId && <span className="lp-field-warn">⚠ Pilih outlet</span>}
           </label>
@@ -3443,7 +3439,7 @@ export default function LaporanPerbaikan() {
         </div>
 
         {tab === "daily" && <TabDaily pic={pic} />}
-        {tab === "rutin" && <TabRutin pic={pic} />}
+        {tab === "rutin" && <TabRutin pic={pic} outletList={outletList} />}
         {tab === "perbaikan" && (
           <TabPerbaikan
             outlet={outlet}
