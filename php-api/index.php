@@ -203,6 +203,14 @@ try {
             }
             break;
 
+        // ---- Tugasrutin Jadwal ----
+        case '/tugasrutin-jadwal':
+            $rows = $pdo->query("SELECT type, nama, outlet, hari, frekuensi, sort_order FROM tugasrutin_jadwal ORDER BY type, hari, sort_order")->fetchAll(PDO::FETCH_ASSOC);
+            $out = ['rotasi'=>[], 'harian'=>[], 'per_hari'=>[], 'vendor'=>[]];
+            foreach ($rows as $r) $out[$r['type']][] = $r;
+            json_response($out);
+            break;
+
         // ---- Petugas session ----
         case '/petugas-list':
             $pdo->exec("CREATE TABLE IF NOT EXISTS petugas (

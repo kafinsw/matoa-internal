@@ -1386,81 +1386,10 @@ function TiketItem({
     </div>
   );
 }
-const ROTASI = [
-  { outlet: "BRACI", days: "Senin & Kamis" },
-  { outlet: "OPIUCI", days: "Selasa & Jumat" },
-  { outlet: "TANATAP", days: "Rabu" },
-];
-const HARIAN = [
-  { id: 1, name: "Siram Tanaman", outlet: "OPIUCI" },
-  { id: 2, name: "Set Up Photobooth", outlet: "OPIUCI" },
-];
-const PER_HARI = [
-  {
-    hari: "Senin",
-    tasks: [
-      { name: "Brushing Lantai Entrance", outlet: "OPIUCI", freq: "Mingguan" },
-      { name: "Cleaning Upper Window", outlet: "BRACI", freq: "Mingguan" },
-    ],
-  },
-  {
-    hari: "Selasa",
-    tasks: [
-      {
-        name: "Brushing Lantai Dance Floor",
-        outlet: "OPIUCI",
-        freq: "Mingguan",
-      },
-      { name: "Cleaning Rigid", outlet: "OPIUCI", freq: "Mingguan" },
-    ],
-  },
-  {
-    hari: "Rabu",
-    tasks: [
-      { name: "Brushing Lantai Outdoor", outlet: "OPIUCI", freq: "2 Mingguan" },
-      {
-        name: "Cleaning Talang Air & Atap",
-        outlet: "OPIUCI",
-        freq: "2 Mingguan",
-      },
-    ],
-  },
-  {
-    hari: "Kamis",
-    tasks: [
-      { name: "Brushing Lantai Area Kolam", outlet: "BRACI", freq: "Mingguan" },
-      { name: "Pasang LED Screen", outlet: "OPIUCI", freq: "Mingguan" },
-      { name: "Cleaning Lampu Gantung", outlet: "BRACI", freq: "Bulanan" },
-    ],
-  },
-  {
-    hari: "Jumat",
-    tasks: [
-      {
-        name: "Brushing Lantai Teras Depan",
-        outlet: "BRACI",
-        freq: "Mingguan",
-      },
-      { name: "Cleaning Upper Window", outlet: "OPIUCI", freq: "Mingguan" },
-      { name: "Copot LED Screen", outlet: "OPIUCI", freq: "Mingguan" },
-    ],
-  },
-  {
-    hari: "Sabtu",
-    tasks: [
-      { name: "Cleaning Kipas & Exhaust", outlet: "OPIUCI", freq: "Mingguan" },
-      { name: "Cleaning Mirror Ball", outlet: "OPIUCI", freq: "2 Mingguan" },
-      { name: "Cleaning Speaker", outlet: "OPIUCI", freq: "2 Mingguan" },
-      { name: "Repaint Dinding & Kolom", outlet: "OPIUCI", freq: "2 Mingguan" },
-    ],
-  },
-];
-const VENDOR = [
-  { name: "Trimming Tanaman", outlet: "Semua outlet", freq: "Mingguan" },
-  { name: "Cleaning Karpet Upper Room", outlet: "BRACI", freq: "2× sebulan" },
-  { name: "Cuci Sofa", outlet: "OPIUCI · BRACI", freq: "Bulanan (1×)" },
-  { name: "Cuci Sofa", outlet: "TANATAP", freq: "2 bulan sekali" },
-];
+const ROTASI = [];
+const HARIAN = [];
+const PER_HARI = [];
+const VENDOR = [];
 const getToday = () => {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
   const weekday = d.toLocaleDateString("id-ID", { weekday: "long" });
@@ -3011,6 +2940,34 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", setPic, outlet
 
 /* ── tab jadwal ── */
 function TabJadwal() {
+  const [jadwal, setJadwal] = React.useState(null);
+  React.useEffect(() => {
+    fetch('/php-api/tugasrutin-jadwal')
+      .then(r=>r.json())
+      .then(d => {
+        // transform per_hari: flat rows → grouped by hari
+        const hariOrder = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+        const perHariMap = {};
+        (d.per_hari||[]).forEach(r => {
+          if (!perHariMap[r.hari]) perHariMap[r.hari] = [];
+          perHariMap[r.hari].push({ name: r.nama, outlet: r.outlet, freq: r.frekuensi });
+        });
+        const perHari = hariOrder.filter(h => perHariMap[h]).map(h => ({ hari: h, tasks: perHariMap[h] }));
+        setJadwal({
+          rotasi: (d.rotasi||[]).map(r => ({ outlet: r.outlet, days: r.nama })),
+          harian: (d.harian||[]).map(r => ({ id: r.sort_order, name: r.nama, outlet: r.outlet })),
+          per_hari: perHari,
+          vendor: (d.vendor||[]).map(r => ({ name: r.nama, outlet: r.outlet, freq: r.frekuensi })),
+        });
+      })
+      .catch(()=>{});
+  }, []);
+
+  const rotasi   = jadwal?.rotasi   || ROTASI;
+  const harian   = jadwal?.harian   || HARIAN;
+  const perHari  = jadwal?.per_hari || PER_HARI;
+  const vendor   = jadwal?.vendor   || VENDOR;
+
   return (
     <div className="lp-jadwal-wrap">
       <div className="lp-jadwal-inner">
@@ -3018,7 +2975,7 @@ function TabJadwal() {
         <div className="lp-darkbox">
           <div className="lp-jadwal-rotasi-label">JADWAL DAILY CHECK</div>
           <div className="lp-rotasi-list">
-            {ROTASI.map((r) => (
+            {rotasi.map((r) => (
               <div key={r.outlet} className="lp-rotasi-row">
                 <Pill className="pill-pink">{r.outlet}</Pill>
                 <span className="lp-jadwal-rotasi-days">{r.days}</span>
@@ -3038,7 +2995,7 @@ function TabJadwal() {
             <span className="lp-jadwal-harian-title">Setiap Hari</span>
             <span className="lp-jadwal-harian-outlet">OPIUCI</span>
           </div>
-          {HARIAN.map((t) => (
+          {harian.map((t) => (
             <div key={t.id} className="lp-jadwal-harian-row">
               <span className="lp-jadwal-task-name">{t.name}</span>
               <span className="lp-jadwal-task-outlet">{t.outlet}</span>
@@ -3048,7 +3005,7 @@ function TabJadwal() {
 
         {/* per hari */}
         <div className="lp-jadwal-card">
-          {PER_HARI.map((g) => (
+          {perHari.map((g) => (
             <div key={g.hari}>
               <div className="lp-jadwal-perhari-day-header">
                 <span className="lp-jadwal-perhari-day">{g.hari}</span>
@@ -3071,11 +3028,11 @@ function TabJadwal() {
 
         {/* vendor */}
         <div className="lp-jadwal-vendor-card">
-          {VENDOR.map((v, i) => (
+          {vendor.map((t, i) => (
             <div key={i} className="lp-jadwal-vendor-row">
-              <span className="lp-jadwal-task-name">{v.name}</span>
-              <span className="lp-jadwal-vendor-outlet">{v.outlet}</span>
-              <span className="lp-jadwal-vendor-freq">{v.freq}</span>
+              <span className="lp-jadwal-task-name">{t.name}</span>
+              <span className="lp-jadwal-vendor-outlet">{t.outlet}</span>
+              <span className="lp-jadwal-vendor-freq">{t.freq}</span>
             </div>
           ))}
         </div>
