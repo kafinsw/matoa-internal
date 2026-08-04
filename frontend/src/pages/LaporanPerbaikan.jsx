@@ -2159,56 +2159,61 @@ function TabDaily({ pic = "" }) {
   );
 }
 
-/* ── tab tugas rutin ── */
+/* ── tab tugas rutin (GA) ── */
 function TabRutin({ pic = "" }) {
-  const [gps, setGps] = useState({ status: "loading" });
-  const _gpsWatchRef = useRef(null);
+  const [tim, setTim]         = useState(() => sessionStorage.getItem("rt_tim") || "");
+  const [outletId, setOutletId] = useState(() => sessionStorage.getItem("rt_outlet") || "");
+  const [gps, setGps]         = useState({ status: "loading" });
+  const _gpsWatchRef  = useRef(null);
   const _gpsHardStopRef = useRef(null);
-  const [outlets, setOutlets] = useState([]); // [{outlet_id, outlet_nama, tasks:[]}]
-  const [checks, setChecks] = useState({});   // {kode_task: {done:bool, photos:[], note:""}}
+  const [outlets, setOutlets] = useState([]);   // [{outlet_id, outlet_nama, tasks:[]}]
+  const [checks, setChecks]   = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [pvSrc, setPvSrc] = useState(null);
-  const [camTarget, setCamTarget] = useState(null);
-  const [showCam, setShowCam] = useState(false);
-  const videoRef = useRef(null);
+  const [submitted,  setSubmitted]  = useState(false);
+  const [pvSrc,    setPvSrc]   = useState(null);
+  const [camTarget,setCamTarget] = useState(null);
+  const [showCam,  setShowCam]  = useState(false);
+  const videoRef  = useRef(null);
   const streamRef = useRef(null);
 
-  // dev mode
+  // dev mode — 5× tap tanggal
   const [devTap, setDevTap] = useState(0);
   const [devMode, setDevMode] = useState(false);
-  const [devDay, setDevDay] = useState("");
+  const [devDay,  setDevDay]  = useState("");
   function handleDateTap() {
     const n = devTap + 1;
     if (n >= 5) { setDevTap(0); if (devMode) { setDevMode(false); setDevDay(""); alert("Mode developer non-aktif."); } else { setDevMode(true); alert("Mode developer aktif."); } }
     else setDevTap(n);
   }
 
-  // fetch tasks hari ini
+  // USERS + OUTLETS list
+  const USERS_RT   = [{ id: 3, name: "ME" }, { id: 4, name: "GA" }];
+  const OUTLETS_RT = [
+    { id: 1, nama: "BRACI" }, { id: 2, nama: "OPIUCI" },
+    { id: 3, nama: "TANATAP" }, { id: 4, nama: "RICI" }, { id: 5, nama: "HO" },
+  ];
+
   function loadJadwal(dayOverride) {
-    const q = dayOverride ? `?day=${dayOverride}` : "";
-    fetch(`/php-api/tugasrutin-jadwal-harian${q}`)
+    const q = new URLSearchParams();
+    if (dayOverride) q.set("day", dayOverride);
+    if (outletId)    q.set("outlet_id", outletId);
+    fetch(`/php-api/tugasrutin-jadwal-harian?${q}`)
       .then(r => r.json()).then(d => {
         if (!Array.isArray(d)) return;
         setOutlets(d);
-        // init checks
         const m = {};
-        d.forEach(o => o.tasks.forEach(t => {
-          m[t.kode] = { done: false, photos: [], note: "" };
-        }));
+        d.forEach(o => o.tasks.forEach(t => { m[t.kode] = { done: false, photos: [], note: "" }; }));
         setChecks(m);
       }).catch(() => {});
   }
 
   useEffect(() => {
     loadJadwal();
-    // clear midnight
-    const now = new Date();
-    const wib = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
-    const ms = (24*3600 - wib.getHours()*3600 - wib.getMinutes()*60 - wib.getSeconds()) * 1000 + 1000;
-    const t = setTimeout(() => { setSubmitted(false); loadJadwal(); }, ms);
+    const wib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+    const ms  = (24*3600 - wib.getHours()*3600 - wib.getMinutes()*60 - wib.getSeconds()) * 1000 + 1000;
+    const t   = setTimeout(() => { setSubmitted(false); loadJadwal(); }, ms);
     return () => clearTimeout(t);
-  }, []);
+  }, [outletId]);
 
   // GPS
   async function reverseGeocode(lat, lon) {
@@ -2229,7 +2234,7 @@ function TabRutin({ pic = "" }) {
   useEffect(() => { fetchGps(); return () => { navigator.geolocation.clearWatch(_gpsWatchRef.current); clearTimeout(_gpsHardStopRef.current); }; }, []);
 
   const gpsOk = gps.status === "ok";
-  const gpsBoxCls = gpsOk ? "lp-gps-box lp-gps-box--ok" : gps.status === "error" ? "lp-gps-box lp-gps-box--err" : "lp-gps-box lp-gps-box--loading";
+  const gpsBoxCls = gpsOk ? "lp-gps-box lp-gps-box--ok" : gps.status === "error" ? "lp-gps-box lp-gps-box--err" : "lp-gps-box";
 
   // camera
   function stopStream() { streamRef.current?.getTracks().forEach(t => t.stop()); streamRef.current = null; }
@@ -2245,14 +2250,16 @@ function TabRutin({ pic = "" }) {
     const v = videoRef.current; if (!v) return;
     const cv = document.createElement("canvas"); cv.width = v.videoWidth; cv.height = v.videoHeight;
     cv.getContext("2d").drawImage(v, 0, 0);
-    const stamped = await stampGpsOnImage(cv.toDataURL("image/webp", 0.8), gps, "");
+    const outletNama = OUTLETS_RT.find(o => o.id === Number(outletId))?.nama || "";
+    const stamped = await stampGpsOnImage(cv.toDataURL("image/webp", 0.8), gps, outletNama);
     setChecks(prev => ({ ...prev, [camTarget]: { ...prev[camTarget], photos: [...(prev[camTarget]?.photos||[]), stamped] } }));
     setShowCam(false); stopStream();
   }
   function handlePhoto(kode, file) {
     if (!file) return;
+    const outletNama = OUTLETS_RT.find(o => o.id === Number(outletId))?.nama || "";
     const reader = new FileReader();
-    reader.onload = async e => { const stamped = await stampGpsOnImage(e.target.result, gps, ""); setChecks(prev => ({ ...prev, [kode]: { ...prev[kode], photos: [...(prev[kode]?.photos||[]), stamped] } })); };
+    reader.onload = async e => { const stamped = await stampGpsOnImage(e.target.result, gps, outletNama); setChecks(prev => ({ ...prev, [kode]: { ...prev[kode], photos: [...(prev[kode]?.photos||[]), stamped] } })); };
     reader.readAsDataURL(file);
   }
 
@@ -2262,15 +2269,15 @@ function TabRutin({ pic = "" }) {
     return true;
   }
 
-  const allTasks = outlets.flatMap(o => o.tasks);
+  const allTasks  = outlets.flatMap(o => o.tasks);
   const doneCount = allTasks.filter(t => isTaskComplete(t, checks[t.kode])).length;
-  const canSubmit = allTasks.length > 0 && doneCount === allTasks.length && gpsOk;
+  const canSubmit = allTasks.length > 0 && doneCount === allTasks.length && gpsOk && !!tim && !!outletId;
 
   async function handleSubmit() {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
     try {
-      const payload = { user_id: 4, outlet_id: outlets[0]?.outlet_id, tasks: checks, lat: gps.lat, lon: gps.lon, address: gps.addr, device: navigator.userAgent };
+      const payload = { user_id: Number(tim), outlet_id: Number(outletId), tasks: checks, lat: gps.lat, lon: gps.lon, address: gps.addr, device: navigator.userAgent };
       const r = await fetch("/php-api/tugasrutin-laporan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const d = await r.json();
       if (d.ok) setSubmitted(true); else alert("Gagal kirim: " + JSON.stringify(d));
@@ -2279,46 +2286,73 @@ function TabRutin({ pic = "" }) {
 
   if (submitted) return (
     <div className="lp-daily-wrap">
-      <div className="lp-submit-success">
-        <div className="lp-success-icon">✓</div>
-        <div className="lp-success-title">Tugas Rutin Terkirim</div>
-        <div className="lp-success-sub">{getToday()}</div>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"60px 24px",gap:12}}>
+        <div style={{width:56,height:56,borderRadius:99,background:"#1F8A5B",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>✓</div>
+        <div style={{fontSize:16,fontWeight:700,color:"#141414"}}>Tugas Rutin Terkirim</div>
+        <div style={{fontSize:12,color:"#8A857C",fontFamily:"'IBM Plex Mono',monospace"}}>{getToday()}</div>
       </div>
     </div>
   );
 
-  const today = getToday();
+  const today    = getToday();
   const dowNames = ["","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
-  const dowNow = devMode && devDay ? parseInt(devDay) : (new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"})).getDay()||7);
-  const hariLabel = dowNames[dowNow] || today;
+  const dowNow   = devMode && devDay ? parseInt(devDay) : (new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"})).getDay()||7);
+  const hariLabel = dowNames[dowNow] || "";
 
   return (
-    <div className="rt-wrap">
-      {/* header form */}
-      <div className="rt-form-card">
-        <div className="rt-form-grid">
+    <div className="lp-daily-wrap">
+      {/* form header — sama persis Daily Check */}
+      <div className="lp-form-card">
+        <div className="lp-form-grid">
+          <label className="lp-label">TYPE
+            <select className={`lp-input${!tim ? " lp-input--err" : ""}`}
+              value={tim} onChange={e => { sessionStorage.setItem("rt_tim", e.target.value); setTim(e.target.value); }}>
+              <option value="">— Pilih Type —</option>
+              {USERS_RT.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
+            {!tim && <span className="lp-field-warn">⚠ Pilih type</span>}
+          </label>
+          <label className="lp-label">OUTLET
+            <select className={`lp-input${!outletId ? " lp-input--err" : ""}`}
+              value={outletId} onChange={e => { sessionStorage.setItem("rt_outlet", e.target.value); setOutletId(e.target.value); }}>
+              <option value="">— Pilih Outlet —</option>
+              {OUTLETS_RT.map(o => <option key={o.id} value={o.id}>{o.nama}</option>)}
+            </select>
+            {!outletId && <span className="lp-field-warn">⚠ Pilih outlet</span>}
+          </label>
           <div>
-            <span className="rt-label" onClick={handleDateTap}>TANGGAL (OTOMATIS)</span>
+            <span className="lp-label" onClick={handleDateTap}>TANGGAL (OTOMATIS)</span>
             {devMode
               ? <select className="lp-input" value={devDay} onChange={e => { setDevDay(e.target.value); loadJadwal(e.target.value); }}>
                   {dowNames.slice(1).map((d,i) => <option key={i+1} value={i+1}>{d}</option>)}
                 </select>
-              : <div className="rt-input-read">{today} — {hariLabel}</div>
+              : <div className="lp-input-read">{hariLabel}, {today}</div>
             }
           </div>
-          <div>
-            <span className="rt-label">NAMA PETUGAS</span>
-            <div className="rt-input-read">{pic || "—"}</div>
-          </div>
         </div>
+        <label className="lp-form-label-mt lp-label">NAMA PETUGAS
+          <div className="lp-input-read">{pic || "—"}</div>
+        </label>
         <div className={gpsBoxCls}>
           <div className="lp-gps-top">
-            <div className="lp-gps-dot" />
-            <span className="lp-gps-label">{gpsOk ? "GPS Terkunci" : gps.status === "error" ? "GPS Error" : "Mengambil GPS…"}</span>
+            <div className="lp-gps-ic">
+              {gpsOk
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                : gps.status === "error"
+                  ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/></svg>
+              }
+            </div>
+            <div>
+              <div className="lp-gps-ttl">Lokasi GPS</div>
+              <div className="lp-gps-st">
+                {gpsOk ? `Terdeteksi · akurasi ±${Math.round(gps.accuracy)} m` : gps.status === "error" ? gps.message : "Mendeteksi lokasi..."}
+              </div>
+            </div>
             {gps.status !== "ok" && <button className="lp-gps-retry" onClick={fetchGps}>Retry</button>}
           </div>
           {gpsOk && (
-            <div className="lp-gps-detail">
+            <div className="lp-coord">
               <div><span className="lp-coord-k">LAT</span>{"  "}{gps.lat?.toFixed(6)}{"  "}<span className="lp-coord-k">LON</span>{"  "}{gps.lon?.toFixed(6)}</div>
               {gps.addr && <div className="lp-coord-addr">{gps.addr}</div>}
             </div>
@@ -2328,16 +2362,24 @@ function TabRutin({ pic = "" }) {
 
       {/* progress */}
       {allTasks.length > 0 && (
-        <div className="rt-progress-wrap">
-          <div className="rt-progress-bar-wrap">
-            <div className="rt-progress-bar" style={{width:`${Math.round(doneCount/allTasks.length*100)}%`}} />
+        <div className="lp-progress-wrap">
+          <div className="lp-progress-row">
+            <span className="lp-progress-label">PROGRESS</span>
+            <span className="lp-progress-count">{doneCount}/{allTasks.length}</span>
           </div>
-          <span className="rt-progress-label">{doneCount}/{allTasks.length} selesai</span>
+          <div className="lp-progress-bar"><div className="lp-progress-fill" style={{width:`${Math.round(doneCount/allTasks.length*100)}%`}}/></div>
+        </div>
+      )}
+
+      {/* empty state */}
+      {outlets.length === 0 && outletId && (
+        <div className="lp-empty" style={{textAlign:"center",lineHeight:1.7}}>
+          Tidak ada tugas jatuh tempo hari ini<br/>
+          <span style={{fontSize:11,color:"#A39E94"}}>Lihat jadwal lengkap di tab Jadwal. Ubah Outlet dan Type untuk melihat tugas lainnya.</span>
         </div>
       )}
 
       {/* tasks per outlet */}
-      {outlets.length === 0 && <div className="rt-empty">Tidak ada tugas hari ini ({hariLabel})</div>}
       {outlets.map(o => (
         <div key={o.outlet_id} className="rt-section">
           <div className="rt-section-head">
@@ -2365,8 +2407,8 @@ function TabRutin({ pic = "" }) {
                     <div className="rt-photo-row">
                       {ck.photos.map((src,i) => (
                         <div key={i} className="rt-photo-thumb" onClick={() => setPvSrc(src)}>
-                          <img src={src} alt="" />
-                          <button className="rt-photo-del" onClick={e => { e.stopPropagation(); setChecks(prev => ({ ...prev, [task.kode]: { ...prev[task.kode], photos: prev[task.kode].photos.filter((_,j) => j!==i) } })); }}>×</button>
+                          <img src={src} alt=""/>
+                          <button className="rt-photo-del" onClick={e => { e.stopPropagation(); setChecks(prev => ({ ...prev, [task.kode]: { ...prev[task.kode], photos: prev[task.kode].photos.filter((_,j)=>j!==i) } })); }}>×</button>
                         </div>
                       ))}
                       {ck.photos.length < task.min_foto && (
@@ -2376,7 +2418,7 @@ function TabRutin({ pic = "" }) {
                       )}
                     </div>
                     <label className="rt-upload-label">
-                      <input type="file" accept="image/*" style={{display:"none"}} onChange={e => handlePhoto(task.kode, e.target.files[0])} />
+                      <input type="file" accept="image/*" style={{display:"none"}} onChange={e => handlePhoto(task.kode, e.target.files[0])}/>
                       Upload foto
                     </label>
                   </div>
@@ -2389,7 +2431,7 @@ function TabRutin({ pic = "" }) {
 
       {/* submit */}
       {allTasks.length > 0 && (
-        <button className={`rt-submit-btn${canSubmit ? " rt-submit-btn--ready" : " rt-submit-btn--disabled"}`} onClick={handleSubmit} disabled={!canSubmit || submitting}>
+        <button className={`lp-submit-btn${canSubmit ? " ready" : " disabled"}`} onClick={handleSubmit} disabled={!canSubmit||submitting}>
           {submitting ? "Mengirim…" : canSubmit ? "Kirim Laporan Tugas Rutin" : `Selesaikan semua tugas (${doneCount}/${allTasks.length})`}
         </button>
       )}
@@ -2397,23 +2439,43 @@ function TabRutin({ pic = "" }) {
       {/* camera modal */}
       {showCam && (
         <div className="lp-cam-modal">
-          <video ref={videoRef} className="lp-cam-video" playsInline />
+          <video ref={videoRef} className="lp-cam-video" playsInline/>
           <div className="lp-cam-actions">
             <button className="lp-cam-capture" onClick={capturePhoto}>📷 Ambil Foto</button>
             <button className="lp-cam-cancel" onClick={() => { setShowCam(false); stopStream(); }}>Batal</button>
           </div>
         </div>
       )}
-
-      {/* preview modal */}
       {pvSrc && (
         <div className="lp-pv-modal" onClick={() => setPvSrc(null)}>
-          <img src={pvSrc} className="lp-pv-img" alt="" />
+          <img src={pvSrc} className="lp-pv-img" alt=""/>
         </div>
       )}
     </div>
   );
 }
+  const [gps, setGps] = useState({ status: "loading" });
+  const _gpsWatchRef = useRef(null);
+  const _gpsHardStopRef = useRef(null);
+  const [outlets, setOutlets] = useState([]); // [{outlet_id, outlet_nama, tasks:[]}]
+  const [checks, setChecks] = useState({});   // {kode_task: {done:bool, photos:[], note:""}}
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [pvSrc, setPvSrc] = useState(null);
+  const [camTarget, setCamTarget] = useState(null);
+  const [showCam, setShowCam] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  // dev mode
+  const [devTap, setDevTap] = useState(0);
+  const [devMode, setDevMode] = useState(false);
+  const [devDay, setDevDay] = useState("");
+  function handleDateTap() {
+    const n = devTap + 1;
+    if (n >= 5) { setDevTap(0); if (devMode) { setDevMode(false); setDevDay(""); alert("Mode developer non-aktif."); } else { setDevMode(true); alert("Mode developer aktif."); } }
+    else setDevTap(n);
+  }
 
 /* ── tab perbaikan ── */
 function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", setPic, outletList = [] }) {
