@@ -2327,7 +2327,7 @@ function TabRutin({ pic = "", outletList = [] }) {
               ? <select className="lp-input" value={devDay} onChange={e => setDevDay(e.target.value)}>
                   {dowNames.slice(1).map((d,i) => <option key={i+1} value={i+1}>{d}</option>)}
                 </select>
-              : <div className="lp-input-read">{hariLabel}, {today}</div>
+              : <div className="lp-input-read">{today}</div>
             }
           </div>
         </div>
