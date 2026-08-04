@@ -652,7 +652,8 @@
 .dcHeadRight{ display:flex; align-items:center; gap:10px; }
 .dcLedger   { max-width:100%; }
 .dcLgRow    { grid-template-columns: 40px 60px 1fr 1fr 70px 80px 70px 60px 160px !important; }
-.dcCell     { font-size:12px; color:var(--ink,#f4f4f5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dcCell     { font-size:12px; color:var(--ink,#f4f4f5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; }
 .dcNormal   { color:#4ade80; font-weight:600; }
 .dcMasalah  { color:#e5674f; font-weight:600; }
 .dcProses   { color:#f59e0b; font-weight:600; }
+.dcZero     { color:#5e6066; font-weight:400; }

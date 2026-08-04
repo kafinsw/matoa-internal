@@ -140,9 +140,9 @@ export default function DailyCheckTab({ outletList = [] }) {
             </div>
             <span className={s.dcCell}>{row.outlet_nama || '—'}</span>
             <span className={s.dcCell}>{row.petugas_nama || '—'}</span>
-            <span className={`${s.dcCell} ${s.dcNormal}`}>{row.normal_count}</span>
-            <span className={`${s.dcCell} ${s.dcMasalah}`}>{row.masalah_count}</span>
-            <span className={`${s.dcCell} ${s.dcProses}`}>{row.proses_count}</span>
+            <span className={`${s.dcCell} ${row.normal_count  > 0 ? s.dcNormal  : s.dcZero}`}>{row.normal_count}</span>
+            <span className={`${s.dcCell} ${row.masalah_count > 0 ? s.dcMasalah : s.dcZero}`}>{row.masalah_count}</span>
+            <span className={`${s.dcCell} ${row.proses_count  > 0 ? s.dcProses  : s.dcZero}`}>{row.proses_count}</span>
             <span className={s.dcCell}>{row.total_items}</span>
             <span className={s.dcCell}>{fmtWib(row.created_at)}</span>
           </div>
