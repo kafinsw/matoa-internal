@@ -2370,7 +2370,7 @@ function TabRutin({ pic = "" }) {
 }
 
 /* ── tab perbaikan ── */
-function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", outletList = [] }) {
+function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", setPic, outletList = [] }) {
   const [gps, setGps] = useState({
     lat: null,
     lon: null,
@@ -3286,6 +3286,7 @@ export default function LaporanPerbaikan() {
             tim={tim}
             setTim={setTim}
             pic={pic}
+            setPic={setPic}
             outletList={outletList}
           />
         )}
