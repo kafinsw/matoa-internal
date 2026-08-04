@@ -1929,6 +1929,9 @@ function TabDaily({ pic = "" }) {
                     ? gps.message
                     : "Mendeteksi lokasi..."}
               </div>
+              {gps.status === "error" && (
+                <button className="lp-gps-retry" onClick={() => fetchGps()}>Cek Lokasi</button>
+              )}
             </div>
           </div>
           {gpsOk && (
@@ -2362,7 +2365,7 @@ function TabRutin({ pic = "", outletList = [] }) {
                 {gpsOk ? `Terdeteksi · akurasi ±${Math.round(gps.accuracy)} m` : gps.status === "error" ? gps.message : "Mendeteksi lokasi..."}
               </div>
             </div>
-            {gps.status !== "ok" && <button className="lp-gps-retry" onClick={fetchGps}>Retry</button>}
+            {gps.status !== "ok" && <button className="lp-gps-retry" onClick={fetchGps}>Cek Lokasi</button>}
           </div>
           {gpsOk && (
             <div className="lp-coord">
@@ -2901,6 +2904,9 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", setPic, outlet
                           ? gps.message || "Gagal dapat lokasi"
                           : "Meminta izin lokasi…"}
                   </div>
+                  {gps.status === "error" && (
+                    <button className="lp-gps-retry" onClick={fetchGps}>Cek Lokasi</button>
+                  )}
                 </div>
               </div>
               {gps.status === "ok" && gps.lat && (

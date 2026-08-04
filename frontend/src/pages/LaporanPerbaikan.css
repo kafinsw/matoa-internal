@@ -357,6 +357,8 @@ textarea.lp-bb-textarea.lp-input-error { border-color:#e5674f !important; }
 .lp-gps-box--err .lp-gps-ic { background:#2a1411; color:#e5674f; }
 .lp-gps-ttl { font-size:12px; font-weight:700; color:#f4f4f5; }
 .lp-gps-st  { font-size:11px; color:#8b8d93; margin-top:1px; }
+.lp-gps-retry { margin-top:6px; padding:4px 10px; font-size:11px; font-weight:600; background:#1e1f23; color:#f4f4f5; border:1px solid #3a3b3f; border-radius:6px; cursor:pointer; }
+.lp-gps-retry:active { background:#2a2b30; }
 .lp-coord { font-family:'JetBrains Mono',monospace; font-size:11px; color:#a9abb0; margin-top:9px; line-height:1.7; word-break:break-word; white-space:normal; }
 .lp-coord-k { color:#f4f4f5; font-weight:700; }
 .lp-coord-addr { color:#a9abb0; font-size:11px; margin-top:3px; word-break:break-word; line-height:1.5; }
