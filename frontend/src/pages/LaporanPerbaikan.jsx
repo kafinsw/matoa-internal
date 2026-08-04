@@ -2173,6 +2173,7 @@ function TabRutin({ pic = "" }) {
   const [pvSrc,    setPvSrc]   = useState(null);
   const [camTarget,setCamTarget] = useState(null);
   const [showCam,  setShowCam]  = useState(false);
+  const [openGrps, setOpenGrps] = useState(new Set());
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
 
@@ -2371,63 +2372,112 @@ function TabRutin({ pic = "" }) {
         </div>
       )}
 
-      {/* empty state */}
-      {outlets.length === 0 && outletId && (
-        <div className="lp-empty" style={{textAlign:"center",lineHeight:1.7}}>
+      {/* tasks — grouped by frekuensi, accordion like dc-acc */}
+      {outlets.length === 0 && outletId && tim && (
+        <div className="dc-empty" style={{textAlign:"center",lineHeight:1.7}}>
           Tidak ada tugas jatuh tempo hari ini<br/>
           <span style={{fontSize:11,color:"#A39E94"}}>Lihat jadwal lengkap di tab Jadwal. Ubah Outlet dan Type untuk melihat tugas lainnya.</span>
         </div>
       )}
+      {!outletId && <div className="dc-empty">Pilih OUTLET untuk memuat tugas.</div>}
+      {outletId && !tim && <div className="dc-empty">Pilih TYPE untuk memuat tugas.</div>}
 
-      {/* tasks per outlet */}
-      {outlets.map(o => (
-        <div key={o.outlet_id} className="rt-section">
-          <div className="rt-section-head">
-            <Pill className="pill-pink">{o.outlet_nama}</Pill>
-          </div>
-          {o.tasks.map(task => {
-            const ck = checks[task.kode] || { done: false, photos: [], note: "" };
-            const complete = isTaskComplete(task, ck);
-            return (
-              <div key={task.kode} className={`rt-item${complete ? " rt-item--done" : ""}`}>
-                <div className="rt-item-head">
-                  <label className="rt-check-label">
-                    <input type="checkbox" checked={ck.done} onChange={e => setChecks(prev => ({ ...prev, [task.kode]: { ...prev[task.kode], done: e.target.checked } }))} />
-                    <span className="rt-task-name">{task.nama}</span>
-                  </label>
-                  <span className="rt-freq">{task.frekuensi}</span>
-                </div>
-                {task.keterangan?.length > 0 && (
-                  <ul className="rt-poin">
-                    {task.keterangan.map((p,i) => <li key={i}>{p}</li>)}
-                  </ul>
-                )}
-                {task.min_foto > 0 && (
-                  <div className="rt-photos">
-                    <div className="rt-photo-row">
-                      {ck.photos.map((src,i) => (
-                        <div key={i} className="rt-photo-thumb" onClick={() => setPvSrc(src)}>
-                          <img src={src} alt=""/>
-                          <button className="rt-photo-del" onClick={e => { e.stopPropagation(); setChecks(prev => ({ ...prev, [task.kode]: { ...prev[task.kode], photos: prev[task.kode].photos.filter((_,j)=>j!==i) } })); }}>×</button>
+      {outlets.map(o => {
+        // group tasks by frekuensi
+        const groups = {};
+        o.tasks.forEach(t => {
+          const g = t.frekuensi || "Lainnya";
+          if (!groups[g]) groups[g] = [];
+          groups[g].push(t);
+        });
+        const frekOrder = ["Harian","Mingguan","2 Mingguan","Bulanan (1×)","Lainnya"];
+        const sorted = Object.keys(groups).sort((a,b) => {
+          const ia = frekOrder.indexOf(a); const ib = frekOrder.indexOf(b);
+          return (ia===-1?99:ia) - (ib===-1?99:ib);
+        });
+        return sorted.map(frek => {
+          const tasks = groups[frek];
+          const grpKey = `${o.outlet_id}-${frek}`;
+          const isOpen = openGrps.has(grpKey);
+          const grpDone = tasks.filter(t => isTaskComplete(t, checks[t.kode])).length;
+          const grpComplete = grpDone === tasks.length;
+          return (
+            <div key={grpKey} className="dc-cat-group">
+              <button className="dc-acc" onClick={() => setOpenGrps(prev => { const s=new Set(prev); s.has(grpKey)?s.delete(grpKey):s.add(grpKey); return s; })}>
+                <span className="dc-acc-no"><Pill className="pill-pink" style={{fontSize:9}}>{o.outlet_nama}</Pill></span>
+                <span className="dc-acc-ttl">TUGAS {frek.toUpperCase()}{grpComplete && <span className="dc-acc-done">✓</span>}</span>
+                <span className="dc-acc-cnt">{grpDone}/{tasks.length}</span>
+                <span className={`dc-acc-chev${isOpen?" dc-acc-chev--open":""}`}>▾</span>
+              </button>
+              {isOpen && (
+                <div className="dc-items">
+                  {tasks.map(task => {
+                    const ck = checks[task.kode] || { done:false, photos:[] };
+                    const complete = isTaskComplete(task, ck);
+                    return (
+                      <div key={task.kode} className={`dc-item${complete?" dc-item--ok":""}`}>
+                        <div className="dc-item-head">
+                          <div className="dc-item-mid">
+                            <div className="dc-item-nama">{task.nama}</div>
+                            <div className="dc-item-tags">
+                              {task.hari && <span className="dc-tag-foto">SETIAP {task.hari.toUpperCase()}</span>}
+                              {frek === "Harian" && <span className="dc-tag-foto">SETIAP HARI</span>}
+                              {task.min_foto > 0 && <span className="dc-tag-foto">MIN. {task.min_foto} FOTO</span>}
+                            </div>
+                          </div>
+                          <span className={`dc-item-dot${complete?" dc-item-dot--ok":""}`}/>
                         </div>
-                      ))}
-                      {ck.photos.length < task.min_foto && (
-                        <button className="rt-add-photo" onClick={() => openCamera(task.kode)}>
-                          <span>+</span><span className="rt-min-foto">{ck.photos.length}/{task.min_foto} foto</span>
-                        </button>
-                      )}
-                    </div>
-                    <label className="rt-upload-label">
-                      <input type="file" accept="image/*" style={{display:"none"}} onChange={e => handlePhoto(task.kode, e.target.files[0])}/>
-                      Upload foto
-                    </label>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+                        {task.keterangan?.length > 0 && (
+                          <ul className="dc-poin-list">
+                            {task.keterangan.map((p,i) => <li key={i} className="dc-poin-item">{p}</li>)}
+                          </ul>
+                        )}
+                        {/* checkbox done */}
+                        <div className="dc-seg" style={{marginTop:10}}>
+                          <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,fontWeight:600,color: ck.done?"#1F8A5B":"#141414"}}>
+                            <input type="checkbox" checked={ck.done} style={{accentColor:"#1F8A5B",width:16,height:16}}
+                              onChange={e => setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],done:e.target.checked}}))} />
+                            {ck.done ? "Selesai dikerjakan" : "Tandai selesai"}
+                          </label>
+                        </div>
+                        {/* foto */}
+                        {task.min_foto > 0 && (
+                          <div className="dc-photo-wrap">
+                            <div className="dc-photo-row">
+                              <span className="dc-photo-label">Foto bukti</span>
+                              <span className={`dc-photo-count${(ck.photos||[]).length < task.min_foto?" dc-photo-count--warn":" dc-photo-count--ok"}`}>
+                                {(ck.photos||[]).length}/{task.min_foto} min
+                              </span>
+                            </div>
+                            <button className="dc-photo-btn" onClick={() => openCamera(task.kode)}>
+                              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/>
+                              </svg>
+                              Ambil Foto (Kamera)
+                            </button>
+                            <div className="dc-photo-grid">
+                              {(ck.photos||[]).map((src,i) => (
+                                <div key={i} className="dc-photo-thumb" onClick={()=>setPvSrc(src)}>
+                                  <img src={src} alt=""/>
+                                  <button className="dc-photo-del" onClick={e=>{e.stopPropagation();setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],photos:prev[task.kode].photos.filter((_,j)=>j!==i)}}));}}>×</button>
+                                </div>
+                              ))}
+                            </div>
+                            <label className="dc-upload-label" style={{marginTop:6,display:"block",fontSize:11,color:"#8A857C",cursor:"pointer"}}>
+                              <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>handlePhoto(task.kode,e.target.files[0])}/>
+                              atau upload dari galeri
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        });
+      })}
 
       {/* submit */}
       {allTasks.length > 0 && (
