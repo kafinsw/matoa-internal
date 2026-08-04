@@ -354,11 +354,11 @@ try {
                     $params[] = $s; $params[] = $s;
                 }
                 $w = implode(' AND ', $where);
-                $joins = "FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN user u ON u.id=tl.user_id";
+                $joins = "FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN user u ON u.id=tl.user_id LEFT JOIN petugas p ON p.id=tl.petugas_id";
                 $cntStmt = $pdo->prepare("SELECT COUNT(*) $joins WHERE $w");
                 $cntStmt->execute($params);
                 $total = (int)$cntStmt->fetchColumn();
-                $stmt = $pdo->prepare("SELECT tl.id, tl.created_at, o.nama AS outlet_nama, u.name AS user_name, u.type AS user_type, tl.tasks $joins WHERE $w ORDER BY tl.created_at DESC LIMIT $limit OFFSET $offset");
+                $stmt = $pdo->prepare("SELECT tl.id, tl.created_at, o.nama AS outlet_nama, u.name AS user_name, u.type AS user_type, p.nama AS petugas_nama, tl.tasks $joins WHERE $w ORDER BY tl.created_at DESC LIMIT $limit OFFSET $offset");
                 $stmt->execute($params);
                 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($rows as &$r) {
