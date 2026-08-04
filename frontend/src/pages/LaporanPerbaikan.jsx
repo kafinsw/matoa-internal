@@ -2454,28 +2454,6 @@ function TabRutin({ pic = "" }) {
     </div>
   );
 }
-  const [gps, setGps] = useState({ status: "loading" });
-  const _gpsWatchRef = useRef(null);
-  const _gpsHardStopRef = useRef(null);
-  const [outlets, setOutlets] = useState([]); // [{outlet_id, outlet_nama, tasks:[]}]
-  const [checks, setChecks] = useState({});   // {kode_task: {done:bool, photos:[], note:""}}
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [pvSrc, setPvSrc] = useState(null);
-  const [camTarget, setCamTarget] = useState(null);
-  const [showCam, setShowCam] = useState(false);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-
-  // dev mode
-  const [devTap, setDevTap] = useState(0);
-  const [devMode, setDevMode] = useState(false);
-  const [devDay, setDevDay] = useState("");
-  function handleDateTap() {
-    const n = devTap + 1;
-    if (n >= 5) { setDevTap(0); if (devMode) { setDevMode(false); setDevDay(""); alert("Mode developer non-aktif."); } else { setDevMode(true); alert("Mode developer aktif."); } }
-    else setDevTap(n);
-  }
 
 /* ── tab perbaikan ── */
 function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", setPic, outletList = [] }) {
