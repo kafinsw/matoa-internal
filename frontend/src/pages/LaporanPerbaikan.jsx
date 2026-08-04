@@ -2200,9 +2200,26 @@ function TabRutin({ pic = "", outletList = [] }) {
         .then(r => r.json()).then(d => {
           if (!Array.isArray(d)) return;
           setOutlets(d);
-          const m = {};
-          d.forEach(o => o.tasks.forEach(t => { m[t.kode] = { done: false, photos: [], note: "" }; }));
-          setChecks(m);
+          // fetch laporan hari ini untuk restore checks
+          const todayQ = new URLSearchParams();
+          if (tim) todayQ.set('user_id', tim);
+          if (outletId) todayQ.set('outlet_id', outletId);
+          todayQ.set('today', '1');
+          fetch(`/php-api/tugasrutin-laporan?${todayQ}`)
+            .then(r2 => r2.json()).then(d2 => {
+              const laporan = d2?.data?.[0];
+              if (laporan?.tasks) {
+                try { setChecks(JSON.parse(laporan.tasks)); setSubmitted(true); return; } catch {}
+              }
+              // belum ada laporan — init kosong
+              const m = {};
+              d.forEach(o => o.tasks.forEach(t => { m[t.kode] = { done: false, photos: [], note: '' }; }));
+              setChecks(m); setSubmitted(false);
+            }).catch(() => {
+              const m = {};
+              d.forEach(o => o.tasks.forEach(t => { m[t.kode] = { done: false, photos: [], note: '' }; }));
+              setChecks(m);
+            });
         }).catch(() => {});
     }
 
