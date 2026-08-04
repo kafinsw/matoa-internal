@@ -251,7 +251,7 @@ try {
                 $where=[]; $params=[];
                 if (!empty($_GET['outlet_id'])) { $where[]='tl.outlet_id=?'; $params[]=intval($_GET['outlet_id']); }
                 if (!empty($_GET['user_id']))   { $where[]='tl.user_id=?';   $params[]=intval($_GET['user_id']); }
-                if (!empty($_GET['today']))     { $where[]='DATE(CONVERT_TZ(tl.created_at,"+00:00","+07:00"))=CURDATE()'; }
+                if (!empty($_GET['today']))     { $where[]="DATE(CONVERT_TZ(tl.created_at,'+00:00','+07:00'))=DATE(CONVERT_TZ(NOW(),'+00:00','+07:00'))"; }
                 if (!empty($_GET['search']))    { $where[]='(SELECT nama FROM outlets WHERE id=tl.outlet_id) LIKE ?'; $params[]='%'.$_GET['search'].'%'; }
                 $w = $where ? 'WHERE '.implode(' AND ',$where) : '';
                 $total = $pdo->prepare("SELECT COUNT(*) FROM tugasrutin_laporan tl $w"); $total->execute($params); $total=intval($total->fetchColumn());
