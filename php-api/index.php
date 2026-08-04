@@ -320,15 +320,16 @@ try {
         // ---- Katalog Gejala next ID ----
         case '/katalog-gejala/next-id':
             $kat_id = intval($_GET['kategori_id'] ?? 0);
-            // get existing prefix from katalog_gejala for this kategori
-            $last = $pdo->query("SELECT gejala_id FROM katalog_gejala WHERE kategori_id=$kat_id ORDER BY gejala_id DESC LIMIT 1")->fetchColumn();
-            if ($last) {
-                // prefix = everything before last '-', n = last number + 1
-                $dash = strrpos($last, '-');
-                $prefix = substr($last, 0, $dash);
-                $n = intval(substr($last, $dash + 1)) + 1;
+            $rows = $pdo->query("SELECT gejala_id FROM katalog_gejala WHERE kategori_id=$kat_id ORDER BY gejala_id ASC")->fetchAll(PDO::FETCH_COLUMN);
+            if ($rows) {
+                $dash   = strrpos($rows[0], '-');
+                $prefix = substr($rows[0], 0, $dash);
+                // collect existing numbers
+                $nums = array_map(fn($id) => intval(substr($id, strrpos($id,'-')+1)), $rows);
+                // find smallest gap starting from 1
+                $n = 1;
+                while (in_array($n, $nums)) $n++;
             } else {
-                // no existing data — derive prefix from kategori nama initials
                 $nama = $pdo->query("SELECT nama FROM kategori_kendala WHERE id=$kat_id")->fetchColumn();
                 if (!$nama) { json_response(['error'=>'kategori not found'], 404); break; }
                 $prefix = implode('', array_map(fn($w) => strtoupper($w[0]), explode(' ', trim($nama))));
