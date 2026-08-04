@@ -274,9 +274,9 @@ try {
                 if (!empty($_GET['outlet_id'])) { $where[]='tl.outlet_id=?'; $params[]=intval($_GET['outlet_id']); }
                 if (!empty($_GET['user_id']))   { $where[]='tl.user_id=?';   $params[]=intval($_GET['user_id']); }
                 if (!empty($_GET['today']))     { $where[]="DATE(CONVERT_TZ(tl.created_at,'+00:00','+07:00'))=DATE(CONVERT_TZ(NOW(),'+00:00','+07:00'))"; }
-                if (!empty($_GET['search']))    { $where[]='((SELECT nama FROM outlets WHERE id=tl.outlet_id) LIKE ? OR (SELECT nama FROM petugas WHERE id=tl.petugas_id) LIKE ?)'; $params[]='%'.$_GET['search'].'%'; $params[]='%'.$_GET['search'].'%'; }
+                if (!empty($_GET['search']))    { $where[]='(o.nama LIKE ? OR p.nama LIKE ?)'; $params[]='%'.$_GET['search'].'%'; $params[]='%'.$_GET['search'].'%'; }
                 $w = $where ? 'WHERE '.implode(' AND ',$where) : '';
-                $total = $pdo->prepare("SELECT COUNT(*) FROM tugasrutin_laporan tl $w"); $total->execute($params); $total=intval($total->fetchColumn());
+                $total = $pdo->prepare("SELECT COUNT(*) FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN petugas p ON p.id=tl.petugas_id $w"); $total->execute($params); $total=intval($total->fetchColumn());
                 $stmt  = $pdo->prepare("SELECT tl.*, o.nama AS outlet_nama, u.name AS user_name, u.type AS user_type, p.nama AS petugas_nama FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN user u ON u.id=tl.user_id LEFT JOIN petugas p ON p.id=tl.petugas_id $w ORDER BY tl.created_at DESC LIMIT ? OFFSET ?");
                 $stmt->execute(array_merge($params,[$limit,($page-1)*$limit]));
                 json_response(['data'=>$stmt->fetchAll(PDO::FETCH_ASSOC),'pagination'=>['total'=>$total,'page'=>$page,'pages'=>max(1,ceil($total/$limit))]]);
