@@ -2468,16 +2468,12 @@ function TabRutin({ pic = "", outletList = [] }) {
                             </button>
                             <div className="dc-photo-grid">
                               {(ck.photos||[]).map((src,i) => (
-                                <div key={i} className="dc-photo-thumb" onClick={()=>setPvSrc(src)}>
-                                  <img src={src} alt=""/>
-                                  <button className="dc-photo-del" onClick={e=>{e.stopPropagation();setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],photos:prev[task.kode].photos.filter((_,j)=>j!==i)}}));}}>×</button>
+                                <div key={i} className="dc-photo-cell">
+                                  <img src={src} className="dc-photo-img" alt={`foto-${i+1}`} onClick={()=>setPvSrc(src)} style={{cursor:"zoom-in"}}/>
+                                  <button className="dc-photo-del" onClick={e=>{e.stopPropagation();setChecks(prev=>({...prev,[task.kode]:{...prev[task.kode],photos:prev[task.kode].photos.filter((_,j)=>j!==i)}}));}}>✕</button>
                                 </div>
                               ))}
                             </div>
-                            <label className="dc-upload-label" style={{marginTop:6,display:"block",fontSize:11,color:"#8A857C",cursor:"pointer"}}>
-                              <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>handlePhoto(task.kode,e.target.files[0])}/>
-                              atau upload dari galeri
-                            </label>
                           </div>
                         )}
                         {/* catatan */}
