@@ -2940,8 +2940,8 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", setPic, outlet
 
 /* ── tab jadwal ── */
 function TabJadwal() {
-  const [jadwal, setJadwal] = React.useState(null);
-  React.useEffect(() => {
+  const [jadwal, setJadwal] = useState(null);
+  useEffect(() => {
     fetch('/php-api/tugasrutin-jadwal')
       .then(r=>r.json())
       .then(d => {
