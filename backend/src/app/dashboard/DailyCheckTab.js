@@ -83,7 +83,9 @@ function DcDetailModal({ id, onClose }) {
           }}>
             {/* task header */}
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <div style={{fontSize:13,fontWeight:600,color:'#f4f4f5'}}>{kode}</div>
+              <div style={{fontSize:13,fontWeight:600,color:'#f4f4f5'}}>
+                {kode}{task.nama ? <span style={{color:'#8b8d93',fontWeight:400}}> · {task.nama}</span> : ''}
+              </div>
               <div style={{
                 fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:6,
                 background: task.status==='Normal' ? '#0f2a1a' : task.status==='Bermasalah' ? '#2a1411' : '#2a1f0a',
@@ -91,7 +93,10 @@ function DcDetailModal({ id, onClose }) {
               }}>{task.status ?? '—'}</div>
             </div>
             {/* note */}
-            {task.note && <div style={{fontSize:12,color:'#a9abb0'}}>{task.note}</div>}
+            <div style={{fontSize:12,color: task.note ? '#a9abb0' : '#5e6066'}}>
+              <span style={{color:'#8b8d93',fontFamily:'monospace',fontSize:10,textTransform:'uppercase',letterSpacing:1}}>Note: </span>
+              {task.note || '—'}
+            </div>
             {/* photos */}
             {(task.photos?.length > 0) && (
               <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:4}}>

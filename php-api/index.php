@@ -170,7 +170,20 @@ try {
                     $stmt->execute([intval($_GET['id'])]);
                     $row = $stmt->fetch(PDO::FETCH_ASSOC);
                     if (!$row) { http_response_code(404); json_response(['error'=>'not found']); break; }
-                    $row['tasks'] = json_decode($row['tasks'], true) ?? [];
+                    $tasks = json_decode($row['tasks'], true) ?? [];
+                    // inject nama from daily_task
+                    if (!empty($tasks)) {
+                        $kodes = array_keys($tasks);
+                        $ph = implode(',', array_fill(0, count($kodes), '?'));
+                        $ns = $pdo->prepare("SELECT kode_task, nama FROM daily_task WHERE kode_task IN ($ph)");
+                        $ns->execute($kodes);
+                        $namaMap = $ns->fetchAll(PDO::FETCH_KEY_PAIR);
+                        foreach ($tasks as $kode => &$t) {
+                            $t['nama'] = $namaMap[$kode] ?? null;
+                        }
+                        unset($t);
+                    }
+                    $row['tasks'] = $tasks;
                     json_response($row);
                 }
                 $page  = max(1, intval($_GET['page']  ?? 1));
