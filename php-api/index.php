@@ -203,6 +203,52 @@ try {
             }
             break;
 
+        // ---- Tugasrutin (GA) ----
+        case '/tugasrutin-jadwal-harian':
+            $dow = intval($_GET['day'] ?? date('N')); // 1=Mon..7=Sun
+            $rows = $pdo->query("
+                SELECT tj.outlet_id, tj.tasks,
+                       tt.kode_task, tt.nama, tt.min_foto, tt.keterangan, tt.frekuensi, tt.hari,
+                       o.nama AS outlet_nama
+                FROM tugasrutin_jadwal tj
+                JOIN outlets o ON o.id = tj.outlet_id
+                LEFT JOIN tugasrutin_task tt ON JSON_CONTAINS(tj.tasks, JSON_QUOTE(tt.kode_task))
+                WHERE tj.day_of_week = $dow AND tj.user_id = 4
+                ORDER BY tj.outlet_id, tt.sort_order
+            ")->fetchAll(PDO::FETCH_ASSOC);
+            // group by outlet
+            $byOutlet = [];
+            foreach ($rows as $r) {
+                $ok = $r['outlet_id'];
+                if (!isset($byOutlet[$ok])) $byOutlet[$ok] = ['outlet_id'=>$ok,'outlet_nama'=>$r['outlet_nama'],'tasks'=>[]];
+                if ($r['kode_task']) $byOutlet[$ok]['tasks'][] = [
+                    'kode'=>$r['kode_task'], 'nama'=>$r['nama'],
+                    'min_foto'=>intval($r['min_foto']), 'frekuensi'=>$r['frekuensi'],
+                    'keterangan'=>json_decode($r['keterangan']??'null'),
+                ];
+            }
+            json_response(array_values($byOutlet));
+            break;
+
+        case '/tugasrutin-laporan':
+            if ($_SERVER['REQUEST_METHOD']==='GET') {
+                $page  = max(1,intval($_GET['page']??1)); $limit=intval($_GET['limit']??10);
+                $where=[]; $params=[];
+                if (!empty($_GET['outlet_id'])) { $where[]='outlet_id=?'; $params[]=intval($_GET['outlet_id']); }
+                if (!empty($_GET['search']))    { $where[]='(SELECT nama FROM outlets WHERE id=tl.outlet_id) LIKE ?'; $params[]='%'.$_GET['search'].'%'; }
+                $w = $where ? 'WHERE '.implode(' AND ',$where) : '';
+                $total = $pdo->prepare("SELECT COUNT(*) FROM tugasrutin_laporan tl $w"); $total->execute($params); $total=intval($total->fetchColumn());
+                $stmt  = $pdo->prepare("SELECT tl.*, o.nama AS outlet_nama, p.nama AS petugas_nama FROM tugasrutin_laporan tl LEFT JOIN outlets o ON o.id=tl.outlet_id LEFT JOIN petugas p ON p.id=tl.outlet_id LEFT JOIN user u ON u.id=tl.user_id $w ORDER BY tl.created_at DESC LIMIT ? OFFSET ?");
+                $stmt->execute(array_merge($params,[$limit,($page-1)*$limit]));
+                json_response(['data'=>$stmt->fetchAll(PDO::FETCH_ASSOC),'pagination'=>['total'=>$total,'page'=>$page,'pages'=>max(1,ceil($total/$limit))]]);
+            } elseif ($_SERVER['REQUEST_METHOD']==='POST') {
+                $b=json_decode(file_get_contents('php://input'),true);
+                $stmt=$pdo->prepare("INSERT INTO tugasrutin_laporan (outlet_id,user_id,tasks,lat,lon,address,device) VALUES (?,?,?,?,?,?,?)");
+                $stmt->execute([$b['outlet_id'],$b['user_id'],json_encode($b['tasks']),$b['lat']??null,$b['lon']??null,$b['address']??null,$b['device']??null]);
+                json_response(['ok'=>true,'id'=>$pdo->lastInsertId()]);
+            }
+            break;
+
         // ---- Tugasrutin Jadwal ----
         case '/tugasrutin-jadwal':
             $rotasi  = $pdo->query("SELECT r.id, r.hari_text AS nama, r.outlet_ids, r.sort_order FROM jadwal_rotasi r ORDER BY r.sort_order")->fetchAll(PDO::FETCH_ASSOC);
