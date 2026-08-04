@@ -238,6 +238,7 @@ try {
                 if ($r['kode_task']) $byOutlet[$ok]['tasks'][] = [
                     'kode'=>$r['kode_task'], 'nama'=>$r['nama'],
                     'min_foto'=>intval($r['min_foto']), 'frekuensi'=>$r['frekuensi'],
+                    'hari'=>$r['hari'],
                     'keterangan'=>json_decode($r['keterangan']??'null'),
                 ];
             }
