@@ -165,7 +165,8 @@ try {
                 $where = ['1=1'];
                 $params = [];
                 if (!empty($_GET['outlet_id'])) { $where[] = 'dl.outlet_id = ?'; $params[] = intval($_GET['outlet_id']); }
-                if (!empty($_GET['search']))    { $where[] = 'p.nama LIKE ?';    $params[] = '%'.trim($_GET['search']).'%'; }
+                if (!empty($_GET['user_name'])) { $where[] = 'u.name = ?';       $params[] = trim($_GET['user_name']); }
+                if (!empty($_GET['search']))    { $where[] = '(p.nama LIKE ? OR o.nama LIKE ? OR u.name LIKE ?)'; $params[] = '%'.trim($_GET['search']).'%'; $params[] = '%'.trim($_GET['search']).'%'; $params[] = '%'.trim($_GET['search']).'%'; }
                 if (!empty($_GET['date_from'])) { $where[] = 'dl.created_at >= ?'; $params[] = $_GET['date_from'].' 00:00:00'; }
                 if (!empty($_GET['date_to']))   { $where[] = 'dl.created_at <= ?'; $params[] = $_GET['date_to'].' 23:59:59'; }
                 $w = implode(' AND ', $where);

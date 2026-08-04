@@ -32,8 +32,7 @@ export default function DailyCheckTab({ outletList = [] }) {
   const [page,        setPage]        = useState(1);
   const [search,      setSearch]      = useState('');
   const [outletFilter,setOutletFilter]= useState('');
-  const [dateFrom,    setDateFrom]    = useState('');
-  const [dateTo,      setDateTo]      = useState('');
+  const [userFilter,  setUserFilter]  = useState(''); // '' | 'ME' | 'GA'
   const [sortCol,     setSortCol]     = useState(null);
   const [sortDir,     setSortDir]     = useState('asc');
   const lastHash = useRef('');
@@ -43,9 +42,8 @@ export default function DailyCheckTab({ outletList = [] }) {
     try {
       const qs = new URLSearchParams({ page: p, limit: LIMIT });
       if (outletFilter)  qs.set('outlet_id', outletFilter);
+      if (userFilter)    qs.set('user_name', userFilter);
       if (search.trim()) qs.set('search', search.trim());
-      if (dateFrom)      qs.set('date_from', dateFrom);
-      if (dateTo)        qs.set('date_to',   dateTo);
       const r = await fetch(`/internal/api/daily-laporan?${qs}`);
       const d = await r.json();
       const hash = JSON.stringify(d);
@@ -57,9 +55,9 @@ export default function DailyCheckTab({ outletList = [] }) {
       }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [outletFilter, search, dateFrom, dateTo]);
+  }, [outletFilter, userFilter, search]);
 
-  useEffect(() => { setPage(1); fetchData(1); }, [outletFilter, search, dateFrom, dateTo]);
+  useEffect(() => { setPage(1); fetchData(1); }, [outletFilter, userFilter, search]);
   useEffect(() => { fetchData(page); }, [page, fetchData]);
 
   const sorted = [...rows].sort((a, b) => {
@@ -90,11 +88,16 @@ export default function DailyCheckTab({ outletList = [] }) {
             <option value="">Semua Outlet</option>
             {outletList.map(o=><option key={o.id} value={o.id}>{o.nama}</option>)}
           </select>
-          <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} className={s.filtSelect} title="Dari"/>
-          <input type="date" value={dateTo}   onChange={e=>setDateTo(e.target.value)}   className={s.filtSelect} title="Sampai"/>
+          <div className={s.filt}>
+            {['','ME','GA'].map(v=>(
+              <button key={v} className={`${s.chip}${userFilter===v?' '+s.on:''}`} onClick={()=>{setUserFilter(v);setPage(1);}}>
+                {v===''?'Semua':v}
+              </button>
+            ))}
+          </div>
           <div className={s.searchWrap}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={s.searchIco}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" placeholder="Cari petugas…" value={search} className={s.searchInput}
+            <input type="text" placeholder="Cari outlet / petugas / user…" value={search} className={s.searchInput}
               onChange={e=>setSearch(e.target.value)}/>
             {search&&<button onClick={()=>setSearch('')} className={s.searchClear}>✕</button>}
           </div>
