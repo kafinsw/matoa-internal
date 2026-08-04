@@ -96,7 +96,7 @@ function DcDetailModal({ id, onClose }) {
             {(task.photos?.length > 0) && (
               <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:4}}>
                 {task.photos.map((src, i) => {
-                  const imgSrc = src.startsWith('data:') || src.startsWith('http') ? src : `/internal/uploads/${src}`;
+                  const imgSrc = src.startsWith('data:') || src.startsWith('http') ? src : `/php-api/uploads/${src.replace(/^uploads\//, '')}`;
                   return (
                     <img key={i} src={imgSrc} alt="" onClick={() => setZoom(imgSrc)}
                       style={{width:72,height:72,objectFit:'cover',borderRadius:8,cursor:'zoom-in',border:'1px solid #26272b'}}
