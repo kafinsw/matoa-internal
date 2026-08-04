@@ -2331,6 +2331,7 @@ function TabRutin({ pic = "", outletList = [] }) {
             }
           </div>
         </div>
+        <p style={{margin:"4px 0 0",fontSize:11,fontStyle:"italic",color:"#141414"}}>*Outlet hanya tampil jika ada tugas yang tersedia</p>
         <label className="lp-form-label-mt lp-label">NAMA PETUGAS
           <div className="lp-input-read">{pic || "—"}</div>
         </label>
