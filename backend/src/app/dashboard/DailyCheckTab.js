@@ -252,18 +252,16 @@ export default function DailyCheckTab({ outletList = [] }) {
         {!loading && sorted.map((row, idx) => (
           <div key={row.id} className={`${s.lgRow} ${s.dcLgRow}`}>
             <span className={s.dcCell}>{(page-1)*LIMIT+idx+1}</span>
-            <span className={s.dcCell}>{row.user_name ?? '—'}</span>
             <span className={s.dcCell}>
-              <button onClick={() => setDetailId(row.id)} style={{
-                background:'none',border:'none',padding:0,
-                color:'#4caf7d',cursor:'pointer',fontSize:'inherit',
-                fontWeight:600,textDecoration:'underline',textUnderlineOffset:3,
-              }}>{row.outlet_nama}</button>
+              <span className={`${s.typeBadge} ${row.user_name==='GA'?s.typeGA:s.typeME}`}>{row.user_name ?? '—'}</span>
+            </span>
+            <span className={s.dcCell}>
+              <button onClick={() => setDetailId(row.id)} className={s.outletBtn}>{row.outlet_nama}</button>
             </span>
             <span className={s.dcCell}>{row.petugas_nama}</span>
-            <span className={s.dcCell} style={{color: row.normal_count  > 0 ? '#4caf7d' : '#5e6066'}}>{row.normal_count}</span>
-            <span className={s.dcCell} style={{color: row.masalah_count > 0 ? '#e5674f' : '#5e6066'}}>{row.masalah_count}</span>
-            <span className={s.dcCell} style={{color: row.proses_count  > 0 ? '#f5a623' : '#5e6066'}}>{row.proses_count}</span>
+            <span className={`${s.dcCell} ${row.normal_count  > 0 ? s.dcNormal  : ''}`}>{row.normal_count}</span>
+            <span className={`${s.dcCell} ${row.masalah_count > 0 ? s.dcMasalah : ''}`}>{row.masalah_count}</span>
+            <span className={`${s.dcCell} ${row.proses_count  > 0 ? s.dcSkip    : ''}`}>{row.proses_count}</span>
             <span className={s.dcCell}>{row.total_items}</span>
             <span className={s.dcCell}>{fmtWib(row.created_at)}</span>
           </div>

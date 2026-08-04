@@ -120,13 +120,14 @@ function TrDetailModal({ id, onClose }) {
 }
 
 const COLS = [
-  { key:'no',          label:'NO'      },
-  { key:'user_name',   label:'TYPE'    },
-  { key:'outlet_nama', label:'OUTLET'  },
-  { key:'done_count',  label:'SELESAI' },
-  { key:'skip_count',  label:'TDK DIKERJAKAN' },
-  { key:'total_items', label:'TOTAL'   },
-  { key:'created_at',  label:'TANGGAL' },
+  { key:'no',           label:'NO'      },
+  { key:'user_name',    label:'TYPE'    },
+  { key:'outlet_nama',  label:'OUTLET'  },
+  { key:'petugas_nama', label:'PETUGAS' },
+  { key:'done_count',   label:'SELESAI' },
+  { key:'skip_count',   label:'TDK DIKERJAKAN' },
+  { key:'total_items',  label:'TOTAL'   },
+  { key:'created_at',   label:'TANGGAL' },
 ];
 
 export default function TugasRutinTab() {
@@ -235,18 +236,17 @@ export default function TugasRutinTab() {
         {!loading && sorted.map((row, idx) => (
           <div key={row.id} className={`${s.lgRow} ${s.trLgRow}`}>
             <span className={s.dcCell}>{(page-1)*LIMIT+idx+1}</span>
-            <span className={s.dcCell}>{row.user_name ?? '—'}</span>
             <span className={s.dcCell}>
-              <button onClick={() => setDetailId(row.id)} style={{
-                background:'none',border:'none',padding:0,
-                color:'#4caf7d',cursor:'pointer',fontSize:'inherit',
-                fontWeight:600,textDecoration:'underline',textUnderlineOffset:3,
-              }}>{row.outlet_nama}</button>
+              <span className={`${s.typeBadge} ${row.user_name==='GA'?s.typeGA:s.typeME}`}>{row.user_name ?? '—'}</span>
             </span>
-            <span className={s.dcCell} style={{color: row.done_count > 0 ? '#4caf7d' : '#5e6066'}}>{row.done_count}</span>
-            <span className={s.dcCell} style={{color: row.skip_count > 0 ? '#f5a623' : '#5e6066'}}>{row.skip_count}</span>
+            <span className={s.dcCell}>
+              <button onClick={() => setDetailId(row.id)} className={s.outletBtn}>{row.outlet_nama}</button>
+            </span>
+            <span className={s.dcCell}>{row.petugas_nama ?? '—'}</span>
+            <span className={`${s.dcCell} ${row.done_count > 0 ? s.dcNormal : ''}`}>{row.done_count}</span>
+            <span className={`${s.dcCell} ${row.skip_count > 0 ? s.dcSkip  : ''}`}>{row.skip_count}</span>
             <span className={s.dcCell}>{row.total_items}</span>
-            <span className={s.dcCell} style={{whiteSpace:'nowrap'}}>{fmtWib(row.created_at)}</span>
+            <span className={s.dcCell}>{fmtWib(row.created_at)}</span>
           </div>
         ))}
       </div>
