@@ -2565,6 +2565,7 @@ function TabPerbaikan({ outlet, setOutlet, tim, setTim, pic = "", outletList = [
       fetchTiket(false, page, outlet, tim, true);
       fetch("/php-api/sla/tick", { method: "POST" }).catch(() => {});
       fetch("/php-api/petugas/list").then(r => r.json()).then(d => setPetugasList(Array.isArray(d) ? d : [])).catch(() => {});
+      fetch(`/php-api/petugas?nama=${encodeURIComponent(pic)}`, { method: "PATCH" }).catch(() => {});
     }, 5000);
     return () => clearInterval(id);
   }, [page, outlet, tim, pic, gps.status]);
