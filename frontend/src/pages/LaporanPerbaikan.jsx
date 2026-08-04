@@ -2191,30 +2191,30 @@ function TabRutin({ pic = "", outletList = [] }) {
   // USERS list
     const USERS_RT   = [{ id: 3, name: "ME" }, { id: 4, name: "GA" }];
 
-  function loadJadwal(dayOverride) {
-      const q = new URLSearchParams();
-      if (dayOverride) q.set("day", dayOverride);
-      if (outletId)    q.set("outlet_id", outletId);
-      if (tim)         q.set("user_id", tim);
-      fetch(`/php-api/tugasrutin-jadwal-harian?${q}`)
-      .then(r => r.json()).then(d => {
-        if (!Array.isArray(d)) return;
-        setOutlets(d);
-        const m = {};
-        d.forEach(o => o.tasks.forEach(t => { m[t.kode] = { done: false, photos: [], note: "" }; }));
-        setChecks(m);
-      }).catch(() => {});
-  }
+  function loadJadwal() {
+        const q = new URLSearchParams();
+        if (devMode && devDay) q.set("day", devDay);
+        if (outletId)    q.set("outlet_id", outletId);
+        if (tim)         q.set("user_id", tim);
+        fetch(`/php-api/tugasrutin-jadwal-harian?${q}`)
+        .then(r => r.json()).then(d => {
+          if (!Array.isArray(d)) return;
+          setOutlets(d);
+          const m = {};
+          d.forEach(o => o.tasks.forEach(t => { m[t.kode] = { done: false, photos: [], note: "" }; }));
+          setChecks(m);
+        }).catch(() => {});
+    }
 
-  useEffect(() => {
-      loadJadwal();
-      if (tim) fetch(`/php-api/tugasrutin-outlets?user_id=${tim}`)
-        .then(r => r.json()).then(d => { if (Array.isArray(d)) setRtOutlets(d); }).catch(() => {});
-      const wib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
-      const ms  = (24*3600 - wib.getHours()*3600 - wib.getMinutes()*60 - wib.getSeconds()) * 1000 + 1000;
-      const t   = setTimeout(() => { setSubmitted(false); loadJadwal(); }, ms);
-      return () => clearTimeout(t);
-    }, [outletId, tim]);
+    useEffect(() => {
+        loadJadwal();
+        if (tim) fetch(`/php-api/tugasrutin-outlets?user_id=${tim}`)
+          .then(r => r.json()).then(d => { if (Array.isArray(d)) setRtOutlets(d); }).catch(() => {});
+        const wib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+        const ms  = (24*3600 - wib.getHours()*3600 - wib.getMinutes()*60 - wib.getSeconds()) * 1000 + 1000;
+        const t   = setTimeout(() => { setSubmitted(false); loadJadwal(); }, ms);
+        return () => clearTimeout(t);
+      }, [outletId, tim, devMode, devDay]);
 
   // GPS
   async function reverseGeocode(lat, lon) {
@@ -2324,7 +2324,7 @@ function TabRutin({ pic = "", outletList = [] }) {
           <div>
             <span className="lp-label" onClick={handleDateTap}>TANGGAL (OTOMATIS)</span>
             {devMode
-              ? <select className="lp-input" value={devDay} onChange={e => { setDevDay(e.target.value); loadJadwal(e.target.value); }}>
+              ? <select className="lp-input" value={devDay} onChange={e => setDevDay(e.target.value)}>
                   {dowNames.slice(1).map((d,i) => <option key={i+1} value={i+1}>{d}</option>)}
                 </select>
               : <div className="lp-input-read">{hariLabel}, {today}</div>
